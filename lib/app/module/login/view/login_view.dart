@@ -89,13 +89,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 60,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF005BAC),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(18),
                           ),
-                          child: const Icon(
-                            Icons.business_center_rounded,
-                            color: Colors.white,
-                            size: 30,
+                          child: Image.asset(
+                            'assets/images/adastraip_logo.jpg',
+                            fit: BoxFit.contain,
                           ),
                         ),
 
