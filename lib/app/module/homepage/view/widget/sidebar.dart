@@ -18,7 +18,7 @@ class Sidebar extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isMobile = size.width < 600;
 
-    // ── ADDED: read from ViewModel directly, MVVM pattern ──
+    // ── ADDED: read from ViewModel directly, MVVM patent ──
     final vm = context.watch<AuthViewModel>();
     final userName = vm.currentUser?.name;
 
@@ -83,8 +83,9 @@ class Sidebar extends StatelessWidget {
           // Menu Items
           _menuItem(index: 0, icon: Icons.dashboard_rounded, title: 'Dashboard', isMobile: isMobile),
           _menuItem(index: 1, icon: Icons.people_alt_rounded, title: 'User Management', isMobile: isMobile),
-          _menuItem(index: 2, icon: Icons.workspace_premium_rounded, title: 'Trademark Management', isMobile: isMobile),
-          _menuItem(index: 3, icon: Icons.grid_view_rounded, title: 'Pattern Management', isMobile: isMobile),
+          _menuItem(index: 2, icon: Icons.workspace_premium_rounded, title: 'Trademark Department', isMobile: isMobile),
+          _menuItem(index: 3, icon: Icons.grid_view_rounded, title: 'Patent Department', isMobile: isMobile),
+          _menuItem(index: 4, icon: Icons.admin_panel_settings_rounded, title: 'IT Management', isMobile: isMobile),
         ],
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view model/user_vm.dart';
 import '../model/user_model.dart';
+import 'widget/cloneU_dialog.dart';
 import 'widget/createU_dialog.dart';
 import 'widget/editU_dialog.dart';
 
@@ -41,7 +42,8 @@ final ScrollController _scrollController = ScrollController();
   @override
   void initState() {
     super.initState();
-    if (widget.role == 'super_admin') {
+    if (widget.role == 'super_admin' ||
+      widget.role == 'admin') {
       Future.microtask(() {
         context.read<UserViewModel>().fetchUsers(widget.token);
       });
@@ -128,26 +130,33 @@ void dispose() {
     );
   }
 
-  void _onClone(List<UserModel> users) {
-    final selected = users.where((u) => _selectedIds.contains(u.id)).toList();
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Clone Users'),
-        content: Text(
-          'Clone ${selected.length} user(s):\n'
-          '${selected.map((u) => u.name).join(', ')}\n\n'
-          'Functionality coming soon.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
+void _onClone(List<UserModel> users) {
+  final selectedUsers =
+      users.where((u) => _selectedIds.contains(u.id)).toList();
+
+  // clone 1 user only
+  if (selectedUsers.length != 1) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please select exactly 1 user to clone'),
       ),
     );
+    return;
   }
+
+  final selectedUser = selectedUsers.first;
+
+  showDialog(
+    context: context,
+    builder: (_) => ChangeNotifierProvider.value(
+      value: context.read<UserViewModel>(),
+      child: CloneUDialog(
+        token: widget.token,
+        user: selectedUser,
+      ),
+    ),
+  );
+}
 
   // ── Helpers ──
   String _roleLabel(String role) {
@@ -166,7 +175,7 @@ void dispose() {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.role != 'super_admin') {
+    if (widget.role != 'super_admin' && widget.role != 'admin') {
       return const Center(child: Text('Access Denied'));
     }
 
@@ -186,14 +195,14 @@ void dispose() {
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
               child: Row(
                 children: [
-                  const Text(
-                    'User Management',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: _textPrimary,
-                    ),
-                  ),
+                  // const Text(
+                  //   'User Management',
+                  //   style: TextStyle(
+                  //     fontSize: 20,
+                  //     fontWeight: FontWeight.w700,
+                  //     color: _textPrimary,
+                  //   ),
+                  // ),
                   if (_hasSelection) ...[
                     const SizedBox(width: 10),
                     Container(
@@ -555,10 +564,19 @@ void dispose() {
                   visualDensity: VisualDensity.compact,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline,
-                      size: 17, color: Colors.red),
-                  onPressed: () => _confirmDelete(user, vm),
-                  tooltip: 'Delete',
+                  icon: Icon(
+                    Icons.delete_outline,
+                    size: 17,
+                    color: widget.role == 'super_admin'
+                        ? Colors.red
+                        : Colors.red.withOpacity(0.3),
+                  ),
+                  onPressed: widget.role == 'super_admin'
+                      ? () => _confirmDelete(user, vm)
+                      : null,
+                  tooltip: widget.role == 'super_admin'
+                      ? 'Delete'
+                      : 'Restricted',
                   visualDensity: VisualDensity.compact,
                 ),
               ],
