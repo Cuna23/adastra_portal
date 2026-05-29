@@ -9,8 +9,10 @@ class HomeViewModel extends ChangeNotifier {
   final List<String> pageTitles = [
     'Dashboard',
     'User Management',
-    'Trademark Management',
-    'Pattern Management',
+    'Terra',
+    'Zoho',
+    'Autocount',
+    'IT Management',
   ];
 
   String get currentPageTitle => pageTitles[_selectedIndex];

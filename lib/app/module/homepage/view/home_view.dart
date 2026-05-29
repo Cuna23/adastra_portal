@@ -121,9 +121,13 @@ class _HomeBody extends StatelessWidget {
         ),
       );
       case 2:
-        return const Center(child: Text('Trademark Management'));
+        return const Center(child: Text('Terra'));
       case 3:
-        return const Center(child: Text('Pattern Management'));
+        return const Center(child: Text('Zoho'));
+      case 4:                                         
+        return const Center(child: Text('Autocount'));
+      case 5:
+        return const Center(child: Text('IT Management'));
       case 0:
       default:
         return _buildDashboard(authVm, isMobile);
