@@ -4,6 +4,7 @@ import '../../model/asset_model.dart';
 import '../../view model/asset_vm.dart';
 
 class AssetTable extends StatelessWidget {
+  
   final String role;
   final String token;
   final Set<int> selectedIds;
@@ -38,10 +39,13 @@ class AssetTable extends StatelessWidget {
   static const double _wStatus  = 120.0;
   static const double _wAssign  = 160.0;
   static const double _wDept    = 140.0;
+  static const double _wEmpId     = 120.0;
+  static const double _wPurchase  = 180.0;
+  static const double _wRemark    = 250.0;
   static const double _wActions = 96.0;
 
   static const double _minWidth =
-      _wCheck + _wAsset + _wSerial + _wCat + _wStatus + _wAssign + _wDept + _wActions;
+      _wCheck + _wAsset + _wSerial + _wCat + _wStatus + _wAssign + _wDept + _wEmpId + _wPurchase + _wRemark + _wActions;
 
   const AssetTable({
     super.key,
@@ -171,13 +175,12 @@ class AssetTable extends StatelessWidget {
   // ── Scroll wrapper — horizontal scroll when viewport < minWidth ──────────
 
   Widget _hscroll(Widget child) {
-    return LayoutBuilder(
-      builder: (_, constraints) => constraints.maxWidth >= _minWidth
-          ? child
-          : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(width: _minWidth, child: child),
-            ),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: _minWidth),
+        child: child,
+      ),
     );
   }
 
@@ -210,6 +213,8 @@ class AssetTable extends StatelessWidget {
             _hLabel('STATUS',      _wStatus),
             _hLabel('ASSIGNED TO', _wAssign),
             _hLabel('DEPARTMENT',  _wDept),
+            _hLabel('PURCHASED BY', _wPurchase),
+            _hLabel('REMARK', _wRemark),
             SizedBox(
               width: _wActions,
               child: const Text(
@@ -344,6 +349,30 @@ class AssetTable extends StatelessWidget {
                 asset.department ?? '—',
                 style: const TextStyle(
                     fontSize: 13, color: _textSecondary),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+
+            SizedBox(
+              width: _wEmpId,
+              child: Text(
+                asset.empId ?? '—',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+
+            SizedBox(
+              width: _wPurchase,
+              child: Text(
+                asset.purchasedBy ?? '—',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+
+            SizedBox(
+              width: _wRemark,
+              child: Text(
+                asset.remark ?? '—',
                 overflow: TextOverflow.ellipsis,
               ),
             ),

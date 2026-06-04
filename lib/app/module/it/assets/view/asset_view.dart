@@ -22,6 +22,7 @@ class AssetView extends StatefulWidget {
 class _AssetViewState extends State<AssetView> {
   final Set<int> _selectedIds    = {};
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
 
   // ── Exact same brand tokens as UserManagementPage ──────────────────────
   static const _brandBlue       = Color(0xFF185FA5);
@@ -46,6 +47,7 @@ class _AssetViewState extends State<AssetView> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -170,11 +172,14 @@ class _AssetViewState extends State<AssetView> {
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
               child: Row(
                 children: [
-                  // Selection badge
+
+                  // Selected badge
                   if (_hasSelection) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 3),
+                        horizontal: 10,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: _brandBlueBg,
                         borderRadius: BorderRadius.circular(20),
@@ -191,7 +196,100 @@ class _AssetViewState extends State<AssetView> {
                     const SizedBox(width: 10),
                   ],
 
+                  // Search
+                  SizedBox(
+                    width: 320,
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search assets...',
+                        prefixIcon: const Icon(Icons.search),
+                        isDense: true,
+                        filled: true,
+                        fillColor: Colors.white,
+                        // contentPadding: const EdgeInsets.symmetric(
+                        //   horizontal: 12,
+                        //   vertical: 12,
+                        // ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: _borderColor,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: _borderColor,
+                          ),
+                        ),
+                      ),
+
+                      // MVVM
+                      onChanged: (value) {
+                        vm.fetchAssets(
+                          widget.token,
+                          search: value,
+                        );
+                      },
+                    ),
+                  ),
+
                   const Spacer(),
+
+                  // Scan Barcode Button
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // integrate later
+                    },
+                    icon: const Icon(Icons.qr_code_scanner, size: 16),
+                    label: const Text('Scan Barcode'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: _brandBlue,
+                      elevation: 0,
+                      side: const BorderSide(
+                        color: _borderColor,
+                        width: 0.5,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  // Export Excel Button
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // integrate later
+                    },
+                    icon: const Icon(Icons.download_outlined, size: 16),
+                    label: const Text('Export Excel'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEAF3DE),
+                      foregroundColor: const Color(0xFF3B6D11),
+                      elevation: 0,
+                      side: const BorderSide(
+                        color: Color(0xFFB8D8A0),
+                        width: 0.5,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
 
                   // Clone — identical style to UserManagementPage
                   ElevatedButton.icon(
@@ -250,7 +348,7 @@ class _AssetViewState extends State<AssetView> {
                   scrollController: _scrollController,
                   onToggleAll: _toggleAll,
                   onToggleRow: _toggleRow,
-                  onDelete: (asset) => _confirmDelete(asset, vm),
+                  onDelete: (asset) => _confirmDelete(asset, vm), 
                 ),
               ),
             ),

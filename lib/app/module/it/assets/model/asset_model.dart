@@ -8,6 +8,10 @@ class AssetModel {
   final String? assignedTo;
   final String? department;
   final String? categoryName;
+  final String? empId;
+  final String? approvedBy;
+  final String? purchasedBy;
+  final String? remark;
 
   AssetModel({
     required this.id,
@@ -43,10 +47,6 @@ class AssetModel {
     );
   }
 
-final String? empId;
-final String? approvedBy;
-final String? purchasedBy;
-final String? remark;
 
   Map<String, dynamic> toJson() {
     return {
