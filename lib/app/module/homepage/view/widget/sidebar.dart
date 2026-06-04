@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../login/view model/login_vm.dart'; // adjust path if needed
+import '../../../login/view model/login_vm.dart';
 
-class Sidebar extends StatelessWidget {
+// [CHANGED] StatelessWidget → StatefulWidget to handle IT Management expand/collapse
+class Sidebar extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
 
@@ -10,15 +11,21 @@ class Sidebar extends StatelessWidget {
     super.key,
     required this.selectedIndex,
     required this.onItemSelected,
-    // ── REMOVED: userName parameter — ViewModel reads it directly ──
   });
+
+  @override
+  State<Sidebar> createState() => _SidebarState();
+}
+
+class _SidebarState extends State<Sidebar> {
+  // [NEW] expand state for IT Management submenu
+  bool _isItExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isMobile = size.width < 600;
 
-    // ── ADDED: read from ViewModel directly, MVVM patent ──
     final vm = context.watch<AuthViewModel>();
     final userName = vm.currentUser?.name;
 
@@ -56,10 +63,7 @@ class Sidebar extends StatelessWidget {
                     children: [
                       const Text(
                         'Hello,',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -81,27 +85,36 @@ class Sidebar extends StatelessWidget {
           const Divider(color: Colors.white24),
 
           // Menu Items
-          _menuItem(index: 0, icon: Icons.dashboard_rounded, title: 'Dashboard', isMobile: isMobile),
-          _menuItem(index: 1, icon: Icons.people_alt_rounded, title: 'User Management', isMobile: isMobile),
-          _menuItem(index: 2, icon: Icons.workspace_premium_rounded, title: 'Terra', isMobile: isMobile),
-          _menuItem(index: 3, icon: Icons.grid_view_rounded, title: 'Zoho', isMobile: isMobile),
-          _menuItem(index: 4, icon: Icons.admin_panel_settings_rounded, title: 'Autocount', isMobile: isMobile),
-          _menuItem(index: 5, icon: Icons.computer_rounded, title: 'IT Management', isMobile: isMobile),
+          _menuItem(index: 0, icon: Icons.dashboard_rounded,          title: 'Dashboard',       isMobile: isMobile),
+          _menuItem(index: 1, icon: Icons.people_alt_rounded,         title: 'User Management', isMobile: isMobile),
+          _menuItem(index: 2, icon: Icons.workspace_premium_rounded,  title: 'Terra',           isMobile: isMobile),
+          _menuItem(index: 3, icon: Icons.grid_view_rounded,          title: 'Zoho',            isMobile: isMobile),
+          _menuItem(index: 4, icon: Icons.admin_panel_settings_rounded, title: 'Autocount',     isMobile: isMobile),
+
+          // [NEW] IT Management — expandable parent item
+          _itManagementItem(isMobile: isMobile),
+
+          // [NEW] Submenu items — shown only when expanded
+          if (_isItExpanded) ...[
+            _subMenuItem(index: 5, title: 'Assets Inventory', isMobile: isMobile),
+            _subMenuItem(index: 6, title: 'Ticketing System',  isMobile: isMobile, comingSoon: true),
+          ],
         ],
       ),
     );
   }
 
+  // ── Regular menu item ──
   Widget _menuItem({
     required int index,
     required IconData icon,
     required String title,
     required bool isMobile,
   }) {
-    final bool isSelected = selectedIndex == index;
+    final bool isSelected = widget.selectedIndex == index;
 
     return InkWell(
-      onTap: () => onItemSelected(index),
+      onTap: () => widget.onItemSelected(index),
       child: Container(
         margin: EdgeInsets.symmetric(
           horizontal: isMobile ? 8 : 12,
@@ -112,7 +125,9 @@ class Sidebar extends StatelessWidget {
           vertical: isMobile ? 12 : 14,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withOpacity(0.15) : Colors.transparent,
+          color: isSelected
+              ? Colors.white.withOpacity(0.15)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -127,6 +142,133 @@ class Sidebar extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // [NEW] IT Management parent item with expand/collapse arrow
+  Widget _itManagementItem({required bool isMobile}) {
+    // highlight parent if any child is selected
+    final bool isChildSelected =
+        widget.selectedIndex == 5 || widget.selectedIndex == 6;
+
+    return InkWell(
+      onTap: () => setState(() => _isItExpanded = !_isItExpanded),
+      child: Container(
+        margin: EdgeInsets.symmetric(
+          horizontal: isMobile ? 8 : 12,
+          vertical: isMobile ? 4 : 6,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 12 : 16,
+          vertical: isMobile ? 12 : 14,
+        ),
+        decoration: BoxDecoration(
+          // [NEW] parent stays highlighted when a child is active
+          color: isChildSelected
+              ? Colors.white.withOpacity(0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.computer_rounded,
+                color: Colors.white, size: isMobile ? 20 : 22),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                'IT Management',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: isMobile ? 13 : 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            // [NEW] chevron rotates when expanded
+            AnimatedRotation(
+              turns: _isItExpanded ? 0.5 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: const Icon(Icons.expand_more,
+                  color: Colors.white70, size: 18),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // [NEW] Submenu item — indented, dot prefix
+  Widget _subMenuItem({
+    required int index,
+    required String title,
+    required bool isMobile,
+    bool comingSoon = false, // [NEW]
+  }) {
+    final bool isSelected = widget.selectedIndex == index;
+
+    return InkWell(
+      onTap: comingSoon ? null : () => widget.onItemSelected(index), // [NEW] disable tap if coming soon
+      child: Container(
+        margin: EdgeInsets.only(
+          left: isMobile ? 40 : 48,
+          right: isMobile ? 8 : 12,
+          top: 2,
+          bottom: 2,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 12 : 14,
+          vertical: isMobile ? 10 : 11,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Colors.white.withOpacity(0.15)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.circle,
+              size: isSelected ? 7 : 5,
+              color: isSelected ? Colors.white : Colors.white54,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              title,
+              style: TextStyle(
+                color: comingSoon
+                    ? Colors.white38 // [NEW] dimmed if coming soon
+                    : isSelected
+                        ? Colors.white
+                        : Colors.white70,
+                fontSize: isMobile ? 12 : 13,
+                fontWeight:
+                    isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            // [NEW] coming soon badge
+            if (comingSoon) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'Soon',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

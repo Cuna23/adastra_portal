@@ -180,7 +180,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                  ],
+                  ], 
                   const Spacer(),
                   ElevatedButton.icon(
                     onPressed:

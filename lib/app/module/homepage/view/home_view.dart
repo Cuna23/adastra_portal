@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../it/assets/view model/asset_vm.dart';
+import '../../it/assets/view/asset_view.dart';
 import '../../user/view model/user_vm.dart';
 import '../view model/home_vm.dart';
 import 'widget/sidebar.dart';
@@ -127,7 +129,18 @@ class _HomeBody extends StatelessWidget {
       case 4:                                         
         return const Center(child: Text('Autocount'));
       case 5:
-        return const Center(child: Text('IT Management'));
+        return ChangeNotifierProvider(
+          create: (_) => AssetViewModel(),
+          child: AssetView(
+            role: authVm.currentUser?.role ?? '',
+            token: authVm.token ?? '',
+          ),
+        ); 
+
+      case 6:
+        return const Center(
+          child: Text('Ticketing System'),
+        );
       case 0:
       default:
         return _buildDashboard(authVm, isMobile);

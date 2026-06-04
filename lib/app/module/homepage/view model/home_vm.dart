@@ -12,7 +12,8 @@ class HomeViewModel extends ChangeNotifier {
     'Terra',
     'Zoho',
     'Autocount',
-    'IT Management',
+    'Assets Inventory',
+    'Ticketing System',
   ];
 
   String get currentPageTitle => pageTitles[_selectedIndex];
