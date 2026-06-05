@@ -148,6 +148,158 @@ class _AssetViewState extends State<AssetView> {
     );
   }
 
+  // ── Shared button builders ───────────────────────────────────────────────
+
+  Widget _scanBtn() => ElevatedButton.icon(
+        onPressed: () {},
+        icon: const Icon(Icons.qr_code_scanner, size: 16),
+        label: const Text('Scan Barcode'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: _brandBlue,
+          elevation: 0,
+          side: const BorderSide(color: _borderColor, width: 0.5),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+
+  Widget _exportBtn() => ElevatedButton.icon(
+        onPressed: () {},
+        icon: const Icon(Icons.download_outlined, size: 16),
+        label: const Text('Export Excel'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFEAF3DE),
+          foregroundColor: const Color(0xFF3B6D11),
+          elevation: 0,
+          side: const BorderSide(color: Color(0xFFB8D8A0), width: 0.5),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+
+  Widget _cloneBtn(AssetViewModel vm) => ElevatedButton.icon(
+        onPressed: _hasSelection ? () => _onClone(vm.assets) : null,
+        icon: const Icon(Icons.copy_outlined, size: 16),
+        label: const Text('Clone'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _brandBlueBg,
+          foregroundColor: _brandBlue,
+          disabledBackgroundColor: const Color(0xFFF1EFE8),
+          disabledForegroundColor: _textSecondary,
+          elevation: 0,
+          side: BorderSide(
+            color: _hasSelection ? _brandBlueBorder : _borderColor,
+            width: 0.5,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+
+  Widget _addBtn() => ElevatedButton.icon(
+        onPressed: _openCreateDialog,
+        icon: const Icon(Icons.add, size: 16),
+        label: const Text('Add Asset'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _brandBlue,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+
+  Widget _searchField(AssetViewModel vm) => TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Search assets...',
+          prefixIcon: const Icon(Icons.search),
+          isDense: true,
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: _borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: _borderColor),
+          ),
+        ),
+        onChanged: (value) => vm.fetchAssets(widget.token, search: value),
+      );
+
+  // ── Desktop toolbar (single row) ─────────────────────────────────────────
+
+  Widget _buildDesktopToolbar(AssetViewModel vm) {
+    return Row(
+      children: [
+        if (_hasSelection) ...[
+          _selectedBadge(),
+          const SizedBox(width: 10),
+        ],
+        SizedBox(width: 320, child: _searchField(vm)),
+        const Spacer(),
+        _scanBtn(),
+        const SizedBox(width: 10),
+        _exportBtn(),
+        const SizedBox(width: 10),
+        _cloneBtn(vm),
+        const SizedBox(width: 10),
+        _addBtn(),
+      ],
+    );
+  }
+
+  // ── Mobile toolbar (two rows) ─────────────────────────────────────────────
+
+  Widget _buildMobileToolbar(AssetViewModel vm) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Row 1: selected badge + search full width
+        Row(
+          children: [
+            if (_hasSelection) ...[
+              _selectedBadge(),
+              const SizedBox(width: 8),
+            ],
+            Expanded(child: _searchField(vm)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        // Row 2: action buttons — wrap if needed
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _scanBtn(),
+            _exportBtn(),
+            _cloneBtn(vm),
+            _addBtn(),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _selectedBadge() => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        decoration: BoxDecoration(
+          color: _brandBlueBg,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          '${_selectedIds.length} selected',
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: _brandBlue,
+          ),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AssetViewModel>(
@@ -167,174 +319,17 @@ class _AssetViewState extends State<AssetView> {
                 },
               ),
 
-            // ── Toolbar row (mirrors UserManagementPage header exactly) ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-              child: Row(
-                children: [
-
-                  // Selected badge
-                  if (_hasSelection) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _brandBlueBg,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '${_selectedIds.length} selected',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _brandBlue,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-
-                  // Search
-                  SizedBox(
-                    width: 320,
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search assets...',
-                        prefixIcon: const Icon(Icons.search),
-                        isDense: true,
-                        filled: true,
-                        fillColor: Colors.white,
-                        // contentPadding: const EdgeInsets.symmetric(
-                        //   horizontal: 12,
-                        //   vertical: 12,
-                        // ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: _borderColor,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: _borderColor,
-                          ),
-                        ),
-                      ),
-
-                      // MVVM
-                      onChanged: (value) {
-                        vm.fetchAssets(
-                          widget.token,
-                          search: value,
-                        );
-                      },
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // Scan Barcode Button
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // integrate later
-                    },
-                    icon: const Icon(Icons.qr_code_scanner, size: 16),
-                    label: const Text('Scan Barcode'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: _brandBlue,
-                      elevation: 0,
-                      side: const BorderSide(
-                        color: _borderColor,
-                        width: 0.5,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  // Export Excel Button
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // integrate later
-                    },
-                    icon: const Icon(Icons.download_outlined, size: 16),
-                    label: const Text('Export Excel'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEAF3DE),
-                      foregroundColor: const Color(0xFF3B6D11),
-                      elevation: 0,
-                      side: const BorderSide(
-                        color: Color(0xFFB8D8A0),
-                        width: 0.5,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  // Clone — identical style to UserManagementPage
-                  ElevatedButton.icon(
-                    onPressed:
-                        _hasSelection ? () => _onClone(vm.assets) : null,
-                    icon: const Icon(Icons.copy_outlined, size: 16),
-                    label: const Text('Clone'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _brandBlueBg,
-                      foregroundColor: _brandBlue,
-                      disabledBackgroundColor: const Color(0xFFF1EFE8),
-                      disabledForegroundColor: _textSecondary,
-                      elevation: 0,
-                      side: BorderSide(
-                        color: _hasSelection
-                            ? _brandBlueBorder
-                            : _borderColor,
-                        width: 0.5,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  // Add Asset — identical style to "Add User"
-                  ElevatedButton.icon(
-                    onPressed: _openCreateDialog,
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add Asset'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _brandBlue,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ],
-              ),
+            // ── Toolbar row — responsive ──────────────────────────────
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 600;
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                  child: isMobile
+                      ? _buildMobileToolbar(vm)
+                      : _buildDesktopToolbar(vm),
+                );
+              },
             ),
 
             // ── Table ─────────────────────────────────────────────────────
