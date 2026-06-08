@@ -5,6 +5,7 @@ import '../view model/asset_vm.dart';
 import '../model/asset_model.dart';
 import 'widget/cloneA_dialog.dart';
 import 'widget/createA_dialog.dart';
+import 'widget/export_excel.dart';
 import 'widget/tableA.dart';
 
 class AssetView extends StatefulWidget {
@@ -152,19 +153,19 @@ class _AssetViewState extends State<AssetView> {
 
   // ── Shared button builders ───────────────────────────────────────────────
 
-  Widget _exportBtn() => ElevatedButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.download_outlined, size: 16),
-        label: const Text('Export Excel'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFEAF3DE),
-          foregroundColor: const Color(0xFF3B6D11),
-          elevation: 0,
-          side: const BorderSide(color: Color(0xFFB8D8A0), width: 0.5),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
+  Widget _exportBtn(AssetViewModel vm) => ElevatedButton.icon(
+    onPressed: () => exportAssetsToExcel(vm.assets),  // ← pass vm.assets
+    icon: const Icon(Icons.download_outlined, size: 16),
+    label: const Text('Export Excel'),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFFEAF3DE),
+      foregroundColor: const Color(0xFF3B6D11),
+      elevation: 0,
+      side: const BorderSide(color: Color(0xFFB8D8A0), width: 0.5),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+  );
 
   Widget _cloneBtn(AssetViewModel vm) => ElevatedButton.icon(
         onPressed: _hasSelection ? () => _onClone(vm.assets) : null,
@@ -230,7 +231,7 @@ class _AssetViewState extends State<AssetView> {
         SizedBox(width: 320, child: _searchField(vm)),
         const Spacer(),
         const SizedBox(width: 10),
-        _exportBtn(),
+        _exportBtn(vm),
         const SizedBox(width: 10),
         _cloneBtn(vm),
         const SizedBox(width: 10),
@@ -261,7 +262,7 @@ class _AssetViewState extends State<AssetView> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _exportBtn(),
+            _exportBtn(vm),
             _cloneBtn(vm),
             _addBtn(),
           ],

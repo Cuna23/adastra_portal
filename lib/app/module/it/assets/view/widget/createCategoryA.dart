@@ -1,4 +1,3 @@
-// create_category_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view model/asset_vm.dart';
