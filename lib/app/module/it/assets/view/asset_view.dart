@@ -349,11 +349,6 @@ class _CategoryTabBar extends StatelessWidget {
   final int? selectedId;
   final void Function(int? id) onSelect;
 
-  static const _brandBlue   = Color(0xFF185FA5);
-  static const _borderColor = Color(0xFFE5E7EB);
-  static const _textPrimary = Color(0xFF1B1E28);
-  static const _textMuted   = Color(0xFF9CA3AF);
-
   const _CategoryTabBar({
     required this.categories,
     required this.selectedId,

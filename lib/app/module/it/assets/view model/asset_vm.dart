@@ -19,7 +19,7 @@ class AssetViewModel extends ChangeNotifier {
   int currentPage = 1;
   int lastPage    = 1;
   int total       = 0;
-  int perPage     = 10;
+  int perPage     = 30;
 
   // Active filters
   int?    selectedCategoryId;
@@ -124,7 +124,8 @@ Future<void> fetchDepartments(String token) async {
         currentPage = body['current_page'] as int? ?? 1;
         lastPage    = body['last_page']    as int? ?? 1;
         total       = body['total']        as int? ?? 0;
-        perPage     = body['per_page']     as int? ?? 10;
+        perPage     = body['per_page']     as int? ?? 30;
+        print('Per Page Sent: $perPage');
       } else {
         errorMessage = 'Failed to load assets (${res.statusCode})';
       }

@@ -179,6 +179,11 @@ class _CreateADialogState extends State<CreateADialog> {
                           context,
                           TextFormField(
                             controller: assetTagController,
+                              style: const TextStyle(
+                                color: _textPrimary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
                             decoration: _fieldDecoration('Asset Tag',
                                     icon: Icons.qr_code)
                                 .copyWith(
@@ -223,13 +228,31 @@ class _CreateADialogState extends State<CreateADialog> {
                           context,
                           TextFormField(
                             controller: brandController,
+                              style: const TextStyle(
+                                color: _textPrimary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
                             decoration: _fieldDecoration('Brand',
                                 icon: Icons.business_outlined),
                           ),
                           TextFormField(
                             controller: modelController,
+                            style: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                             decoration: _fieldDecoration('Model',
-                                icon: Icons.devices_outlined),
+                                icon: Icons.devices_outlined)
+                              .copyWith(
+                              suffixIcon: IconButton(
+                                icon: const Icon(
+                                    Icons.center_focus_strong),
+                                tooltip: 'Scan Barcode',
+                                onPressed: () {},
+                              ),
+                            ),
                           ),
                         ),
 
@@ -240,6 +263,11 @@ class _CreateADialogState extends State<CreateADialog> {
                           context,
                           TextFormField(
                             controller: serialController,
+                              style: const TextStyle(
+                                color: _textPrimary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
                             decoration: _fieldDecoration(
                                     'Serial Number',
                                     icon: Icons
@@ -290,6 +318,11 @@ class _CreateADialogState extends State<CreateADialog> {
                           context,
                           TextFormField(
                             controller: empIdController,
+                              style: const TextStyle(
+                                color: _textPrimary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
                             decoration: _fieldDecoration('Employee ID',
                                 icon: Icons.badge_outlined),
                           ),
@@ -389,6 +422,11 @@ class _CreateADialogState extends State<CreateADialog> {
                         // Remark
                         TextFormField(
                           controller: remarkController,
+                          style: const TextStyle(
+                            color: _textPrimary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
                           maxLines: 3,
                           decoration: _fieldDecoration('Remark',
                               icon: Icons.notes_outlined),
