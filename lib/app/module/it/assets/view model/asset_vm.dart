@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../../../user/model/department_model.dart';
+import '../../../user/model/user_model.dart';
 import '../model/assetCategory_model.dart';
 import '../model/asset_model.dart';
 
@@ -8,6 +10,8 @@ class AssetViewModel extends ChangeNotifier {
   // ── State ─────────────────────────────────────────────────────────────────
   List<AssetModel>         assets     = [];
   List<AssetCategoryModel> categories = [];
+  List<UserModel> users = [];
+  List<DepartmentModel> departments = [];
   bool    isLoading  = false;
   String? errorMessage;
 
@@ -23,6 +27,44 @@ class AssetViewModel extends ChangeNotifier {
 
   static const String _base = 'http://localhost:8000/api'; // ← replace
 
+  Future<void> fetchUsers(String token) async {
+    final res = await http.get(
+      Uri.parse('$_base/users'),
+      headers: _headers(token),
+    );
+
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body) as List;
+
+      users = data
+          .map((e) => UserModel.fromJson(e))
+          .toList();
+
+      notifyListeners();
+    }
+  }
+
+Future<void> fetchDepartments(String token) async {
+  final res = await http.get(
+    Uri.parse('$_base/departments'),
+    headers: _headers(token),
+  );
+
+  print("Department Status: ${res.statusCode}");
+  print("Department Response: ${res.body}");
+
+  if (res.statusCode == 200) {
+    final data = jsonDecode(res.body) as List;
+
+    departments = data
+        .map((e) => DepartmentModel.fromJson(e))
+        .toList();
+
+    print("Department Count: ${departments.length}");
+
+    notifyListeners();
+  }
+}
   // ── Categories ────────────────────────────────────────────────────────────
 
   Future<void> fetchCategories(String token) async {

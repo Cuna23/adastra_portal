@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../model/assetCategory_model.dart';
 import '../view model/asset_vm.dart';
 import '../model/asset_model.dart';
+import 'widget/createA_dialog.dart';
 import 'widget/tableA.dart';
 
 class AssetView extends StatefulWidget {
@@ -74,7 +75,7 @@ class _AssetViewState extends State<AssetView> {
       context: context,
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<AssetViewModel>(),
-       // child: CreateADialog(token: widget.token),
+        child: CreateADialog(token: widget.token),
       ),
     );
   }
@@ -102,7 +103,7 @@ class _AssetViewState extends State<AssetView> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: _brandBlue,
+              backgroundColor: Colors.red,
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -149,20 +150,6 @@ class _AssetViewState extends State<AssetView> {
   }
 
   // ── Shared button builders ───────────────────────────────────────────────
-
-  Widget _scanBtn() => ElevatedButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.qr_code_scanner, size: 16),
-        label: const Text('Scan Barcode'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: _brandBlue,
-          elevation: 0,
-          side: const BorderSide(color: _borderColor, width: 0.5),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
 
   Widget _exportBtn() => ElevatedButton.icon(
         onPressed: () {},
@@ -241,7 +228,6 @@ class _AssetViewState extends State<AssetView> {
         ],
         SizedBox(width: 320, child: _searchField(vm)),
         const Spacer(),
-        _scanBtn(),
         const SizedBox(width: 10),
         _exportBtn(),
         const SizedBox(width: 10),
@@ -274,7 +260,6 @@ class _AssetViewState extends State<AssetView> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _scanBtn(),
             _exportBtn(),
             _cloneBtn(vm),
             _addBtn(),
