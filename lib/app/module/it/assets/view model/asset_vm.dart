@@ -196,6 +196,23 @@ Future<void> fetchDepartments(String token) async {
     }
   }
 
+  Future<int?> createCategory(String token, String name) async {
+  try {
+    final res = await http.post(
+      Uri.parse('$_base/asset-categories'),
+      headers: {..._headers(token), 'Content-Type': 'application/json'},
+      body: jsonEncode({'name': name}),
+    );
+    if (res.statusCode == 201) {
+      final data = jsonDecode(res.body);
+      await fetchCategories(token);
+      return data['id'] as int?;
+    }
+  } catch (e) {
+    debugPrint('createCategory: $e');
+  }
+  return null;
+}
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   Map<String, String> _headers(String token) => {

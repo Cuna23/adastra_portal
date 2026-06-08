@@ -1,32 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../model/asset_model.dart';
 import '../../view model/asset_vm.dart';
 import 'createCategoryA.dart';
 
-class CreateADialog extends StatefulWidget {
+class EditADialog extends StatefulWidget {
   final String token;
+  final AssetModel asset; // ← pass asset dari tableA
 
-  const CreateADialog({
+  const EditADialog({
     super.key,
     required this.token,
+    required this.asset,
   });
 
   @override
-  State<CreateADialog> createState() => _CreateADialogState();
+  State<EditADialog> createState() => _EditADialogState();
 }
 
-class _CreateADialogState extends State<CreateADialog> {
+class _EditADialogState extends State<EditADialog> {
   final _formKey = GlobalKey<FormState>();
 
-  final assetTagController    = TextEditingController();
-  final serialController      = TextEditingController();
-  final brandController       = TextEditingController();
-  final modelController       = TextEditingController();
-  final empIdController       = TextEditingController();
-  final remarkController      = TextEditingController();
+  late final TextEditingController assetTagController;
+  late final TextEditingController serialController;
+  late final TextEditingController brandController;
+  late final TextEditingController modelController;
+  late final TextEditingController empIdController;
+  late final TextEditingController remarkController;
 
   int?    categoryId;
-  String  status              = 'Available';
+  late String  status;
   String? selectedDepartment;
   String? selectedAssignedTo;
   String? selectedApprovedBy;
@@ -41,6 +44,22 @@ class _CreateADialogState extends State<CreateADialog> {
   @override
   void initState() {
     super.initState();
+
+    // ── Pre-fill semua fields dengan data asset sedia ada ──
+    assetTagController = TextEditingController(text: widget.asset.assetTag);
+    serialController   = TextEditingController(text: widget.asset.serialNumber ?? '');
+    brandController    = TextEditingController(text: widget.asset.brand ?? '');
+    modelController    = TextEditingController(text: widget.asset.model ?? '');
+    empIdController    = TextEditingController(text: widget.asset.empId ?? '');
+    remarkController   = TextEditingController(text: widget.asset.remark ?? '');
+
+    categoryId          = widget.asset.categoryId;
+    status              = widget.asset.status ?? 'Available';
+    selectedDepartment  = widget.asset.department;
+    selectedAssignedTo  = widget.asset.assignedTo;
+    selectedApprovedBy  = widget.asset.approvedBy;
+    selectedPurchasedBy = widget.asset.purchasedBy;
+
     Future.microtask(() {
       final vm = context.read<AssetViewModel>();
       vm.fetchUsers(widget.token);
@@ -59,7 +78,7 @@ class _CreateADialogState extends State<CreateADialog> {
     super.dispose();
   }
 
-  // ── Field decoration ───────────────────────────────────────────────────────
+  // ── Field decoration (sama dengan createA_dialog) ─────────────────────────
 
   InputDecoration _fieldDecoration(String label, {IconData? icon}) {
     return InputDecoration(
@@ -82,18 +101,16 @@ class _CreateADialogState extends State<CreateADialog> {
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide:
-            const BorderSide(color: Color(0xFFD92D20), width: 1),
+        borderSide: const BorderSide(color: Color(0xFFD92D20), width: 1),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide:
-            const BorderSide(color: Color(0xFFD92D20), width: 1.5),
+        borderSide: const BorderSide(color: Color(0xFFD92D20), width: 1.5),
       ),
     );
   }
 
-  // ── Responsive row helper — side-by-side on tablet/desktop, stacked on mobile
+  // ── Responsive row helper ─────────────────────────────────────────────────
   Widget _fieldRow(BuildContext context, Widget a, Widget b) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -114,11 +131,10 @@ class _CreateADialogState extends State<CreateADialog> {
     );
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    // FIX: wrap entire dialog in Consumer so all dropdowns rebuild correctly
     return Consumer<AssetViewModel>(
       builder: (context, vm, _) {
         return Dialog(
@@ -137,7 +153,7 @@ class _CreateADialogState extends State<CreateADialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Header ────────────────────────────────────────────
+                  // ── Header ───────────────────────────────────────────
                   Row(
                     children: [
                       Container(
@@ -148,22 +164,24 @@ class _CreateADialogState extends State<CreateADialog> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: const Icon(
-                            Icons.inventory_2_outlined,
+                            Icons.edit_outlined,
                             color: _brandBlue,
                             size: 20),
                       ),
                       const SizedBox(width: 12),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Create Asset',
+                          const Text('Edit Asset',
                               style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w700,
                                   color: _textPrimary)),
-                          Text('Register a new asset into inventory',
-                              style: TextStyle(
-                                  fontSize: 12, color: _textMuted)),
+                          Text(
+                            widget.asset.assetTag,
+                            style: const TextStyle(
+                                fontSize: 12, color: _textMuted),
+                          ),
                         ],
                       ),
                     ],
@@ -180,24 +198,22 @@ class _CreateADialogState extends State<CreateADialog> {
                           context,
                           TextFormField(
                             controller: assetTagController,
-                              style: const TextStyle(
-                                color: _textPrimary,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            style: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                             decoration: _fieldDecoration('Asset Tag',
                                     icon: Icons.qr_code)
                                 .copyWith(
                               suffixIcon: IconButton(
-                                icon: const Icon(
-                                    Icons.center_focus_strong),
+                                icon: const Icon(Icons.center_focus_strong),
                                 tooltip: 'Scan Barcode',
                                 onPressed: () {},
                               ),
                             ),
-                            validator: (v) => v!.isEmpty
-                                ? 'Asset Tag is required'
-                                : null,
+                            validator: (v) =>
+                                v!.isEmpty ? 'Asset Tag is required' : null,
                           ),
                           DropdownButtonFormField<int>(
                             value: categoryId,
@@ -211,17 +227,16 @@ class _CreateADialogState extends State<CreateADialog> {
                             dropdownColor: Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             items: [
-                              // Senarai category sedia ada
                               ...vm.categories.map((c) => DropdownMenuItem<int>(
-                                value: c.id,
-                                child: Text(c.name),
-                              )),
-                              // Tambah option baru di bawah
+                                    value: c.id,
+                                    child: Text(c.name),
+                                  )),
                               const DropdownMenuItem<int>(
                                 value: -1,
                                 child: Row(
                                   children: [
-                                    Icon(Icons.add, size: 15, color: Color(0xFF185FA5)),
+                                    Icon(Icons.add,
+                                        size: 15, color: Color(0xFF185FA5)),
                                     SizedBox(width: 6),
                                     Text('Add New Category',
                                         style: TextStyle(
@@ -231,18 +246,20 @@ class _CreateADialogState extends State<CreateADialog> {
                                 ),
                               ),
                             ],
-                            validator: (v) => (v == null || v == -1) ? 'Select category' : null,
+                            validator: (v) =>
+                                (v == null || v == -1) ? 'Select category' : null,
                             onChanged: (v) async {
                               if (v == -1) {
                                 final newId = await showDialog<int>(
                                   context: context,
                                   builder: (_) => ChangeNotifierProvider.value(
                                     value: vm,
-                                    child: CreateCategoryDialog(token: widget.token),
+                                    child: CreateCategoryDialog(
+                                        token: widget.token),
                                   ),
                                 );
                                 if (newId != null) {
-                                  setState(() => categoryId = newId); // auto-select category baru
+                                  setState(() => categoryId = newId);
                                 }
                                 return;
                               }
@@ -258,11 +275,11 @@ class _CreateADialogState extends State<CreateADialog> {
                           context,
                           TextFormField(
                             controller: brandController,
-                              style: const TextStyle(
-                                color: _textPrimary,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            style: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                             decoration: _fieldDecoration('Brand',
                                 icon: Icons.business_outlined),
                           ),
@@ -273,12 +290,11 @@ class _CreateADialogState extends State<CreateADialog> {
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
                             ),
-                            decoration: _fieldDecoration('Model',
-                                icon: Icons.devices_outlined)
-                              .copyWith(
+                            decoration:
+                                _fieldDecoration('Model', icon: Icons.devices_outlined)
+                                    .copyWith(
                               suffixIcon: IconButton(
-                                icon: const Icon(
-                                    Icons.center_focus_strong),
+                                icon: const Icon(Icons.center_focus_strong),
                                 tooltip: 'Scan Barcode',
                                 onPressed: () {},
                               ),
@@ -293,19 +309,16 @@ class _CreateADialogState extends State<CreateADialog> {
                           context,
                           TextFormField(
                             controller: serialController,
-                              style: const TextStyle(
-                                color: _textPrimary,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            decoration: _fieldDecoration(
-                                    'Serial Number',
-                                    icon: Icons
-                                        .confirmation_number_outlined)
+                            style: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            decoration: _fieldDecoration('Serial Number',
+                                    icon: Icons.confirmation_number_outlined)
                                 .copyWith(
                               suffixIcon: IconButton(
-                                icon: const Icon(
-                                    Icons.center_focus_strong),
+                                icon: const Icon(Icons.center_focus_strong),
                                 tooltip: 'Scan Barcode',
                                 onPressed: () {},
                               ),
@@ -324,20 +337,16 @@ class _CreateADialogState extends State<CreateADialog> {
                             borderRadius: BorderRadius.circular(12),
                             items: const [
                               DropdownMenuItem(
-                                  value: 'Pending',
-                                  child: Text('Pending')),
+                                  value: 'Pending', child: Text('Pending')),
                               DropdownMenuItem(
-                                  value: 'Available',
-                                  child: Text('Available')),
+                                  value: 'Available', child: Text('Available')),
                               DropdownMenuItem(
                                   value: 'Maintenance',
                                   child: Text('Maintenance')),
                               DropdownMenuItem(
-                                  value: 'Disposed',
-                                  child: Text('Disposed')),
+                                  value: 'Disposed', child: Text('Disposed')),
                             ],
-                            onChanged: (v) =>
-                                setState(() => status = v!),
+                            onChanged: (v) => setState(() => status = v!),
                           ),
                         ),
 
@@ -348,15 +357,14 @@ class _CreateADialogState extends State<CreateADialog> {
                           context,
                           TextFormField(
                             controller: empIdController,
-                              style: const TextStyle(
-                                color: _textPrimary,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            style: const TextStyle(
+                              color: _textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
                             decoration: _fieldDecoration('Employee ID',
                                 icon: Icons.badge_outlined),
                           ),
-                          // FIX: uses outer Consumer vm — no nested Consumer needed
                           DropdownButtonFormField<String>(
                             value: selectedDepartment,
                             iconEnabledColor: _textMuted,
@@ -397,8 +405,7 @@ class _CreateADialogState extends State<CreateADialog> {
                             borderRadius: BorderRadius.circular(12),
                             items: vm.users.map((user) {
                               return DropdownMenuItem<String>(
-                                  value: user.name,
-                                  child: Text(user.name));
+                                  value: user.name, child: Text(user.name));
                             }).toList(),
                             onChanged: (v) =>
                                 setState(() => selectedAssignedTo = v),
@@ -416,8 +423,7 @@ class _CreateADialogState extends State<CreateADialog> {
                             borderRadius: BorderRadius.circular(12),
                             items: vm.users.map((user) {
                               return DropdownMenuItem<String>(
-                                  value: user.name,
-                                  child: Text(user.name));
+                                  value: user.name, child: Text(user.name));
                             }).toList(),
                             onChanged: (v) =>
                                 setState(() => selectedApprovedBy = v),
@@ -440,8 +446,7 @@ class _CreateADialogState extends State<CreateADialog> {
                           borderRadius: BorderRadius.circular(12),
                           items: vm.users.map((user) {
                             return DropdownMenuItem<String>(
-                                value: user.name,
-                                child: Text(user.name));
+                                value: user.name, child: Text(user.name));
                           }).toList(),
                           onChanged: (v) =>
                               setState(() => selectedPurchasedBy = v),
@@ -464,23 +469,22 @@ class _CreateADialogState extends State<CreateADialog> {
 
                         const SizedBox(height: 24),
 
-                        // Cancel + Create
+                        // Cancel + Save
                         Row(
                           children: [
                             Expanded(
                               child: OutlinedButton(
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: _textPrimary,
-                                  side: const BorderSide(
-                                      color: _borderColor),
+                                  side:
+                                      const BorderSide(color: _borderColor),
                                   shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.circular(10)),
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 13),
                                 ),
-                                onPressed: () =>
-                                    Navigator.pop(context),
+                                onPressed: () => Navigator.pop(context),
                                 child: const Text('Cancel',
                                     style: TextStyle(
                                         fontWeight: FontWeight.w600)),
@@ -500,30 +504,24 @@ class _CreateADialogState extends State<CreateADialog> {
                                       vertical: 13),
                                 ),
                                 onPressed: () async {
-                                  if (!_formKey.currentState!
-                                      .validate()) return;
+                                  if (!_formKey.currentState!.validate()) return;
 
-                                  await vm.createAsset(
+                                  await vm.updateAsset(
                                     widget.token,
+                                    widget.asset.id, // ← id asset
                                     {
-                                      'asset_tag':
-                                          assetTagController.text,
-                                      'serial_number':
-                                          serialController.text,
-                                      'brand': brandController.text,
-                                      'model': modelController.text,
-                                      'category_id': categoryId,
-                                      'status': status,
-                                      'emp_id': empIdController.text,
-                                      'department':
-                                          selectedDepartment,
-                                      'assigned_to':
-                                          selectedAssignedTo,
-                                      'approved_by':
-                                          selectedApprovedBy,
-                                      'purchased_by':
-                                          selectedPurchasedBy,
-                                      'remark': remarkController.text,
+                                      'asset_tag':     assetTagController.text,
+                                      'serial_number': serialController.text,
+                                      'brand':         brandController.text,
+                                      'model':         modelController.text,
+                                      'category_id':   categoryId,
+                                      'status':        status,
+                                      'emp_id':        empIdController.text,
+                                      'department':    selectedDepartment,
+                                      'assigned_to':   selectedAssignedTo,
+                                      'approved_by':   selectedApprovedBy,
+                                      'purchased_by':  selectedPurchasedBy,
+                                      'remark':        remarkController.text,
                                     },
                                   );
 
@@ -531,7 +529,7 @@ class _CreateADialogState extends State<CreateADialog> {
                                     Navigator.pop(context);
                                   }
                                 },
-                                child: const Text('Create Asset',
+                                child: const Text('Save Changes',
                                     style: TextStyle(
                                         fontWeight: FontWeight.w600)),
                               ),

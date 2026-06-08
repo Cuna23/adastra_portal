@@ -7,6 +7,7 @@ class AssetModel {
   final String? status;
   final String? assignedTo;
   final String? department;
+  final int?    categoryId; 
   final String? categoryName;
   final String? empId;
   final String? approvedBy;
@@ -22,6 +23,7 @@ class AssetModel {
     this.status,
     this.assignedTo,
     this.department,
+    this.categoryId,
     this.categoryName,
     this.empId,
     this.approvedBy,
@@ -39,6 +41,7 @@ class AssetModel {
       status: json['status'],
       assignedTo: json['assigned_to'],
       department: json['department'],
+      categoryId: json['category_id'],
       categoryName: json['category']?['name'],
       empId: json['emp_id'],
       approvedBy: json['approved_by'],
@@ -58,6 +61,7 @@ class AssetModel {
       'status': status,
       'assigned_to': assignedTo,
       'department': department,
+      'category_id': categoryId,
       'category_name': categoryName,
     };
   }

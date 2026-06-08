@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../model/asset_model.dart';
 import '../../view model/asset_vm.dart';
+import 'editA_dialog.dart';
 
 class AssetTable extends StatefulWidget {
   
@@ -468,7 +469,7 @@ class _AssetTableState extends State<AssetTable> {
                       context: context,
                       builder: (_) => ChangeNotifierProvider.value(
                         value: context.read<AssetViewModel>(),
-                        //child: EditADialog(token: token, asset: asset),
+                        child: EditADialog(token: token, asset: asset),
                       ),
                     ),
                     tooltip: 'Edit',

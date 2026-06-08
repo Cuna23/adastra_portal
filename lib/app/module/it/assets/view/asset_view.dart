@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../model/assetCategory_model.dart';
 import '../view model/asset_vm.dart';
 import '../model/asset_model.dart';
+import 'widget/cloneA_dialog.dart';
 import 'widget/createA_dialog.dart';
 import 'widget/tableA.dart';
 
@@ -141,10 +142,10 @@ class _AssetViewState extends State<AssetView> {
       context: context,
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<AssetViewModel>(),
-        // child: CloneADialog(
-        //   token: widget.token,
-        //   asset: selected.first,
-        // ),
+        child: CloneADialog(
+          token: widget.token,
+          asset: selected.first,
+        ),
       ),
     );
   }
