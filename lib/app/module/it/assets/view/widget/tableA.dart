@@ -14,23 +14,23 @@ class AssetTable extends StatefulWidget {
   final void Function(int id, bool? value) onToggleRow;
   final void Function(AssetModel asset) onDelete;
 
-  // ── Exact same tokens as tableU.dart ──────────────────────────────────────
-  static const _brandBlue      = Color(0xFF185FA5);
-  static const _brandBlueBg    = Color(0xFFE6F1FB);
-  static const _textPrimary    = Color(0xFF1B1E28);
-  static const _textSecondary  = Color(0xFF6B7280);
-  static const _textMuted      = Color(0xFF9CA3AF);
-  static const _borderColor    = Color(0xFFE5E7EB);
+  // // ── Exact same tokens as tableU.dart ──────────────────────────────────────
+  // static const _brandBlue      = Color(0xFF185FA5);
+  // static const _brandBlueBg    = Color(0xFFE6F1FB);
+  // static const _textPrimary    = Color(0xFF1B1E28);
+  // static const _textSecondary  = Color(0xFF6B7280);
+  // static const _textMuted      = Color(0xFF9CA3AF);
+  // static const _borderColor    = Color(0xFFE5E7EB);
 
-  // Status pill colours
-  static const _availGreen     = Color(0xFF3B6D11);
-  static const _availGreenBg   = Color(0xFFEAF3DE);
-  static const _assignBlue     = Color(0xFF185FA5);
-  static const _assignBlueBg   = Color(0xFFE6F1FB);
-  static const _maintAmber     = Color(0xFF854F0B);
-  static const _maintAmberBg   = Color(0xFFFAEEDA);
-  static const _dispGray       = Color(0xFF5F5E5A);
-  static const _dispGrayBg     = Color(0xFFF1EFE8);
+  // // Status pill colours
+  // static const _availGreen     = Color(0xFF3B6D11);
+  // static const _availGreenBg   = Color(0xFFEAF3DE);
+  // static const _assignBlue     = Color(0xFF185FA5);
+  // static const _assignBlueBg   = Color(0xFFE6F1FB);
+  // static const _maintAmber     = Color(0xFF854F0B);
+  // static const _maintAmberBg   = Color(0xFFFAEEDA);
+  // static const _dispGray       = Color(0xFF5F5E5A);
+  // static const _dispGrayBg     = Color(0xFFF1EFE8);
 
   // Fixed column widths — triggers horizontal scroll when screen is narrow
   static const double _wCheck   = 44.0;
@@ -76,8 +76,8 @@ class _AssetTableState extends State<AssetTable> {
 
   static const _availGreen     = Color(0xFF3B6D11);
   static const _availGreenBg   = Color(0xFFEAF3DE);
-  static const _assignBlue     = Color(0xFF185FA5);
-  static const _assignBlueBg   = Color(0xFFE6F1FB);
+  // static const _assignBlue     = Color(0xFF185FA5);
+  // static const _assignBlueBg   = Color(0xFFE6F1FB);
   static const _maintAmber     = Color(0xFF854F0B);
   static const _maintAmberBg   = Color(0xFFFAEEDA);
   static const _dispGray       = Color(0xFF5F5E5A);
@@ -590,7 +590,7 @@ class _AssetTableState extends State<AssetTable> {
       ),
     );
   }
-}
+} 
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Pagination row (shown in footer)
