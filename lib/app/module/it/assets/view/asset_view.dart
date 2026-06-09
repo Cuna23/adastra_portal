@@ -5,6 +5,7 @@ import '../view model/asset_vm.dart';
 import '../model/asset_model.dart';
 import 'widget/cloneA_dialog.dart';
 import 'widget/createA_dialog.dart';
+import 'widget/createCategoryA.dart';
 import 'widget/export_excel.dart';
 import 'widget/tableA.dart';
 
@@ -78,6 +79,16 @@ class _AssetViewState extends State<AssetView> {
       builder: (_) => ChangeNotifierProvider.value(
         value: context.read<AssetViewModel>(),
         child: CreateADialog(token: widget.token),
+      ),
+    );
+  }
+
+  void _openCategoriesDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => ChangeNotifierProvider.value(
+        value: context.read<AssetViewModel>(),
+        child: CreateCategoryDialog(token: widget.token),
       ),
     );
   }
@@ -186,6 +197,20 @@ class _AssetViewState extends State<AssetView> {
         ),
       );
 
+  Widget _categoriesBtn() => ElevatedButton.icon(
+        onPressed: _openCategoriesDialog,
+        icon: const Icon(Icons.tune_outlined, size: 16),
+        label: const Text('Categories'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: _textPrimary,
+          elevation: 0,
+          side: const BorderSide(color: _borderColor, width: 0.5),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+
   Widget _addBtn() => ElevatedButton.icon(
         onPressed: _openCreateDialog,
         icon: const Icon(Icons.add, size: 16),
@@ -201,6 +226,11 @@ class _AssetViewState extends State<AssetView> {
 
   Widget _searchField(AssetViewModel vm) => TextField(
         controller: _searchController,
+        style: const TextStyle(
+          color: _textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
         decoration: InputDecoration(
           hintText: 'Search assets...',
           prefixIcon: const Icon(Icons.search),
@@ -233,6 +263,8 @@ class _AssetViewState extends State<AssetView> {
         const SizedBox(width: 10),
         _exportBtn(vm),
         const SizedBox(width: 10),
+        _categoriesBtn(),
+        const SizedBox(width: 10),
         _cloneBtn(vm),
         const SizedBox(width: 10),
         _addBtn(),
@@ -263,6 +295,7 @@ class _AssetViewState extends State<AssetView> {
           runSpacing: 8,
           children: [
             _exportBtn(vm),
+            _categoriesBtn(),
             _cloneBtn(vm),
             _addBtn(),
           ],

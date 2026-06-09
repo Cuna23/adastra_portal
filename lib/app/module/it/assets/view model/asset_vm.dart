@@ -213,6 +213,40 @@ Future<void> fetchDepartments(String token) async {
   }
   return null;
 }
+
+  Future<void> updateCategory(String token, int id, String name) async {
+    try {
+      final res = await http.put(
+        Uri.parse('$_base/asset-categories/$id'),
+        headers: {..._headers(token), 'Content-Type': 'application/json'},
+        body: jsonEncode({'name': name}),
+      );
+      if (res.statusCode == 200) {
+        await fetchCategories(token);
+      } else {
+        _setError(res);
+      }
+    } catch (e) {
+      debugPrint('updateCategory: $e');
+    }
+  }
+
+  Future<void> deleteCategory(String token, int id) async {
+    categories.removeWhere((c) => c.id == id);
+    notifyListeners();
+
+    try {
+      final res = await http.delete(
+        Uri.parse('$_base/asset-categories/$id'),
+        headers: _headers(token),
+      );
+      if (res.statusCode != 200) {
+        await fetchCategories(token); // rollback
+      }
+    } catch (e) {
+      await fetchCategories(token);
+    }
+  }
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   Map<String, String> _headers(String token) => {

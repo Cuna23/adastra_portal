@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../view model/asset_vm.dart';
-import 'createCategoryA.dart';
 
 class CreateADialog extends StatefulWidget {
   final String token;
@@ -216,36 +215,9 @@ class _CreateADialogState extends State<CreateADialog> {
                                 value: c.id,
                                 child: Text(c.name),
                               )),
-                              // Tambah option baru di bawah
-                              const DropdownMenuItem<int>(
-                                value: -1,
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.add, size: 15, color: Color(0xFF185FA5)),
-                                    SizedBox(width: 6),
-                                    Text('Add New Category',
-                                        style: TextStyle(
-                                            color: Color(0xFF185FA5),
-                                            fontWeight: FontWeight.w500)),
-                                  ],
-                                ),
-                              ),
                             ],
-                            validator: (v) => (v == null || v == -1) ? 'Select category' : null,
+                            validator: (v) => v == null ? 'Select category' : null,
                             onChanged: (v) async {
-                              if (v == -1) {
-                                final newId = await showDialog<int>(
-                                  context: context,
-                                  builder: (_) => ChangeNotifierProvider.value(
-                                    value: vm,
-                                    child: CreateCategoryDialog(token: widget.token),
-                                  ),
-                                );
-                                if (newId != null) {
-                                  setState(() => categoryId = newId); // auto-select category baru
-                                }
-                                return;
-                              }
                               setState(() => categoryId = v);
                             },
                           ),

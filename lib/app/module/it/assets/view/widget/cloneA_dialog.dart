@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../model/asset_model.dart';
 import '../../view model/asset_vm.dart';
-import 'createCategoryA.dart';
 
 class CloneADialog extends StatefulWidget {
   final String token;
@@ -248,38 +247,10 @@ class _CloneADialogState extends State<CloneADialog> {
                                     value: c.id,
                                     child: Text(c.name),
                                   )),
-                              const DropdownMenuItem<int>(
-                                value: -1,
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.add,
-                                        size: 15, color: Color(0xFF185FA5)),
-                                    SizedBox(width: 6),
-                                    Text('Add New Category',
-                                        style: TextStyle(
-                                            color: Color(0xFF185FA5),
-                                            fontWeight: FontWeight.w500)),
-                                  ],
-                                ),
-                              ),
                             ],
                             validator: (v) =>
-                                (v == null || v == -1) ? 'Select category' : null,
+                                v == null ? 'Select category' : null,
                             onChanged: (v) async {
-                              if (v == -1) {
-                                final newId = await showDialog<int>(
-                                  context: context,
-                                  builder: (_) => ChangeNotifierProvider.value(
-                                    value: vm,
-                                    child: CreateCategoryDialog(
-                                        token: widget.token),
-                                  ),
-                                );
-                                if (newId != null) {
-                                  setState(() => categoryId = newId);
-                                }
-                                return;
-                              }
                               setState(() => categoryId = v);
                             },
                           ),
