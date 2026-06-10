@@ -480,14 +480,14 @@ class _AssetTableState extends State<AssetTable> {
                     icon: Icon(
                       Icons.delete_outline,
                       size: 17,
-                      color: role == 'super_admin' || role == 'admin'
+                      color: role == 'super_admin'
                           ? Colors.red
                           : Colors.red.withOpacity(0.3),
                     ),
-                    onPressed: role == 'super_admin' || role == 'admin'
+                    onPressed: role == 'super_admin'
                         ? () => onDelete(asset)
                         : null,
-                    tooltip: role == 'super_admin' || role == 'admin'
+                    tooltip: role == 'super_admin'
                         ? 'Delete'
                         : 'Restricted',
                     visualDensity: VisualDensity.compact,

@@ -41,11 +41,13 @@ class _AssetViewState extends State<AssetView> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      final vm = context.read<AssetViewModel>();
-      vm.fetchCategories(widget.token);
-      vm.fetchAssets(widget.token);
-    });
+    if (widget.role == 'super_admin' || widget.role == 'admin') {
+      Future.microtask(() {
+        final vm = context.read<AssetViewModel>();
+        vm.fetchCategories(widget.token);
+        vm.fetchAssets(widget.token);
+      });
+    }
   }
 
   @override
@@ -322,6 +324,10 @@ class _AssetViewState extends State<AssetView> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.role != 'super_admin' && widget.role != 'admin') {
+      return const Center(child: Text('Access Denied'));
+    }
+    
     return Consumer<AssetViewModel>(
       builder: (context, vm, _) {
         return Column(
