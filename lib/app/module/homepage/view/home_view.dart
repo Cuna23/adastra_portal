@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../it/assets/view model/asset_vm.dart';
 import '../../it/assets/view/asset_view.dart';
+import '../../it/ticketing/incident/view model/incident_vm.dart';
+import '../../it/ticketing/incident/view/incidentStaff_view.dart';
 import '../../user/view model/user_vm.dart';
 import '../view model/home_vm.dart';
 import 'widget/sidebar.dart';
@@ -140,7 +142,21 @@ class _HomeBody extends StatelessWidget {
         // Ticketing System parent — non-navigable, sidebar handles expand/collapse
         return const Center(child: Text('Ticketing System'));
       case 7:
-        return const Center(child: Text('Incident Report — coming soon'));
+        final role = authVm.currentUser?.role.toLowerCase() ?? '';
+
+        if (role == 'staff') {
+          return ChangeNotifierProvider(
+            create: (_) => IncidentVM(),
+            child: IncidentStaffView(
+              token: authVm.token ?? '',
+              role: role,
+            ),
+          );
+        }
+
+        return const Center(
+          child: Text('Admin Incident Management Coming Soon'),
+        );
       case 8:
         return const Center(child: Text('Side Request — coming soon'));
       case 0:
