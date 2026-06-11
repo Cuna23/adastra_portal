@@ -136,11 +136,13 @@ class _HomeBody extends StatelessWidget {
             token: authVm.token ?? '',
           ),
         ); 
-
       case 6:
-        return const Center(
-          child: Text('Ticketing System'),
-        );
+        // Ticketing System parent — non-navigable, sidebar handles expand/collapse
+        return const Center(child: Text('Ticketing System'));
+      case 7:
+        return const Center(child: Text('Incident Report — coming soon'));
+      case 8:
+        return const Center(child: Text('Side Request — coming soon'));
       case 0:
       default:
         return _buildDashboard(authVm, isMobile);

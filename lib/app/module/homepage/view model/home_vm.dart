@@ -14,6 +14,8 @@ class HomeViewModel extends ChangeNotifier {
     'Autocount',
     'Assets Inventory',
     'Ticketing System',
+    'Incident Report',    
+    'Side Request', 
   ];
 
   String get currentPageTitle => pageTitles[_selectedIndex];
