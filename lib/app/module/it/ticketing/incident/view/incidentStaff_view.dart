@@ -22,13 +22,14 @@ class IncidentStaffView extends StatefulWidget {
 
 class _IncidentStaffViewState extends State<IncidentStaffView> {
 
-  
   static const _brandBlue     = Color(0xFF185FA5);
-  static const _brandBlueBg   = Color(0xFFE6F1FB);
   static const _textPrimary   = Color(0xFF1B1E28);
   static const _textSecondary = Color(0xFF6B7280);
   static const _textMuted     = Color(0xFF9CA3AF);
   static const _borderColor   = Color(0xFFE5E7EB);
+
+  // ── Detail view state — null = list, non-null = detail ───────────────────
+  int? _selectedId;
 
   @override
   void initState() {
@@ -48,14 +49,14 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     );
   }
 
-  void _openDetailDialog(int id) {
-    showDialog(
-      context: context,
-      builder: (_) => ChangeNotifierProvider.value(
-        value: context.read<IncidentVM>(),
-        child: IncDetailDialog(token: widget.token, incidentId: id),
-      ),
-    );
+  void _openDetail(int id) {
+    context.read<IncidentVM>().selectIncident(widget.token, id);
+    setState(() => _selectedId = id);
+  }
+
+  void _closeDetail() {
+    context.read<IncidentVM>().clearSelected();
+    setState(() => _selectedId = null);
   }
 
   @override
@@ -68,21 +69,26 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
 
     return Consumer<IncidentVM>(
       builder: (context, vm, _) {
+        // ── Detail page ───────────────────────────────────────────────────
+        if (_selectedId != null) {
+          return IncDetailPage(
+            token: widget.token,
+            onBack: _closeDetail,
+          );
+        }
+
+        // ── List page ─────────────────────────────────────────────────────
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // ── Header row (mirrors user_view.dart) ──────────────────────
+            // ── Header row — UNCHANGED ────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
               child: Row(
                 children: [
-                  // Filter tabs live here, left-aligned
-                  Expanded(
-                    child: _buildFilterTabs(vm),
-                  ),
+                  Expanded(child: _buildFilterTabs(vm)),
                   const Spacer(),
-                  // Report incident button — same style as Add User
                   ElevatedButton.icon(
                     onPressed: _openReportDialog,
                     icon: const Icon(Icons.add, size: 16),
@@ -101,7 +107,7 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
               ),
             ),
 
-            // ── Table ─────────────────────────────────────────────────────
+            // ── Card list ─────────────────────────────────────────────────
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
@@ -111,7 +117,7 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
                         ? _buildError(vm)
                         : vm.incidents.isEmpty
                             ? _buildEmpty()
-                            : _buildTable(vm),
+                            : _buildCardList(vm),
               ),
             ),
           ],
@@ -120,7 +126,7 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     );
   }
 
-  // ── Filter tabs (inline, no separate Container/white bg) ─────────────────
+  // ── Filter tabs — UNCHANGED ───────────────────────────────────────────────
 
   Widget _buildFilterTabs(IncidentVM vm) {
     final filters = [
@@ -136,16 +142,12 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
         scrollDirection: Axis.horizontal,
         children: filters.map((f) {
           final active = vm.filterStatus == f.$1;
-
           return GestureDetector(
             onTap: () => vm.setFilter(f.$1),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               margin: const EdgeInsets.only(right: 6),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 0,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
               decoration: BoxDecoration(
                 color: active ? _brandBlue : Colors.white,
                 borderRadius: BorderRadius.circular(10),
@@ -158,25 +160,18 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const SizedBox(width: 6),
-
                   Text(
                     f.$1,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight:
-                          active ? FontWeight.w600 : FontWeight.w400,
-                      color:
-                          active ? Colors.white : _textPrimary,
+                      fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                      color: active ? Colors.white : _textPrimary,
                     ),
                   ),
-
                   const SizedBox(width: 8),
-
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
+                        horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: active
                           ? Colors.white.withOpacity(0.2)
@@ -188,9 +183,7 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: active
-                            ? Colors.white
-                            : _textMuted,
+                        color: active ? Colors.white : _textMuted,
                       ),
                     ),
                   ),
@@ -203,145 +196,118 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     );
   }
 
-  // ── Table (standardized with tableU.dart pattern) ────────────────────────
+  // ── Card list ─────────────────────────────────────────────────────────────
 
-  Widget _buildTable(IncidentVM vm) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _borderColor),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: Column(
-          children: [
-            _buildTableHeader(),
-            const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
-            Expanded(
+  Widget _buildCardList(IncidentVM vm) {
+    return Column(
+      children: [
+        Expanded(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1200),
               child: ListView.separated(
                 itemCount: vm.incidents.length,
-                separatorBuilder: (_, __) => const Divider(
-                    height: 0.5, thickness: 0.5, color: _borderColor),
-                itemBuilder: (_, i) => _buildRow(vm.incidents[i]),
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (_, i) => _buildCard(vm.incidents[i]),
               ),
             ),
-            const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
-            _buildFooter(vm),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(height: 10),
+        _buildFooter(vm),
+      ],
     );
   }
 
-  // Header — uses Expanded + flex exactly like tableU.dart
-  Widget _buildTableHeader() {
-    return Container(
-      color: const Color(0xFFF8F9FB),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        children: [
-          _headerLabel('TICKET',      flex: 4),
-          _headerLabel('CATEGORY',    flex: 2),
-          _headerLabel('PRIORITY',    flex: 2),
-          _headerLabel('STATUS',      flex: 2),
-          _headerLabel('ASSIGNED TO', flex: 3),
-          _headerLabel('DATE',        flex: 2),
-        ],
-      ),
-    );
-  }
-
-  Widget _headerLabel(String text, {required int flex}) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: _textMuted,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
-  // Row — uses Expanded + flex, mirrors _buildRow in tableU.dart
-  Widget _buildRow(IncidentModel inc) {
+  Widget _buildCard(IncidentModel inc) {
     final sc = _statusColors(inc.status);
     final pc = _prioColors(inc.priority);
+    final assignedName = inc.assignedUser?.name;
 
     return InkWell(
-      onTap: () => _openDetailDialog(inc.id),
+      onTap: () => _openDetail(inc.id),
+      borderRadius: BorderRadius.circular(14),
       hoverColor: const Color(0xFFF8F9FB),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _borderColor, width: 0.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Ticket subject + ticket no
-            Expanded(
-              flex: 4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    inc.subject,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        inc.subject,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        inc.ticketNo,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: _textMuted,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Wrap(
+                  spacing: 6,
+                  children: [
+                    _pill(inc.priority, bg: pc.bg, fg: pc.fg),
+                    _pill(inc.status,   bg: sc.bg, fg: sc.fg),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.label_outline, size: 13, color: _textMuted),
+                const SizedBox(width: 4),
+                Text(inc.category,
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _textPrimary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    inc.ticketNo,
-                    style: const TextStyle(fontSize: 11, color: _textMuted),
-                  ),
+                        fontSize: 12, color: _textSecondary)),
+                _metaDivider(),
+                if (assignedName != null) ...[
+                  _avatarCircle(assignedName),
+                  const SizedBox(width: 5),
+                  Text(assignedName,
+                      style: const TextStyle(
+                          fontSize: 12, color: _textSecondary)),
+                ] else ...[
+                  const Icon(Icons.person_outline,
+                      size: 13, color: _textMuted),
+                  const SizedBox(width: 4),
+                  const Text('Unassigned',
+                      style: TextStyle(fontSize: 12, color: _textMuted)),
                 ],
-              ),
-            ),
-
-            // Category
-            Expanded(
-              flex: 2,
-              child: Text(
-                inc.category,
-                style: const TextStyle(fontSize: 13, color: _textSecondary),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-
-            // Priority badge
-            Expanded(
-              flex: 2,
-              child: _pill(inc.priority, bg: pc.bg, fg: pc.fg),
-            ),
-
-            // Status badge
-            Expanded(
-              flex: 2,
-              child: _pill(inc.status, bg: sc.bg, fg: sc.fg),
-            ),
-
-            // Assigned to
-            Expanded(
-              flex: 3,
-              child: Text(
-                inc.assignedUser?.name ?? '—',
-                style: const TextStyle(fontSize: 13, color: _textSecondary),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-
-            // Date
-            Expanded(
-              flex: 2,
-              child: Text(
-                _formatDate(inc.createdAt),
-                style: const TextStyle(fontSize: 12, color: _textMuted),
-              ),
+                _metaDivider(),
+                const Icon(Icons.calendar_today_outlined,
+                    size: 12, color: _textMuted),
+                const SizedBox(width: 4),
+                Text(_formatDate(inc.createdAt),
+                    style: const TextStyle(
+                        fontSize: 12, color: _textMuted)),
+              ],
             ),
           ],
         ),
@@ -349,11 +315,11 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     );
   }
 
-  // Footer — mirrors _buildFooter in tableU.dart
+  // ── Footer ────────────────────────────────────────────────────────────────
+
   Widget _buildFooter(IncidentVM vm) {
     return Container(
-      color: const Color(0xFFF8F9FB),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Row(
         children: [
           const Icon(Icons.confirmation_number_outlined,
@@ -372,8 +338,8 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
             _footerStat('${vm.countOpen} open', _brandBlue),
           if (vm.countInProgress > 0) ...[
             const SizedBox(width: 12),
-            _footerStat(
-                '${vm.countInProgress} in progress', const Color(0xFF854F0B)),
+            _footerStat('${vm.countInProgress} in progress',
+                const Color(0xFF854F0B)),
           ],
           if (vm.countResolved > 0) ...[
             const SizedBox(width: 12),
@@ -385,7 +351,7 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     );
   }
 
-  // ── Empty / Error states ──────────────────────────────────────────────────
+  // ── Empty / Error ─────────────────────────────────────────────────────────
 
   Widget _buildEmpty() {
     return Container(
@@ -429,6 +395,49 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     );
   }
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  Widget _metaDivider() {
+    return Container(
+      width: 1, height: 12,
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      color: _borderColor,
+    );
+  }
+
+  Widget _avatarCircle(String name) {
+    final initials =
+        name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?';
+    return Container(
+      width: 20, height: 20,
+      decoration: const BoxDecoration(
+          color: Color(0xFFB5D4F4), shape: BoxShape.circle),
+      alignment: Alignment.center,
+      child: Text(initials,
+          style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF0C447C))),
+    );
+  }
+
+  Widget _pill(String text, {required Color bg, required Color fg}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+      child: Text(text,
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w600, color: fg)),
+    );
+  }
+
+  Widget _footerStat(String text, Color color) {
+    return Text(text,
+        style: TextStyle(
+            fontSize: 11, fontWeight: FontWeight.w500, color: color));
+  }
+
   ({Color bg, Color fg}) _statusColors(String status) {
     switch (status) {
       case 'Open':
@@ -453,31 +462,6 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     }
   }
 
-  Widget _pill(String text, {required Color bg, required Color fg}) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w600, color: fg),
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-    );
-  }
-
-  Widget _footerStat(String text, Color color) {
-    return Text(text,
-        style: TextStyle(
-            fontSize: 11, fontWeight: FontWeight.w500, color: color));
-  }
-
   String _formatDate(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
@@ -490,4 +474,4 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
       return iso;
     }
   }
-} 
+}

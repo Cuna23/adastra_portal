@@ -1,5 +1,5 @@
+// incident_service.dart
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import '../model/incident_model.dart';
@@ -12,7 +12,7 @@ class IncidentService {
         'Authorization': 'Bearer $token',
       };
 
-  // ── Fetch all incidents (backend filters by current user for staff) ────────
+  // ── Fetch all incidents ───────────────────────────────────────────────────
   Future<List<IncidentModel>> getIncidents(String token) async {
     final res = await http.get(
       Uri.parse('$baseUrl/incidents'),
@@ -42,7 +42,7 @@ class IncidentService {
     throw Exception('Failed to load incident');
   }
 
-  // ── Create new incident (with optional attachment) ────────────────────────
+  // ── Create new incident ───────────────────────────────────────────────────
   Future<IncidentModel> createIncident({
     required String token,
     required String subject,
@@ -57,21 +57,21 @@ class IncidentService {
       Uri.parse('$baseUrl/incidents'),
     )
       ..headers.addAll(_headers(token))
-      ..fields['subject'] = subject
+      ..fields['subject']     = subject
       ..fields['description'] = description
-      ..fields['category'] = category
-      ..fields['priority'] = priority;
+      ..fields['category']    = category
+      ..fields['priority']    = priority;
 
-  if (attachment != null) {
-    req.files.add(
-      http.MultipartFile.fromBytes(
-        'attachment',
-        attachment,
-        filename: filename ?? 'file.pdf',
-        contentType: MediaType('application', 'octet-stream'),
-      ),
-    );
-  }
+    if (attachment != null) {
+      req.files.add(
+        http.MultipartFile.fromBytes(
+          'attachment',
+          attachment,
+          filename: filename ?? 'file.pdf',
+          contentType: MediaType('application', 'octet-stream'),
+        ),
+      );
+    }
 
     final streamed = await req.send();
     final res = await http.Response.fromStream(streamed);
@@ -84,9 +84,7 @@ class IncidentService {
     throw Exception(body['message'] ?? 'Failed to create incident');
   }
 
-  // ── Add note — staff ONLY allowed action after submit ─────────────────────
-  // Sends as a log entry via PUT description field.
-  // Backend logs this as 'Updated' action in incident_logs.
+  // ── Add note — sends 'note' field, NEVER touches description ─────────────
   Future<IncidentModel> addNote({
     required int id,
     required String note,
@@ -98,13 +96,12 @@ class IncidentService {
         ..._headers(token),
         'Content-Type': 'application/json',
       },
-
-      body: jsonEncode({'description': note}),
+      body: jsonEncode({'note': note}),  // 'note' not 'description'
     );
 
     if (res.statusCode == 200) {
-      // Re-fetch with logs after adding note
-      return await getIncident(id, token);
+      final data = jsonDecode(res.body);
+      return IncidentModel.fromJson(data['data']);
     }
     final body = jsonDecode(res.body);
     throw Exception(body['message'] ?? 'Failed to add note');
