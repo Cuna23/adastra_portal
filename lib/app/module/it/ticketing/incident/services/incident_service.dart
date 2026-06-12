@@ -49,7 +49,8 @@ class IncidentService {
     required String description,
     required String category,
     required String priority,
-    File? attachment,
+    List<int>? attachment,
+    String? filename,
   }) async {
     final req = http.MultipartRequest(
       'POST',
@@ -61,17 +62,16 @@ class IncidentService {
       ..fields['category'] = category
       ..fields['priority'] = priority;
 
-    if (attachment != null) {
-      final ext = attachment.path.split('.').last.toLowerCase();
-      req.files.add(await http.MultipartFile.fromPath(
+  if (attachment != null) {
+    req.files.add(
+      http.MultipartFile.fromBytes(
         'attachment',
-        attachment.path,
-        contentType: MediaType(
-          ext == 'pdf' ? 'application' : 'image',
-          ext == 'pdf' ? 'pdf' : ext,
-        ),
-      ));
-    }
+        attachment,
+        filename: filename ?? 'file.pdf',
+        contentType: MediaType('application', 'octet-stream'),
+      ),
+    );
+  }
 
     final streamed = await req.send();
     final res = await http.Response.fromStream(streamed);

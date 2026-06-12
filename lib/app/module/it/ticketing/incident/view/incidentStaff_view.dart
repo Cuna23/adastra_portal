@@ -21,6 +21,8 @@ class IncidentStaffView extends StatefulWidget {
 }
 
 class _IncidentStaffViewState extends State<IncidentStaffView> {
+
+  
   static const _brandBlue     = Color(0xFF185FA5);
   static const _brandBlueBg   = Color(0xFFE6F1FB);
   static const _textPrimary   = Color(0xFF1B1E28);
@@ -76,7 +78,9 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
               child: Row(
                 children: [
                   // Filter tabs live here, left-aligned
-                  _buildFilterTabs(vm),
+                  Expanded(
+                    child: _buildFilterTabs(vm),
+                  ),
                   const Spacer(),
                   // Report incident button — same style as Add User
                   ElevatedButton.icon(
@@ -126,57 +130,76 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
       ('Resolved', vm.countResolved),
     ];
 
-    return Row(
-      children: filters.map((f) {
-        final active = vm.filterStatus == f.$1;
-        return GestureDetector(
-          onTap: () => vm.setFilter(f.$1),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 8),
-            margin: const EdgeInsets.only(right: 20),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: active ? _brandBlue : Colors.transparent,
-                  width: 2,
+    return SizedBox(
+      height: 40,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: filters.map((f) {
+          final active = vm.filterStatus == f.$1;
+
+          return GestureDetector(
+            onTap: () => vm.setFilter(f.$1),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              margin: const EdgeInsets.only(right: 6),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 0,
+              ),
+              decoration: BoxDecoration(
+                color: active ? _brandBlue : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: active ? _brandBlue : _borderColor,
+                  width: 0.5,
                 ),
               ),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  f.$1,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight:
-                        active ? FontWeight.w600 : FontWeight.w400,
-                    color: active ? _brandBlue : _textSecondary,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: active
-                        ? _brandBlueBg
-                        : const Color(0xFFF1EFE8),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${f.$2}',
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(width: 6),
+
+                  Text(
+                    f.$1,
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: active ? _brandBlue : _textMuted,
+                      fontSize: 13,
+                      fontWeight:
+                          active ? FontWeight.w600 : FontWeight.w400,
+                      color:
+                          active ? Colors.white : _textPrimary,
                     ),
                   ),
-                ),
-              ],
+
+                  const SizedBox(width: 8),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: active
+                          ? Colors.white.withOpacity(0.2)
+                          : const Color(0xFFF3F4F6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${f.$2}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: active
+                            ? Colors.white
+                            : _textMuted,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -406,8 +429,6 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     );
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
-
   ({Color bg, Color fg}) _statusColors(String status) {
     switch (status) {
       case 'Open':
@@ -469,4 +490,4 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
       return iso;
     }
   }
-}
+} 

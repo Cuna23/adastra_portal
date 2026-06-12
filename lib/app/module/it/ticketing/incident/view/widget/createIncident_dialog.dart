@@ -1,5 +1,3 @@
-// createIncident_dialog.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
@@ -27,8 +25,9 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
 
   String  _category = 'Network';
   String  _priority = 'Low';
-  File?   _attachment;
   String? _attachmentName;
+  int? _attachmentSize;
+  List<int>? _attachmentBytes;
 
   static const _categories = ['Network', 'Hardware', 'Software', 'Others'];
   static const _priorities = ['Low', 'Medium', 'High'];
@@ -75,14 +74,40 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
   Future<void> _pickFile() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+      allowedExtensions: [
+        'jpg',
+        'jpeg',
+        'png',
+        'pdf',
+      ],
+      withData: true,
     );
-    if (result != null && result.files.single.path != null) {
-      setState(() {
-        _attachment     = File(result.files.single.path!);
-        _attachmentName = result.files.single.name;
-      });
+
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.first;
+
+    print('Name      : ${file.name}');
+    print('Size      : ${file.size}');
+    print('Extension : ${file.extension}');
+
+    // Check 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('File exceeds 5MB limit'),
+          ),
+        );
+      }
+      return;
     }
+
+    setState(() {
+      _attachmentName = file.name;
+      _attachmentSize = file.size;
+      _attachmentBytes = file.bytes;
+    });
   }
 
   Future<void> _submit() async {
@@ -95,7 +120,7 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
       description:    _descCtrl.text.trim(),
       category:       _category,
       priority:       _priority,
-      attachmentFile: _attachment,
+      attachmentFile: _attachmentBytes,
     );
 
     if (!mounted) return;
@@ -339,7 +364,7 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
                                 if (_attachmentName != null)
                                   GestureDetector(
                                     onTap: () => setState(() {
-                                      _attachment     = null;
+                                      _attachmentBytes   = null;
                                       _attachmentName = null;
                                     }),
                                     child: const Icon(Icons.close,
@@ -349,6 +374,46 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
                             ),
                           ),
                         ),
+
+                        if (_attachmentName != null) ...[
+                        const SizedBox(height: 8),
+
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F9FB),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: _borderColor),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.insert_drive_file_outlined,
+                                size: 18,
+                              ),
+
+                              const SizedBox(width: 8),
+
+                              Expanded(
+                                child: Text(
+                                  _attachmentName!,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+
+                              IconButton(
+                                icon: const Icon(Icons.close, size: 16),
+                                onPressed: () {
+                                  setState(() {
+                                    _attachmentBytes = null;
+                                    _attachmentName = null;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
 
                         const SizedBox(height: 24),
 

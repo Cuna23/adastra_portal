@@ -1,3 +1,4 @@
+// incDetailDialog.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../model/incident_model.dart';
@@ -18,16 +19,16 @@ class IncDetailDialog extends StatefulWidget {
 }
 
 class _IncDetailDialogState extends State<IncDetailDialog> {
-  // ── Design tokens ─────────────────────────────────────────────────────────
+  // ── Design tokens (same as createA_dialog / createIncident_dialog) ────────
   static const _brandBlue     = Color(0xFF185FA5);
   static const _brandBlueBg   = Color(0xFFE6F1FB);
   static const _textPrimary   = Color(0xFF1B1E28);
   static const _textSecondary = Color(0xFF6B7280);
   static const _textMuted     = Color(0xFF9CA3AF);
   static const _borderColor   = Color(0xFFE5E7EB);
-  static const _bgLight       = Color(0xFFF8F9FB);
+  static const _bgLight       = Color(0xFFF9FAFB);  // matches createA fillColor
 
-  final _noteCtrl = TextEditingController();
+  final _noteCtrl   = TextEditingController();
   bool _sendingNote = false;
 
   @override
@@ -46,7 +47,7 @@ class _IncDetailDialogState extends State<IncDetailDialog> {
     super.dispose();
   }
 
-  // ── Colors ────────────────────────────────────────────────────────────────
+  // ── Color helpers ─────────────────────────────────────────────────────────
   ({Color bg, Color fg}) _statusColors(String status) {
     switch (status) {
       case 'Open':
@@ -73,6 +74,34 @@ class _IncDetailDialogState extends State<IncDetailDialog> {
     }
   }
 
+  // ── Note field decoration (matches _fieldDecoration in createA_dialog) ────
+  InputDecoration _noteDecoration(bool isClosed) {
+    return InputDecoration(
+      labelText: isClosed
+          ? 'Ticket is closed — notes can no longer be added'
+          : 'Add a note or additional information...',
+      labelStyle: const TextStyle(fontSize: 13, color: _textMuted),
+      prefixIcon: const Icon(Icons.notes_outlined,
+          size: 18, color: _textMuted),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      filled: true,
+      fillColor: isClosed ? _bgLight : Colors.white,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: _borderColor, width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: _brandBlue, width: 1.5),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: _borderColor, width: 1),
+      ),
+    );
+  }
+
   // ── Send note ─────────────────────────────────────────────────────────────
   Future<void> _sendNote(IncidentVM vm) async {
     final note = _noteCtrl.text.trim();
@@ -81,8 +110,8 @@ class _IncDetailDialogState extends State<IncDetailDialog> {
     setState(() => _sendingNote = true);
     final ok = await vm.addNote(
       token: widget.token,
-      id: widget.incidentId,
-      note: note,
+      id:    widget.incidentId,
+      note:  note,
     );
     if (ok && mounted) {
       _noteCtrl.clear();
@@ -103,46 +132,227 @@ class _IncDetailDialogState extends State<IncDetailDialog> {
       builder: (context, vm, _) {
         final inc = vm.selected;
 
+        // ── Outer container matches createA_dialog exactly ────────────────
         return Dialog(
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14)),
-          child: SizedBox(
-            width: 660,
-            height: 560,
+              borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 700),
+            width: MediaQuery.of(context).size.width * 0.85,
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: inc == null
-                ? const Center(child: CircularProgressIndicator())
-                : Column(
-                    children: [
-                      _buildHeader(inc),
-                      const Divider(
-                          height: 0.5,
-                          thickness: 0.5,
-                          color: _borderColor),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(20),
+                ? const SizedBox(
+                    height: 160,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+
+                        // ── Header (same structure as createA_dialog) ─────
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: _brandBlueBg,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                  Icons.confirmation_number_outlined,
+                                  color: _brandBlue,
+                                  size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    inc.subject,
+                                    style: const TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      color: _textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    inc.ticketNo,
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        color: _textMuted,
+                                        fontFamily: 'monospace'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            _pill(inc.status,
+                                bg: _statusColors(inc.status).bg,
+                                fg: _statusColors(inc.status).fg),
+                            const SizedBox(width: 6),
+                            _pill(inc.priority,
+                                bg: _prioColors(inc.priority).bg,
+                                fg: _prioColors(inc.priority).fg),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.close,
+                                  size: 18, color: _textSecondary),
+                              onPressed: () {
+                                context
+                                    .read<IncidentVM>()
+                                    .clearSelected();
+                                Navigator.pop(context);
+                              },
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // ── Detail grid — 2 columns using _fieldRow ───────
+                        _fieldRow(
+                          context,
+                          _readonlyField(
+                            label: 'Category',
+                            value: inc.category,
+                            icon: Icons.category_outlined,
+                          ),
+                          _readonlyField(
+                            label: 'Priority',
+                            value: inc.priority,
+                            icon: Icons.flag_outlined,
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        _fieldRow(
+                          context,
+                          _readonlyField(
+                            label: 'Reported by',
+                            value: inc.user?.name ?? '—',
+                            icon: Icons.person_outline,
+                          ),
+                          _readonlyField(
+                            label: 'Assigned to',
+                            value: inc.assignedUser?.name ?? 'Pending',
+                            icon: Icons.support_agent_outlined,
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        _fieldRow(
+                          context,
+                          _readonlyField(
+                            label: 'Submitted',
+                            value: _formatDate(inc.createdAt),
+                            icon: Icons.calendar_today_outlined,
+                          ),
+                          _readonlyField(
+                            label: 'Last updated',
+                            value: _formatDate(inc.updatedAt),
+                            icon: Icons.update_outlined,
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // ── Description ───────────────────────────────────
+                        _readonlyField(
+                          label: 'Description',
+                          value: inc.description,
+                          icon: Icons.notes_outlined,
+                          maxLines: 4,
+                          fullWidth: true,
+                        ),
+
+                        // ── Attachment ────────────────────────────────────
+                        if (inc.attachment != null) ...[
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: _bgLight,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color: _borderColor, width: 1),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.attach_file,
+                                    size: 18, color: _textMuted),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    inc.attachment!.split('/').last,
+                                    style: const TextStyle(
+                                        fontSize: 13,
+                                        color: _brandBlue),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 20),
+
+                        // ── Activity section ──────────────────────────────
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: _bgLight,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: _borderColor, width: 1),
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _detailGrid(inc),
-                              const SizedBox(height: 14),
-                              _divider(),
-                              const SizedBox(height: 14),
-                              _descriptionBlock(inc),
-                              const SizedBox(height: 14),
-                              _divider(),
-                              const SizedBox(height: 14),
-                              _activitySection(inc),
+                              const Text(
+                                'Activity',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: _textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              if (inc.logs.isEmpty)
+                                const Text(
+                                  'No activity yet.',
+                                  style: TextStyle(
+                                      fontSize: 13, color: _textMuted),
+                                )
+                              else
+                                ...inc.logs
+                                    .map((log) => _timelineItem(log, inc)),
                             ],
                           ),
                         ),
-                      ),
-                      const Divider(
-                          height: 0.5,
-                          thickness: 0.5,
-                          color: _borderColor),
-                      _noteInput(vm, inc),
-                    ],
+
+                        const SizedBox(height: 20),
+
+                        // ── Note input ────────────────────────────────────
+                        _buildNoteInput(vm, inc),
+                      ],
+                    ),
                   ),
           ),
         );
@@ -150,165 +360,122 @@ class _IncDetailDialogState extends State<IncDetailDialog> {
     );
   }
 
-  // ── Header ────────────────────────────────────────────────────────────────
-  Widget _buildHeader(IncidentModel inc) {
-    final sc = _statusColors(inc.status);
-    final pc = _prioColors(inc.priority);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  inc.ticketNo,
-                  style: const TextStyle(
-                      fontSize: 11,
-                      color: _textMuted,
-                      fontFamily: 'monospace'),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  inc.subject,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: _textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          _pill(inc.status, bg: sc.bg, fg: sc.fg),
-          const SizedBox(width: 6),
-          _pill(inc.priority, bg: pc.bg, fg: pc.fg),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.close,
-                size: 18, color: _textSecondary),
-            onPressed: () {
-              context.read<IncidentVM>().clearSelected();
-              Navigator.pop(context);
-            },
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-          ),
-        ],
+  // ── Readonly field — same visual as createA_dialog text fields ────────────
+  Widget _readonlyField({
+    required String label,
+    required String value,
+    required IconData icon,
+    int maxLines = 1,
+    bool fullWidth = false,
+  }) {
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontSize: 13, color: _textMuted),
+        prefixIcon: Icon(icon, size: 18, color: _textMuted),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        filled: true,
+        fillColor: _bgLight,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: _borderColor, width: 1),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: _borderColor, width: 1),
+        ),
+      ),
+      child: Text(
+        value,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: _textPrimary,
+        ),
       ),
     );
   }
 
-  // ── Detail grid ───────────────────────────────────────────────────────────
-  Widget _detailGrid(IncidentModel inc) {
-    final fields = [
-      ('Category',     inc.category),
-      ('Priority',     inc.priority),
-      ('Reported by',  inc.user?.name ?? '—'),
-      ('Assigned to',  inc.assignedUser?.name ?? 'Pending'),
-      ('Submitted',    _formatDate(inc.createdAt)),
-      ('Last updated', _formatDate(inc.updatedAt)),
-    ];
+  // ── Note input section ────────────────────────────────────────────────────
+  Widget _buildNoteInput(IncidentVM vm, IncidentModel inc) {
+    final isClosed =
+        inc.status == 'Resolved' || inc.status == 'Closed';
 
-    return Wrap(
-      spacing: 20,
-      runSpacing: 12,
-      children: fields.map((f) {
-        return SizedBox(
-          width: 280,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(f.$1,
-                  style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: _textSecondary)),
-              const SizedBox(height: 2),
-              Text(f.$2,
-                  style: const TextStyle(
-                      fontSize: 13, color: _textPrimary)),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  // ── Description (readonly) ────────────────────────────────────────────────
-  Widget _descriptionBlock(IncidentModel inc) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        const Text('Description',
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: _textSecondary)),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: _bgLight,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _borderColor, width: 0.5),
-          ),
-          child: Text(
-            inc.description,
+        Expanded(
+          child: TextField(
+            controller: _noteCtrl,
+            enabled: !isClosed,
+            maxLines: 2,
+            minLines: 1,
             style: const TextStyle(
-                fontSize: 13, color: _textPrimary, height: 1.6),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: _textPrimary,
+            ),
+            decoration: _noteDecoration(isClosed),
           ),
         ),
-        // Attachment link if present
-        if (inc.attachment != null) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.attach_file,
-                  size: 14, color: _textSecondary),
-              const SizedBox(width: 4),
-              Text(
-                inc.attachment!.split('/').last,
-                style: const TextStyle(
-                    fontSize: 12, color: _brandBlue),
-              ),
-            ],
+        const SizedBox(width: 12),
+        SizedBox(
+          height: 52,
+          child: ElevatedButton(
+            onPressed:
+                isClosed || _sendingNote ? null : () => _sendNote(vm),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _brandBlue,
+              disabledBackgroundColor: _brandBlue.withOpacity(0.4),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16),
+            ),
+            child: _sendingNote
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.send,
+                    size: 16, color: Colors.white),
           ),
-        ],
+        ),
       ],
     );
   }
 
-  // ── Activity timeline ─────────────────────────────────────────────────────
-  Widget _activitySection(IncidentModel inc) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Activity',
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: _textSecondary)),
-        const SizedBox(height: 12),
-        if (inc.logs.isEmpty)
-          const Text('No activity yet.',
-              style: TextStyle(fontSize: 12, color: _textMuted))
-        else
-          ...inc.logs.map((log) => _timelineItem(log, inc)),
-      ],
+  // ── _fieldRow — responsive 2-col layout (same as createA_dialog) ──────────
+  Widget _fieldRow(BuildContext context, Widget a, Widget b) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 500) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [a, const SizedBox(height: 14), b],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: a),
+            const SizedBox(width: 12),
+            Expanded(child: b),
+          ],
+        );
+      },
     );
   }
 
+  // ── Timeline item ─────────────────────────────────────────────────────────
   Widget _timelineItem(IncidentLog log, IncidentModel inc) {
-    // Staff dot = brand blue, IT/admin dot = gray
     final isStaff = log.userId == inc.userId;
-    final dotColor =
-        isStaff ? _brandBlue : _textMuted;
+    final dotColor = isStaff ? _brandBlue : _textMuted;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -336,7 +503,7 @@ class _IncDetailDialogState extends State<IncDetailDialog> {
                 RichText(
                   text: TextSpan(
                     style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: _textSecondary,
                         height: 1.5),
                     children: [
@@ -347,9 +514,7 @@ class _IncDetailDialogState extends State<IncDetailDialog> {
                               fontWeight: FontWeight.w600,
                               color: _textPrimary),
                         ),
-                      TextSpan(
-                        text: log.description,
-                      ),
+                      TextSpan(text: log.description),
                     ],
                   ),
                 ),
@@ -367,106 +532,7 @@ class _IncDetailDialogState extends State<IncDetailDialog> {
     );
   }
 
-  // ── Note input — only editable section for staff ──────────────────────────
-  Widget _noteInput(IncidentVM vm, IncidentModel inc) {
-    final isClosed =
-        inc.status == 'Resolved' || inc.status == 'Closed';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: 16, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Lock indicator
-          Row(
-            children: const [
-              Icon(Icons.lock_outline, size: 12, color: _textMuted),
-              SizedBox(width: 4),
-              Text(
-                'Notes only — form locked selepas submit',
-                style: TextStyle(fontSize: 11, color: _textMuted),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _noteCtrl,
-                  enabled: !isClosed,
-                  maxLines: 2,
-                  minLines: 1,
-                  style: const TextStyle(
-                      fontSize: 13, color: _textPrimary),
-                  decoration: InputDecoration(
-                    hintText: isClosed
-                        ? 'Ticket dah closed — notes tidak boleh ditambah'
-                        : 'Tambah nota atau maklumat tambahan...',
-                    hintStyle: const TextStyle(
-                        fontSize: 12, color: _textMuted),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                          color: _borderColor, width: 0.5),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                          color: _borderColor, width: 0.5),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                          color: _brandBlue, width: 1),
-                    ),
-                    filled: true,
-                    fillColor:
-                        isClosed ? _bgLight : Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 42,
-                child: ElevatedButton(
-                  onPressed: isClosed || _sendingNote
-                      ? null
-                      : () => _sendNote(vm),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _brandBlue,
-                    disabledBackgroundColor:
-                        _brandBlue.withOpacity(0.4),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14),
-                  ),
-                  child: _sendingNote
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white),
-                        )
-                      : const Icon(Icons.send,
-                          size: 16, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   // ── Helpers ───────────────────────────────────────────────────────────────
-
   Widget _pill(String text,
       {required Color bg, required Color fg}) {
     return Container(
@@ -476,16 +542,13 @@ class _IncDetailDialogState extends State<IncDetailDialog> {
         color: bg,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(text,
-          style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: fg)),
+      child: Text(
+        text,
+        style: TextStyle(
+            fontSize: 11, fontWeight: FontWeight.w600, color: fg),
+      ),
     );
   }
-
-  Widget _divider() =>
-      const Divider(height: 0.5, thickness: 0.5, color: _borderColor);
 
   String _formatDate(String iso) {
     try {

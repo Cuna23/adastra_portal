@@ -71,7 +71,8 @@ class IncidentVM extends ChangeNotifier {
     required String description,
     required String category,
     required String priority,
-    attachmentFile,
+    List<int>? attachmentFile,
+    String? filename,
   }) async {
     _isSubmitting = true;
     _error = null;
@@ -85,6 +86,7 @@ class IncidentVM extends ChangeNotifier {
         category: category,
         priority: priority,
         attachment: attachmentFile,
+        filename: filename,
       );
       await fetchIncidents(token);
       _isSubmitting = false;
