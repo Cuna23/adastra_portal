@@ -121,6 +121,7 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
       category:       _category,
       priority:       _priority,
       attachmentFile: _attachmentBytes,
+      filename:       _attachmentName,
     );
 
     if (!mounted) return;

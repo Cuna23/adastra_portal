@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Auth Test',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+      theme: ThemeData( 
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF4F6EF7),
           brightness: Brightness.dark,

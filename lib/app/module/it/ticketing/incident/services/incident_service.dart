@@ -62,17 +62,24 @@ class IncidentService {
       ..fields['category']    = category
       ..fields['priority']    = priority;
 
-    if (attachment != null) {
-      req.files.add(
-        http.MultipartFile.fromBytes(
-          'attachment',
-          attachment,
-          filename: filename ?? 'file.pdf',
-          contentType: MediaType('application', 'octet-stream'),
-        ),
-      );
-    }
+  if (attachment != null && filename != null) {
+    final ext = filename.split('.').last.toLowerCase();
+    final mime = switch (ext) {
+      'jpg' || 'jpeg' => MediaType('image', 'jpeg'),
+      'png'           => MediaType('image', 'png'),
+      'pdf'           => MediaType('application', 'pdf'),
+      _               => MediaType('application', 'octet-stream'),
+    };
 
+    req.files.add(
+      http.MultipartFile.fromBytes(
+        'attachment',
+        attachment,
+        filename: filename,
+        contentType: mime,
+      ),
+    );
+  }
     final streamed = await req.send();
     final res = await http.Response.fromStream(streamed);
 
