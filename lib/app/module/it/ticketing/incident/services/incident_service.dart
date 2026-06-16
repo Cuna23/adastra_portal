@@ -113,4 +113,47 @@ class IncidentService {
     final body = jsonDecode(res.body);
     throw Exception(body['message'] ?? 'Failed to add note');
   }
+
+  // ── Update existing note ──────────────────────────────────────────────────
+  Future<IncidentModel> updateNote({
+    required String token,
+    required int incidentId,
+    required int logId,
+    required String note,
+  }) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/incidents/$incidentId/logs/$logId'),
+      headers: {
+        ..._headers(token),
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'note': note}),
+    );
+
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      return IncidentModel.fromJson(data['data']);
+    }
+    final body = jsonDecode(res.body);
+    throw Exception(body['message'] ?? 'Failed to update note');
+  }
+
+  // ── Delete a note ─────────────────────────────────────────────────────────
+  Future<IncidentModel> deleteNote({
+    required String token,
+    required int incidentId,
+    required int logId,
+  }) async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/incidents/$incidentId/logs/$logId'),
+      headers: _headers(token),
+    );
+
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      return IncidentModel.fromJson(data['data']);
+    }
+    final body = jsonDecode(res.body);
+    throw Exception(body['message'] ?? 'Failed to delete note');
+  }
 }

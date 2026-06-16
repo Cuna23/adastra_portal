@@ -119,6 +119,46 @@ class IncidentVM extends ChangeNotifier {
     }
   }
 
+  // ── Update existing note ──────────────────────────────────────────────────
+  Future<bool> updateNote({
+    required String token,
+    required int incidentId,
+    required int logId,
+    required String note,
+  }) async {
+    try {
+      _selected = await _service.updateNote(
+        incidentId: incidentId,
+        logId: logId,
+        note: note,
+        token: token,
+      );
+      notifyListeners();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // ── Delete a note ─────────────────────────────────────────────────────────
+  Future<bool> deleteNote({
+    required String token,
+    required int incidentId,
+    required int logId,
+  }) async {
+    try {
+      _selected = await _service.deleteNote(
+        incidentId: incidentId,
+        logId: logId,
+        token: token,
+      );
+      notifyListeners();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // ── Filter ────────────────────────────────────────────────────────────────
   void setFilter(String status) {
     _filterStatus = status;
