@@ -326,7 +326,7 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
                   borderSide: const BorderSide(color: _borderColor)),
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: _brandBlue, width: 1.5)),
+                  borderSide: const BorderSide(color: _brandBlue, width: 0.5)),
             ),
           ),
           const SizedBox(height: 10),
