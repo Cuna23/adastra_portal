@@ -68,11 +68,12 @@ class IncidentModel {
 class UserMini {
   final int id;
   final String name;
+  final String? role;
 
-  UserMini({required this.id, required this.name});
+  UserMini({required this.id, required this.name, this.role});
 
   factory UserMini.fromJson(Map<String, dynamic> j) =>
-      UserMini(id: j['id'], name: j['name']);
+      UserMini(id: j['id'], name: j['name'], role: j['role']);
 }
 
 class IncidentLog {

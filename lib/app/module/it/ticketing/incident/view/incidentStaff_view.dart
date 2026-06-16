@@ -223,7 +223,9 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
   Widget _buildCard(IncidentModel inc) {
     final sc = _statusColors(inc.status);
     final pc = _prioColors(inc.priority);
-    final assignedName = inc.assignedUser?.name;
+    final assignedLabel = _assignedLabel(inc);
+    final isIT = inc.assignedUser?.role == 'super_admin';
+    final isPending = inc.assignedUser == null;
 
     return InkWell(
       onTap: () => _openDetail(inc.id),
@@ -287,18 +289,22 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
                     style: const TextStyle(
                         fontSize: 12, color: _textSecondary)),
                 _metaDivider(),
-                if (assignedName != null) ...[
-                  _avatarCircle(assignedName),
+                if (!isPending) ...[
+                  if (isIT)
+                    const Icon(Icons.support_agent_outlined, size: 13, color: _textMuted)  // IT icon
+                  else
+                    _avatarCircle(assignedLabel),
                   const SizedBox(width: 5),
-                  Text(assignedName,
-                      style: const TextStyle(
-                          fontSize: 12, color: _textSecondary)),
+                  Text(assignedLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isIT ? _brandBlue : _textSecondary,
+                        fontWeight: isIT ? FontWeight.w600 : FontWeight.w400,
+                      )),
                 ] else ...[
-                  const Icon(Icons.person_outline,
-                      size: 13, color: _textMuted),
+                  const Icon(Icons.support_agent_outlined, size: 13, color: _textMuted),
                   const SizedBox(width: 4),
-                  const Text('Unassigned',
-                      style: TextStyle(fontSize: 12, color: _textMuted)),
+                  const Text('Pending', style: TextStyle(fontSize: 12, color: _textMuted)),
                 ],
                 _metaDivider(),
                 const Icon(Icons.calendar_today_outlined,
@@ -315,6 +321,12 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     );
   }
 
+    String _assignedLabel(IncidentModel inc) {
+    final u = inc.assignedUser;
+    if (u == null) return 'Pending';
+    if (u.role == 'super_admin') return 'IT';
+    return u.name;
+  }
   // ── Footer ────────────────────────────────────────────────────────────────
 
   Widget _buildFooter(IncidentVM vm) {

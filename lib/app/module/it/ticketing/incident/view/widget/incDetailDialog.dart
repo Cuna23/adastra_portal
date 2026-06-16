@@ -230,7 +230,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
             const SizedBox(height: 14),
             _fieldRow(
               _readonlyField(label: 'Reported by', value: inc.user?.name ?? '—',            icon: Icons.person_outline),
-              _readonlyField(label: 'Assigned to', value: inc.assignedUser?.name ?? 'Pending', icon: Icons.support_agent_outlined),
+              _readonlyField(label: 'Assigned to', value: _assignedLabel(inc), icon: Icons.support_agent_outlined),
             ),
             const SizedBox(height: 14),
             _fieldRow(
@@ -420,6 +420,13 @@ class _IncDetailPageState extends State<IncDetailPage> {
         ],
       ),
     );
+  }
+
+    String _assignedLabel(IncidentModel inc) {
+    final u = inc.assignedUser;
+    if (u == null) return 'Pending';
+    if (u.role == 'super_admin') return 'IT';
+    return u.name;
   }
 
   // ── Timeline item ─────────────────────────────────────────────────────────
