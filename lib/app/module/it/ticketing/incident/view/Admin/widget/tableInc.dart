@@ -46,17 +46,16 @@ class _IncidentTableState extends State<IncidentTable> {
   // Fixed column widths — triggers horizontal scroll when screen is narrow
   static const double _wTicket   = 140.0;
   static const double _wSubject  = 220.0;
-  static const double _wReporter = 150.0;
+  static const double _wIssuer = 150.0;
   static const double _wCat      = 130.0;
   static const double _wPrio     = 100.0;
   static const double _wStatus   = 120.0;
   static const double _wAssign   = 150.0;
   static const double _wDate     = 110.0;
-  static const double _wActions  = 90.0;
 
   static const double _minWidth =
-      _wTicket + _wSubject + _wReporter + _wCat + _wPrio +
-      _wStatus + _wAssign + _wDate + _wActions + 32.0;
+      _wTicket + _wSubject + _wIssuer + _wCat + _wPrio +
+      _wStatus + _wAssign + _wDate  + 120 + 32.0;
 
   // Shared horizontal ScrollController — header + all rows move together
   final ScrollController _hScrollController = ScrollController();
@@ -214,25 +213,12 @@ class _IncidentTableState extends State<IncidentTable> {
         children: [
           _hLabel('TICKET NO',   _wTicket),
           _hLabel('SUBJECT',     _wSubject),
-          _hLabel('REPORTER',    _wReporter),
+          _hLabel('ISSUER',    _wIssuer),
           _hLabel('CATEGORY',    _wCat),
           _hLabel('PRIORITY',    _wPrio),
           _hLabel('STATUS',      _wStatus),
           _hLabel('ASSIGNED TO', _wAssign),
           _hLabel('DATE',        _wDate),
-          SizedBox(
-            width: _wActions,
-            child: const Text(
-              'ACTIONS',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: _textMuted,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -297,9 +283,9 @@ class _IncidentTableState extends State<IncidentTable> {
                 ),
               ),
 
-              // Reporter
+              // Issuer
               SizedBox(
-                width: _wReporter,
+                width: _wIssuer,
                 child: Row(
                   children: [
                     _avatarCircle(inc.user?.name ?? '?'),
@@ -375,23 +361,6 @@ class _IncidentTableState extends State<IncidentTable> {
                   _formatDate(inc.createdAt),
                   style: const TextStyle(fontSize: 13, color: _textMuted),
                   overflow: TextOverflow.ellipsis,
-                ),
-              ),
-
-              // Actions — mirrors AssetTable's trailing action column
-              SizedBox(
-                width: _wActions,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.visibility_outlined,
-                          size: 17, color: _textSecondary),
-                      onPressed: () => onView(inc.id),
-                      tooltip: 'View',
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ],
                 ),
               ),
             ],
