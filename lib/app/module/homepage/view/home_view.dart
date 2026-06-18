@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import '../../it/assets/view model/asset_vm.dart';
 import '../../it/assets/view/asset_view.dart';
 import '../../it/ticketing/incident/view model/incident_vm.dart';
-import '../../it/ticketing/incident/view/incidentStaff_view.dart';
+import '../../it/ticketing/incident/view/Staff/incidentStaff_view.dart';
+import '../../it/ticketing/incident/view/incidentAdmin_view.dart';
 import '../../user/view model/user_vm.dart';
 import '../view model/home_vm.dart';
 import 'widget/sidebar.dart';
@@ -143,7 +144,7 @@ class _HomeBody extends StatelessWidget {
         return const Center(child: Text('Ticketing System'));
       case 7:
         final role = authVm.currentUser?.role.toLowerCase() ?? '';
-
+ 
         if (role == 'staff') {
           return ChangeNotifierProvider(
             create: (_) => IncidentVM(),
@@ -153,10 +154,19 @@ class _HomeBody extends StatelessWidget {
             ),
           );
         }
-
-        return const Center(
-          child: Text('Admin Incident Management Coming Soon'),
-        );
+ 
+        // [ADDED] Admin / Super Admin route — was previously a placeholder
+        if (role == 'admin' || role == 'super_admin') {
+          return ChangeNotifierProvider(
+            create: (_) => IncidentVM(),
+            child: IncidentAdminView(
+              token: authVm.token ?? '',
+              role: role,
+            ),
+          );
+        }
+ 
+        return const Center(child: Text('Access Denied'));
       case 8:
         return const Center(child: Text('Side Request — coming soon'));
       case 0:

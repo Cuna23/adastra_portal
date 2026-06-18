@@ -12,13 +12,27 @@ class IncidentVM extends ChangeNotifier {
   bool _isSubmitting = false;
   String? _error;
   String _filterStatus = 'All';
+  String _search = ''; // [ADDED] search query for table search bar
 
   // ── Getters ───────────────────────────────────────────────────────────────
-  List<IncidentModel> get incidents => _filterStatus == 'All'
-      ? _incidents
-      : _incidents
-          .where((i) => i.status.toLowerCase() == _filterStatus.toLowerCase())
-          .toList();
+  List<IncidentModel> get incidents {
+    // [UNCHANGED] same status-filter logic as before
+    Iterable<IncidentModel> list = _filterStatus == 'All'
+        ? _incidents
+        : _incidents.where(
+            (i) => i.status.toLowerCase() == _filterStatus.toLowerCase());
+
+    // [ADDED] layer search on top of the status filter
+    if (_search.trim().isNotEmpty) {
+      final q = _search.trim().toLowerCase();
+      list = list.where((i) =>
+        i.ticketNo.toLowerCase().contains(q) ||
+        i.subject.toLowerCase().contains(q),
+      );
+    }
+
+    return list.toList();
+  }
 
   IncidentModel? get selected => _selected;
   bool get isLoading => _isLoading;
@@ -162,6 +176,12 @@ class IncidentVM extends ChangeNotifier {
   // ── Filter ────────────────────────────────────────────────────────────────
   void setFilter(String status) {
     _filterStatus = status;
+    notifyListeners();
+  }
+
+  // [ADDED] Search — used by table search bar in admin/superadmin view
+  void setSearch(String value) {
+    _search = value;
     notifyListeners();
   }
 

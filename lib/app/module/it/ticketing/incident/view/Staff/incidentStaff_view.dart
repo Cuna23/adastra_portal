@@ -1,8 +1,7 @@
-// incidentStaff_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../view model/incident_vm.dart';
-import '../model/incident_model.dart';
+import '../../model/incident_model.dart';
+import '../../view model/incident_vm.dart';
 import 'widget/createIncident_dialog.dart';
 import 'widget/incDetailDialog.dart';
 

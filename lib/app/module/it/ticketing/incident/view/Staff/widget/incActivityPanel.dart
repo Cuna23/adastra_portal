@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../model/incident_model.dart';
-import '../../view model/incident_vm.dart';
+import '../../../model/incident_model.dart';
+import '../../../view model/incident_vm.dart';
 
 class IncActivityPanel extends StatefulWidget {
   final String token;
