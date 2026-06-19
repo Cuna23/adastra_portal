@@ -43,8 +43,8 @@ class IncidentVM extends ChangeNotifier {
   int get countAll => _incidents.length;
   // [FIX] Match exact status strings returned by backend ('Open' not 'open')
   int get countOpen => _incidents.where((i) => i.status == 'Open').length;
-  int get countInProgress =>
-      _incidents.where((i) => i.status == 'In Progress').length;
+  int get countInPending =>
+      _incidents.where((i) => i.status == 'In Pending').length;
   int get countResolved =>
       _incidents.where((i) => i.status == 'Resolved').length;
 
@@ -188,5 +188,43 @@ class IncidentVM extends ChangeNotifier {
   void clearSelected() {
     _selected = null;
     notifyListeners();
+  }
+
+  // ── Update Incident Fields (Admin Only) ──────────────────────────────────
+  Future<bool> updateIncidentFields({
+    required String token,
+    required int id,
+    required String category,
+    required String priority,
+    required String status,
+    required int? assignedTo,
+    required String? resolution,
+  }) async {
+    _isSubmitting = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _selected = await _service.updateIncidentAdmin(
+        id: id,
+        token: token,
+        category: category,
+        priority: priority,
+        status: status,
+        assignedTo: assignedTo,
+        resolution: resolution,
+      );
+      
+      await fetchIncidents(token);
+      
+      _isSubmitting = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceFirst('Exception: ', '');
+      _isSubmitting = false;
+      notifyListeners();
+      return false;
+    }
   }
 }

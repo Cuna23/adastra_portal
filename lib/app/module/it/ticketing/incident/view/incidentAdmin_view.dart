@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../view model/incident_vm.dart';
+import '../view model/incident_vm.dart';
+import 'widget/incDetailDialog.dart';
 import 'widget/tabBar_Inc.dart';
 import 'widget/tableInc.dart';
 
@@ -19,7 +20,6 @@ class IncidentAdminView extends StatefulWidget {
 }
 
 class _IncidentAdminViewState extends State<IncidentAdminView> {
-  // ── Exact same brand tokens as AssetView ────────────────────────────────
   static const _textPrimary = Color(0xFF1B1E28);
   static const _borderColor = Color(0xFFE5E7EB);
 
@@ -138,12 +138,13 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
   Widget build(BuildContext context) {
     return Consumer<IncidentVM>(
       builder: (context, vm, _) {
-        // if (_selectedId != null) {
-        //   return IncDetailPage(
-        //     token: widget.token,
-        //     onBack: _closeDetail,
-        //   );
-        // }
+        if (_selectedId != null) {
+          return IncDetailPage(
+            token: widget.token,
+            role: widget.role,
+            onBack: _closeDetail,
+          );
+        }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +155,7 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
               selected: vm.filterStatus,
               countAll: vm.countAll,
               countOpen: vm.countOpen,
-              countInProgress: vm.countInProgress,
+              countInPending: vm.countInPending,
               countResolved: vm.countResolved,
               onSelect: vm.setFilter,
             ),

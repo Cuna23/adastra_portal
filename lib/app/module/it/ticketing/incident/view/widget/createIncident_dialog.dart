@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
-import '../../../view model/incident_vm.dart';
+import '../../view model/incident_vm.dart';
 
 class CreateIncidentDialog extends StatefulWidget {
   final String token;

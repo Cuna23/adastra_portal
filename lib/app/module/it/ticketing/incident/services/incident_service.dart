@@ -1,4 +1,3 @@
-// incident_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -155,5 +154,38 @@ class IncidentService {
     }
     final body = jsonDecode(res.body);
     throw Exception(body['message'] ?? 'Failed to delete note');
+  }
+
+  // ── Update Incident Admin Fields ─────────────────────────────────────────
+  Future<IncidentModel> updateIncidentAdmin({
+    required int id,
+    required String token,
+    required String category,
+    required String priority,
+    required String status,
+    required int? assignedTo,
+    required String? resolution,
+  }) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/incidents/$id'),
+      headers: {
+        ..._headers(token),
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'category': category,
+        'priority': priority,
+        'status': status,
+        'assigned_to': assignedTo,
+        'resolution': resolution,
+      }),
+    );
+
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      return IncidentModel.fromJson(data['data']);
+    }
+    final body = jsonDecode(res.body);
+    throw Exception(body['message'] ?? 'Failed to update incident');
   }
 }

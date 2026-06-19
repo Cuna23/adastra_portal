@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../model/incident_model.dart';
-import '../../../view model/incident_vm.dart';
+import '../../model/incident_model.dart';
+import '../../view model/incident_vm.dart';
 import 'incActivityPanel.dart';
 
 class IncDetailPage extends StatefulWidget {
   final String token;
+  final String role; // 1. Tambah parameter role di sini ('admin', 'super_admin' atau 'staff')
   final VoidCallback onBack;
 
   const IncDetailPage({
     super.key,
     required this.token,
+    required this.role, 
     required this.onBack,
   });
 
@@ -22,9 +24,78 @@ class _IncDetailPageState extends State<IncDetailPage> {
   static const _brandBlue     = Color(0xFF185FA5);
   static const _brandBlueBg   = Color(0xFFE6F1FB);
   static const _textPrimary   = Color(0xFF1B1E28);
+  static const _textSecondary = Color(0xFF6B7280);
   static const _textMuted     = Color(0xFF9CA3AF);
   static const _borderColor   = Color(0xFFE5E7EB);
   static const _bgLight       = Color(0xFFF9FAFB);
+
+  // 3. Tambah Controllers & State untuk Simpan Data Editan Admin
+  final _resolutionCtrl = TextEditingController();
+  String? _selectedCategory;
+  String? _selectedPriority;
+  String? _selectedStatus;
+  int? _selectedAssignedTo;
+  bool _isUpdating = false;
+
+  bool get _isAdmin => widget.role == 'admin' || widget.role == 'super_admin';
+
+  @override
+  void initState() {
+    super.initState();
+    // Isi data awal berdasarkan tiket yang dipilih sekarang
+    final inc = context.read<IncidentVM>().selected;
+    if (inc != null) {
+      _resolutionCtrl.text = inc.resolution ?? '';
+      _selectedCategory = inc.category;
+      _selectedPriority = inc.priority;
+      _selectedStatus = inc.status;
+      _selectedAssignedTo = inc.assignedTo;
+    }
+  }
+
+  @override
+  void dispose() {
+    _resolutionCtrl.dispose();
+    super.dispose();
+  }
+
+  // 4. Fungsi Utama Hubungkan ke ViewModel Langkah 2 Tadi
+  Future<void> _updateIncidentFields() async {
+    final vm = context.read<IncidentVM>();
+    final inc = vm.selected;
+    if (inc == null) return;
+
+    setState(() => _isUpdating = true);
+
+    final success = await vm.updateIncidentFields(
+      token: widget.token,
+      id: inc.id,
+      category: _selectedCategory ?? inc.category,
+      priority: _selectedPriority ?? inc.priority,
+      status: _selectedStatus ?? inc.status,
+      assignedTo: _selectedAssignedTo,
+      resolution: _resolutionCtrl.text.trim(),
+    );
+
+    if (mounted) {
+      setState(() => _isUpdating = false);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚡ Ticket updated successfully!'),
+            backgroundColor: Color(0xFF3B6D11),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Update failed: ${vm.error}'),
+            backgroundColor: const Color(0xFFA32D2D),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +106,6 @@ class _IncDetailPageState extends State<IncDetailPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // ── Back button ───────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
@@ -130,7 +200,6 @@ class _IncDetailPageState extends State<IncDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -181,6 +250,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
             const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
             const SizedBox(height: 20),
 
+            // Paparan kekal asal field read-only hang
             _fieldRow(
               _readonlyField(label: 'Category', value: inc.category, icon: Icons.category_outlined),
               _readonlyField(label: 'Priority',  value: inc.priority,  icon: Icons.flag_outlined),
@@ -228,6 +298,111 @@ class _IncDetailPageState extends State<IncDetailPage> {
                 ),
               ),
             ],
+
+            // 5. SEKSYEN KAWALAN ADMIN (Hanya muncul jika user adalah Admin/SuperAdmin)
+            if (_isAdmin) ...[
+              const SizedBox(height: 24),
+              const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
+              const SizedBox(height: 20),
+              const Text(
+                '⚙️ Admin Management Action',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _brandBlue),
+              ),
+              const SizedBox(height: 16),
+              _fieldRow(
+                _editableDropdown(
+                  label: 'Change Category',
+                  value: _selectedCategory,
+                  items: ['Hardware', 'Software', 'Network', 'Other'],
+                  onChanged: (val) => setState(() => _selectedCategory = val),
+                ),
+                _editableDropdown(
+                  label: 'Change Priority',
+                  value: _selectedPriority,
+                  items: ['Low', 'Medium', 'High'],
+                  onChanged: (val) => setState(() => _selectedPriority = val),
+                ),
+              ),
+              const SizedBox(height: 14),
+              _fieldRow(
+                _editableDropdown(
+                  label: 'Update Status',
+                  value: _selectedStatus,
+                  items: ['Open', 'In Progress', 'Resolved', 'Closed'],
+                  onChanged: (val) => setState(() => _selectedStatus = val),
+                ),
+                _editableDropdown(
+                  label: 'Assignee Expert',
+                  value: _selectedAssignedTo?.toString(),
+                  items: [
+                    if (inc.assignedUser != null) inc.assignedUser!.id.toString() else '1',
+                  ],
+                  customLabels: {
+                    '1': 'IT Superadmin',
+                    if (inc.assignedUser != null) inc.assignedUser!.id.toString(): inc.assignedUser!.name,
+                  },
+                  onChanged: (val) => setState(() => _selectedAssignedTo = int.tryParse(val ?? '')),
+                ),
+              ),
+              const SizedBox(height: 14),
+              
+              // Kotak input Resolution
+              const Text('Resolution Comment', style: TextStyle(fontSize: 12, color: _textSecondary, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 6),
+              TextFormField(
+                controller: _resolutionCtrl,
+                maxLines: 3,
+                style: const TextStyle(fontSize: 14, color: _textPrimary),
+                decoration: InputDecoration(
+                  hintText: 'Describe the solution to close this case...',
+                  hintStyle: const TextStyle(fontSize: 13, color: _textMuted),
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: _borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: _brandBlue, width: 1.5),
+                  ),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 20),
+              
+              // Butang Save Changes
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  onPressed: _isUpdating ? null : _updateIncidentFields,
+                  icon: _isUpdating 
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.save_outlined, size: 16, color: Colors.white),
+                  label: const Text('Save Ticket Changes', style: TextStyle(fontSize: 13, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _brandBlue,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ] else ...[
+              // 6. Kalau yang login itu STAFF, dia cuma tayang Resolution dalam kotak read-only sahaja
+              if (inc.resolution != null && inc.resolution!.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
+                const SizedBox(height: 20),
+                _readonlyField(
+                  label: 'Official Resolution from Admin',
+                  value: inc.resolution!,
+                  icon: Icons.gavel_outlined,
+                  maxLines: 4,
+                  fullWidth: true,
+                ),
+              ]
+            ],
           ],
         ),
       ),
@@ -257,7 +432,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
         prefixIcon: Icon(icon, size: 18, color: _textMuted),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         filled: true,
-        fillColor: _bgLight,
+        fillColor: const Color(0xFFF3F4F6),//kelabu mati
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: _borderColor, width: 1),
@@ -265,13 +440,54 @@ class _IncDetailPageState extends State<IncDetailPage> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: _borderColor, width: 1),
-        ),
+        ),// Buang terus border supaya nampak flat
       ),
       child: Text(value,
           maxLines: maxLines,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
               fontSize: 15, fontWeight: FontWeight.w500, color: _textPrimary)),
+    );
+  }
+
+  // 7. Reusable Widget Helper untuk Dropdown Editan Admin
+  Widget _editableDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    Map<String, String>? customLabels,
+    required void Function(String?) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: _textSecondary, fontWeight: FontWeight.w500)),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: items.contains(value) ? value : null,
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          iconEnabledColor: _textMuted,
+          items: items.map((item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(customLabels?[item] ?? item, 
+              style: const TextStyle(fontSize: 14, color: _textPrimary)),
+            );
+          }).toList(),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: _brandBlue, width: 1.2), // Border biru brand menyerlah
+              ),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _brandBlue, width: 1.5)),
+          ),
+        ),
+      ],
     );
   }
 
@@ -310,7 +526,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
       const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       final h = dt.hour.toString().padLeft(2, '0');
-      final m = dt.minute.toString().padLeft(2, '0');
+      final m = dt.minute.toString().padLeft(2, '0'); 
       return '${dt.day} ${months[dt.month]} ${dt.year} · $h:$m';
     } catch (_) { return iso; }
   }

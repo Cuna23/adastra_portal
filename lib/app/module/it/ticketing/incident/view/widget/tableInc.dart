@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../model/incident_model.dart';
-import '../../../view model/incident_vm.dart';
+import '../../model/incident_model.dart';
+import '../../view model/incident_vm.dart';
+
 
 class IncidentTable extends StatefulWidget {
   final String role;
   final String token;
   final ScrollController scrollController;
   final void Function(int id) onView;
+  final bool showIssuerColumn;
 
   const IncidentTable({
     super.key,
@@ -15,6 +17,7 @@ class IncidentTable extends StatefulWidget {
     required this.token,
     required this.scrollController,
     required this.onView,
+    this.showIssuerColumn = true,
   });
 
   @override
@@ -53,13 +56,14 @@ class _IncidentTableState extends State<IncidentTable> {
   static const double _wAssign   = 150.0;
   static const double _wDate     = 110.0;
 
-  static const double _minWidth =
-      _wTicket + _wSubject + _wIssuer + _wCat + _wPrio +
-      _wStatus + _wAssign + _wDate  + 120 + 32.0;
+  double get _minWidth =>
+      _wTicket + _wSubject + (showIssuerColumn ? _wIssuer : 0) + _wCat + _wPrio +
+      _wStatus + _wAssign + _wDate + 120 + 32.0;
 
   // Shared horizontal ScrollController — header + all rows move together
   final ScrollController _hScrollController = ScrollController();
 
+  bool get showIssuerColumn => widget.showIssuerColumn;
   String get role  => widget.role;
   String get token => widget.token;
   ScrollController get scrollController => widget.scrollController;
@@ -84,8 +88,8 @@ class _IncidentTableState extends State<IncidentTable> {
     switch (status) {
       case 'Open':
         return (bg: _openBlueBg, fg: _openBlue);
-      case 'In Progress':
-        return (bg: _progAmberBg, fg: _progAmber);
+      case 'In Pending':
+        return (bg: _pendGrayBg, fg: _pendGray);
       case 'Resolved':
         return (bg: _resGreenBg, fg: _resGreen);
       default:
@@ -131,7 +135,7 @@ class _IncidentTableState extends State<IncidentTable> {
           return _buildError(vm);
         }
 
-        final rows = vm.incidents;  
+        final rows = vm.incidents;
 
         return Container(
           decoration: BoxDecoration(
@@ -149,45 +153,60 @@ class _IncidentTableState extends State<IncidentTable> {
                     controller: _hScrollController,
                     thumbVisibility: true,
                     notificationPredicate: (n) => n.depth == 0,
-                    child: SingleChildScrollView(
-                      controller: _hScrollController,
-                      scrollDirection: Axis.horizontal,
-                      child: SizedBox(
-                        width: _minWidth,
-                        child: Column(
-                          children: [
-                            _buildHeader(),
-                            const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
-                            Expanded(
-                              child: rows.isEmpty
-                                  ? Center(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: const [
-                                          Icon(Icons.confirmation_number_outlined,
-                                              size: 32, color: _textMuted),
-                                          SizedBox(height: 8),
-                                          Text('No incidents found.',
-                                              style: TextStyle(
-                                                  color: _textSecondary,
-                                                  fontSize: 13)),
-                                        ],
-                                      ),
-                                    )
-                                  : ListView.separated(
-                                      controller: scrollController,
-                                      itemCount: rows.length,
-                                      separatorBuilder: (_, __) => const Divider(
-                                          height: 0.5,
-                                          thickness: 0.5,
-                                          color: _borderColor),
-                                      itemBuilder: (context, i) =>
-                                          _buildRow(context, rows[i]),
-                                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final tableWidth = _minWidth > constraints.maxWidth
+                            ? _minWidth
+                            : constraints.maxWidth;
+                        return SingleChildScrollView(
+                          controller: _hScrollController,
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: tableWidth,
+                            child: Column(
+                              children: [
+                                _buildHeader(tableWidth),
+                                const Divider(
+                                    height: 0.5,
+                                    thickness: 0.5,
+                                    color: _borderColor),
+                                Expanded(
+                                  child: rows.isEmpty
+                                      ? Center(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: const [
+                                              Icon(
+                                                  Icons
+                                                      .confirmation_number_outlined,
+                                                  size: 32,
+                                                  color: _textMuted),
+                                              SizedBox(height: 8),
+                                              Text('No incidents found.',
+                                                  style: TextStyle(
+                                                      color: _textSecondary,
+                                                      fontSize: 13)),
+                                            ],
+                                          ),
+                                        )
+                                      : ListView.separated(
+                                          controller: scrollController,
+                                          itemCount: rows.length,
+                                          separatorBuilder: (_, __) =>
+                                              const Divider(
+                                                  height: 0.5,
+                                                  thickness: 0.5,
+                                                  color: _borderColor),
+                                          itemBuilder: (context, i) =>
+                                              _buildRow(
+                                                  context, rows[i], tableWidth),
+                                        ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -205,15 +224,16 @@ class _IncidentTableState extends State<IncidentTable> {
 
   // ── Header row ───────────────────────────────────────────────────────────
 
-  Widget _buildHeader() {
+  Widget _buildHeader(double width) {
     return Container(
+      width: width,
       color: const Color(0xFFF8F9FB),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
           _hLabel('TICKET NO',   _wTicket),
           _hLabel('SUBJECT',     _wSubject),
-          _hLabel('ISSUER',    _wIssuer),
+          if (showIssuerColumn) _hLabel('ISSUER', _wIssuer),
           _hLabel('CATEGORY',    _wCat),
           _hLabel('PRIORITY',    _wPrio),
           _hLabel('STATUS',      _wStatus),
@@ -239,7 +259,7 @@ class _IncidentTableState extends State<IncidentTable> {
 
   // ── Data row ─────────────────────────────────────────────────────────────
 
-  Widget _buildRow(BuildContext context, IncidentModel inc) {
+  Widget _buildRow(BuildContext context, IncidentModel inc, double width) {
     final sc = _statusColors(inc.status);
     final pc = _prioColors(inc.priority);
     final assignedLabel = _assignedLabel(inc);
@@ -249,7 +269,7 @@ class _IncidentTableState extends State<IncidentTable> {
     return InkWell(
       onTap: () => onView(inc.id),
       child: SizedBox(
-        width: _minWidth,
+        width: width,
         child: Container(
           color: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -284,23 +304,24 @@ class _IncidentTableState extends State<IncidentTable> {
               ),
 
               // Issuer
-              SizedBox(
-                width: _wIssuer,
-                child: Row(
-                  children: [
-                    _avatarCircle(inc.user?.name ?? '?'),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        inc.user?.name ?? '—',
-                        style: const TextStyle(
-                            fontSize: 13, color: _textSecondary),
-                        overflow: TextOverflow.ellipsis,
+              if (showIssuerColumn)
+                SizedBox(
+                  width: _wIssuer,
+                  child: Row(
+                    children: [
+                      _avatarCircle(inc.user?.name ?? '?'),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          inc.user?.name ?? '—',
+                          style: const TextStyle(
+                              fontSize: 13, color: _textSecondary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
               // Category
               SizedBox(
@@ -396,10 +417,10 @@ class _IncidentTableState extends State<IncidentTable> {
                     fontSize: 11, color: _openBlue, fontWeight: FontWeight.w500)),
             const SizedBox(width: 12),
           ],
-          if (vm.countInProgress > 0) ...[
-            Text('${vm.countInProgress} in progress',
+          if (vm.countInPending > 0) ...[
+            Text('${vm.countInPending} in pending',
                 style: const TextStyle(
-                    fontSize: 11, color: _progAmber, fontWeight: FontWeight.w500)),
+                    fontSize: 11, color: _pendGray, fontWeight: FontWeight.w500)),
             const SizedBox(width: 12),
           ],
           if (vm.countResolved > 0)
@@ -430,7 +451,6 @@ class _IncidentTableState extends State<IncidentTable> {
       ),
     );
   }
-
   // ── Shared widgets ───────────────────────────────────────────────────────
 
   Widget _avatarCircle(String name) {
