@@ -36,23 +36,23 @@ class StatusTabBarInc extends StatelessWidget {
       ('Unassigned', countUnassigned),
     ];
 
-    return SizedBox(
-      height: 40,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        children: filters.map((f) {
-          return _Tab(
-            label: f.$1,
-            count: f.$2,
-            selected: selected == f.$1,
-            onTap: () => onSelect(f.$1),
-          );
-        }).toList(),
-      ),
-    );
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: filters.map((f) {
+            return _Tab(
+              label: f.$1,
+              count: f.$2,
+              selected: selected == f.$1,
+              onTap: () => onSelect(f.$1),
+            );
+          }).toList(),
+        ),
+      );
+    }
   }
-}
 
 class _Tab extends StatelessWidget {
   final String label;
@@ -79,7 +79,7 @@ class _Tab extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         margin: const EdgeInsets.only(right: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? _brandBlue : Colors.white,
           borderRadius: BorderRadius.circular(10),

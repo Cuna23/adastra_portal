@@ -7,12 +7,14 @@ import 'incActivityPanel.dart';
 class IncDetailPage extends StatefulWidget {
   final String token;
   final String role; // 1. Tambah parameter role di sini ('admin', 'super_admin' atau 'staff')
+  final int currentUserId; 
   final VoidCallback onBack;
 
   const IncDetailPage({
     super.key,
     required this.token,
     required this.role, 
+    required this.currentUserId,
     required this.onBack,
   });
 
@@ -158,6 +160,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
                                 token: widget.token,
                                 inc: inc,
                                 vm: vm,
+                                currentUserId: widget.currentUserId,
                               ),
                             ),
                           ],
@@ -172,6 +175,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
                               token: widget.token,
                               inc: inc,
                               vm: vm,
+                              currentUserId: widget.currentUserId,
                             ),
                           ],
                         ),

@@ -8,11 +8,13 @@ import 'widget/tableInc.dart';
 class IncidentStaffView extends StatefulWidget {
   final String token;
   final String role;
+  final int currentUserId;
 
   const IncidentStaffView({
     super.key,
     required this.token,
     required this.role,
+    required this.currentUserId,
   });
 
   @override
@@ -78,6 +80,7 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
             token: widget.token,
             role: widget.role,
             onBack: _closeDetail,
+            currentUserId: widget.currentUserId,
           );
         }
 

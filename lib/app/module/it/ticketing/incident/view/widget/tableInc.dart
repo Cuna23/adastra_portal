@@ -10,6 +10,7 @@ class IncidentTable extends StatefulWidget {
   final ScrollController scrollController;
   final void Function(int id) onView;
   final bool showIssuerColumn;
+  final bool shrinkWrap; 
 
   const IncidentTable({
     super.key,
@@ -18,6 +19,7 @@ class IncidentTable extends StatefulWidget {
     required this.scrollController,
     required this.onView,
     this.showIssuerColumn = true,
+    this.shrinkWrap = false, 
   });
 
   @override
@@ -141,6 +143,62 @@ class _IncidentTableState extends State<IncidentTable> {
 
         final rows = vm.incidents;
 
+        // ── Header + rows share ONE horizontal scroll ──────────────────
+        final tableBody = Scrollbar(
+          controller: _hScrollController,
+          thumbVisibility: true,
+          notificationPredicate: (n) => n.depth == 0,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final tableWidth = _minWidth > constraints.maxWidth
+                  ? _minWidth
+                  : constraints.maxWidth;
+              return SingleChildScrollView(
+                controller: _hScrollController,
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: tableWidth,
+                  child: Column(
+                    children: [
+                      _buildHeader(tableWidth),
+                      const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
+                      rows.isEmpty
+                          ? Container(
+                              height: 160,
+                              alignment: Alignment.center,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.confirmation_number_outlined,
+                                      size: 32, color: _textMuted),
+                                  SizedBox(height: 8),
+                                  Text('No incidents found.',
+                                      style: TextStyle(
+                                          color: _textSecondary, fontSize: 13)),
+                                ],
+                              ),
+                            )
+                          : ListView.separated(
+                              controller: widget.shrinkWrap ? null : scrollController,
+                              shrinkWrap: widget.shrinkWrap,
+                              physics: widget.shrinkWrap
+                                  ? const NeverScrollableScrollPhysics()
+                                  : null,
+                              itemCount: rows.length,
+                              separatorBuilder: (_, __) => const Divider(
+                                  height: 0.5, thickness: 0.5, color: _borderColor),
+                              itemBuilder: (context, i) =>
+                                  _buildRow(context, rows[i], tableWidth),
+                            ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+
+        // ── Outer card — Expanded only when NOT shrinkWrap ─────────────
         return Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -150,72 +208,9 @@ class _IncidentTableState extends State<IncidentTable> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: Column(
+              mainAxisSize: widget.shrinkWrap ? MainAxisSize.min : MainAxisSize.max,
               children: [
-                // ── Header + rows share ONE horizontal scroll ──────────
-                Expanded(
-                  child: Scrollbar(
-                    controller: _hScrollController,
-                    thumbVisibility: true,
-                    notificationPredicate: (n) => n.depth == 0,
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final tableWidth = _minWidth > constraints.maxWidth
-                            ? _minWidth
-                            : constraints.maxWidth;
-                        return SingleChildScrollView(
-                          controller: _hScrollController,
-                          scrollDirection: Axis.horizontal,
-                          child: SizedBox(
-                            width: tableWidth,
-                            child: Column(
-                              children: [
-                                _buildHeader(tableWidth),
-                                const Divider(
-                                    height: 0.5,
-                                    thickness: 0.5,
-                                    color: _borderColor),
-                                Expanded(
-                                  child: rows.isEmpty
-                                      ? Center(
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: const [
-                                              Icon(
-                                                  Icons
-                                                      .confirmation_number_outlined,
-                                                  size: 32,
-                                                  color: _textMuted),
-                                              SizedBox(height: 8),
-                                              Text('No incidents found.',
-                                                  style: TextStyle(
-                                                      color: _textSecondary,
-                                                      fontSize: 13)),
-                                            ],
-                                          ),
-                                        )
-                                      : ListView.separated(
-                                          controller: scrollController,
-                                          itemCount: rows.length,
-                                          separatorBuilder: (_, __) =>
-                                              const Divider(
-                                                  height: 0.5,
-                                                  thickness: 0.5,
-                                                  color: _borderColor),
-                                          itemBuilder: (context, i) =>
-                                              _buildRow(
-                                                  context, rows[i], tableWidth),
-                                        ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-
-                // ── Footer — sticky, always visible, never scrolls ─────
+                widget.shrinkWrap ? tableBody : Expanded(child: tableBody),
                 const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
                 _buildFooter(vm),
               ],
@@ -225,7 +220,6 @@ class _IncidentTableState extends State<IncidentTable> {
       },
     );
   }
-
   // ── Header row ───────────────────────────────────────────────────────────
 
   Widget _buildHeader(double width) {

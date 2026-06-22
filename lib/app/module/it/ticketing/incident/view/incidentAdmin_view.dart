@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view model/incident_vm.dart';
+import 'widget/incChart.dart';
 import 'widget/incDetailDialog.dart';
 import 'widget/tabBar_Inc.dart';
 import 'widget/tableInc.dart';
@@ -8,11 +9,13 @@ import 'widget/tableInc.dart';
 class IncidentAdminView extends StatefulWidget {
   final String token;
   final String role;
+  final int currentUserId;
 
   const IncidentAdminView({
     super.key,
     required this.token,
     required this.role,
+    required this.currentUserId,
   });
 
   @override
@@ -141,53 +144,62 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
           return IncDetailPage(
             token: widget.token,
             role: widget.role,
+            currentUserId: widget.currentUserId,
             onBack: _closeDetail,
           );
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Search + Export — now ABOVE tab bar ─────────────────
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isMobile = constraints.maxWidth < 600;
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+                    child: isMobile
+                        ? _buildMobileToolbar(vm)
+                        : _buildDesktopToolbar(vm),
+                  );
+                },
+              ),
 
-            // ── Status filter tab bar — same visual language as CategoryTabBarA
-            StatusTabBarInc(
-              selected: vm.filterStatus,
-              countAll: vm.countAll,
-              countUnresolved: vm.countUnresolved,
-              countOpen: vm.countOpen,
-              countInPending: vm.countInPending,
-              countResolved: vm.countResolved,
-              countReview: vm.countReview,
-              countUnassigned: vm.countUnassigned,
-              onSelect: vm.setFilter,
-            ),
+              // ── Status filter tab bar ────────────────────────────────
+              StatusTabBarInc(
+                selected: vm.filterStatus,
+                countAll: vm.countAll,
+                countUnresolved: vm.countUnresolved,
+                countOpen: vm.countOpen,
+                countInPending: vm.countInPending,
+                countResolved: vm.countResolved,
+                countReview: vm.countReview,
+                countUnassigned: vm.countUnassigned,
+                onSelect: vm.setFilter,
+              ),
 
-            // ── Toolbar row — responsive, same layout as AssetView ─────────
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final isMobile = constraints.maxWidth < 600;
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-                  child: isMobile
-                      ? _buildMobileToolbar(vm)
-                      : _buildDesktopToolbar(vm),
-                );
-              },
-            ),
+              // ── Charts section ────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                child: IncChartsSection(token: widget.token),
+              ),
 
-            // ── Table ────────────────────────────────────────────────────
-            Expanded(
-              child: Padding(
+              const SizedBox(height: 16),
+
+              // ── Table — shrinkWrap so it joins the page scroll ───────
+              Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                 child: IncidentTable(
                   role: widget.role,
                   token: widget.token,
                   scrollController: _scrollController,
                   onView: _openDetail,
+                  shrinkWrap: true,       // ← new param
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );

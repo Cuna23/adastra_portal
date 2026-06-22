@@ -13,6 +13,8 @@ class IncidentVM extends ChangeNotifier {
   String? _error;
   String _filterStatus = 'All';
   String _search = ''; 
+  List<IncidentDailyCount> _weeklyStats = [];
+  bool _isLoadingStats = false;
 
   // ── Getters ───────────────────────────────────────────────────────────────
   List<IncidentModel> get incidents {
@@ -39,6 +41,9 @@ class IncidentVM extends ChangeNotifier {
 
     return list.toList();
   }
+
+  List<IncidentDailyCount> get weeklyStats => _weeklyStats;
+  bool get isLoadingStats => _isLoadingStats;
 
   IncidentModel? get selected => _selected;
   bool get isLoading => _isLoading;
@@ -236,5 +241,19 @@ class IncidentVM extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  Future<void> fetchWeeklyStats(String token) async {
+    _isLoadingStats = true;
+    notifyListeners();
+
+    try {
+      _weeklyStats = await _service.getWeeklyStats(token);
+    } catch (_) {
+      _weeklyStats = [];
+    }
+
+    _isLoadingStats = false;
+    notifyListeners();
   }
 }

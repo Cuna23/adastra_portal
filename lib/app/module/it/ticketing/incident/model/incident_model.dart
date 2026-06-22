@@ -105,3 +105,17 @@ class IncidentLog {
         user: j['user'] != null ? UserMini.fromJson(j['user']) : null,
       );
 }
+
+class IncidentDailyCount {
+  final String day;
+  final String date;
+  final int count;
+
+  IncidentDailyCount({required this.day, required this.date, required this.count});
+
+  factory IncidentDailyCount.fromJson(Map<String, dynamic> j) => IncidentDailyCount(
+        day: j['day'],
+        date: j['date'],
+        count: j['count'],
+      );
+}

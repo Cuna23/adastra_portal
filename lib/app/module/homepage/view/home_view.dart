@@ -151,6 +151,7 @@ class _HomeBody extends StatelessWidget {
             child: IncidentStaffView(
               token: authVm.token ?? '',
               role: role,
+              currentUserId: authVm.currentUser?.id ?? 0,
             ),
           );
         }
@@ -162,6 +163,7 @@ class _HomeBody extends StatelessWidget {
             child: IncidentAdminView(
               token: authVm.token ?? '',
               role: role,
+              currentUserId: authVm.currentUser?.id ?? 0, 
             ),
           );
         }
