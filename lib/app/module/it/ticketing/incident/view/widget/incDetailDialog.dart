@@ -313,7 +313,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
                 _editableDropdown(
                   label: 'Change Category',
                   value: _selectedCategory,
-                  items: ['Hardware', 'Software', 'Network', 'Other'],
+                  items: ['Hardware', 'Software', 'Network', 'Others'],
                   onChanged: (val) => setState(() => _selectedCategory = val),
                 ),
                 _editableDropdown(
@@ -328,7 +328,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
                 _editableDropdown(
                   label: 'Update Status',
                   value: _selectedStatus,
-                  items: ['Open', 'In Progress', 'Resolved', 'Closed'],
+                  items: ['Open', 'In Pending', 'Resolved', 'Review'],
                   onChanged: (val) => setState(() => _selectedStatus = val),
                 ),
                 _editableDropdown(
@@ -504,11 +504,16 @@ class _IncDetailPageState extends State<IncDetailPage> {
 
   ({Color bg, Color fg}) _statusColors(String status) {
     switch (status) {
-      case 'Open':       return (bg: const Color(0xFFE6F1FB), fg: const Color(0xFF185FA5));
-      case 'In Progress':return (bg: const Color(0xFFFAEEDA), fg: const Color(0xFF854F0B));
-      case 'Resolved':   return (bg: const Color(0xFFEAF3DE), fg: const Color(0xFF3B6D11));
-      case 'Closed':     return (bg: const Color(0xFFF1EFE8), fg: const Color(0xFF5F5E5A));
-      default:           return (bg: const Color(0xFFF1EFE8), fg: const Color(0xFF5F5E5A));
+      case 'Open':
+        return (bg: const Color(0xFFE6F1FB), fg: const Color(0xFF185FA5));
+      case 'In Pending':
+        return (bg: const Color(0xFFF1EFE8), fg: const Color(0xFF5F5E5A));
+      case 'Resolved':
+        return (bg: const Color(0xFFEAF3DE), fg: const Color(0xFF3B6D11));
+      case 'Review':
+        return (bg: const Color(0xFFEFE6F8), fg: const Color(0xFF6B3FA0));
+      default:
+        return (bg: const Color(0xFFF1EFE8), fg: const Color(0xFF5F5E5A));
     }
   }
 

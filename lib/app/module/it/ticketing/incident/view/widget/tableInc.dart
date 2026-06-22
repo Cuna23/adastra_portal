@@ -45,6 +45,8 @@ class _IncidentTableState extends State<IncidentTable> {
   static const _highRedBg     = Color(0xFFFCEBEB);
   static const _pendGray      = Color(0xFF5F5E5A);
   static const _pendGrayBg    = Color(0xFFF1EFE8);
+  static const _reviewPurple   = Color(0xFF6B3FA0);
+  static const _reviewPurpleBg = Color(0xFFEFE6F8);
 
   // Fixed column widths — triggers horizontal scroll when screen is narrow
   static const double _wTicket   = 140.0;
@@ -92,6 +94,8 @@ class _IncidentTableState extends State<IncidentTable> {
         return (bg: _pendGrayBg, fg: _pendGray);
       case 'Resolved':
         return (bg: _resGreenBg, fg: _resGreen);
+      case 'Review':
+        return (bg: _reviewPurpleBg, fg: _reviewPurple);
       default:
         return (bg: _pendGrayBg, fg: _pendGray);
     }

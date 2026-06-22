@@ -12,17 +12,23 @@ class IncidentVM extends ChangeNotifier {
   bool _isSubmitting = false;
   String? _error;
   String _filterStatus = 'All';
-  String _search = ''; // [ADDED] search query for table search bar
+  String _search = ''; 
 
   // ── Getters ───────────────────────────────────────────────────────────────
   List<IncidentModel> get incidents {
-    // [UNCHANGED] same status-filter logic as before
-    Iterable<IncidentModel> list = _filterStatus == 'All'
-        ? _incidents
-        : _incidents.where(
-            (i) => i.status.toLowerCase() == _filterStatus.toLowerCase());
+    Iterable<IncidentModel> list;
 
-    // [ADDED] layer search on top of the status filter
+    if (_filterStatus == 'All') {
+      list = _incidents;
+    } else if (_filterStatus == 'Unresolved') {
+      list = _incidents.where((i) => i.status != 'Resolved');
+    } else if (_filterStatus == 'Unassigned') {
+      list = _incidents.where((i) => i.assignedUser == null);
+    } else {
+      list = _incidents.where(
+          (i) => i.status.toLowerCase() == _filterStatus.toLowerCase());
+    }
+
     if (_search.trim().isNotEmpty) {
       final q = _search.trim().toLowerCase();
       list = list.where((i) =>
@@ -41,12 +47,16 @@ class IncidentVM extends ChangeNotifier {
   String get filterStatus => _filterStatus;
 
   int get countAll => _incidents.length;
-  // [FIX] Match exact status strings returned by backend ('Open' not 'open')
+  int get countUnresolved =>
+      _incidents.where((i) => i.status != 'Resolved').length;
   int get countOpen => _incidents.where((i) => i.status == 'Open').length;
   int get countInPending =>
       _incidents.where((i) => i.status == 'In Pending').length;
   int get countResolved =>
       _incidents.where((i) => i.status == 'Resolved').length;
+  int get countReview => _incidents.where((i) => i.status == 'Review').length;
+  int get countUnassigned =>
+      _incidents.where((i) => i.assignedUser == null).length;
 
   // ── Fetch all incidents ───────────────────────────────────────────────────
   Future<void> fetchIncidents(String token) async {

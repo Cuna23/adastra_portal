@@ -3,18 +3,24 @@ import 'package:flutter/material.dart';
 class StatusTabBarInc extends StatelessWidget {
   final String selected;
   final int countAll;
+  final int countUnresolved;
   final int countOpen;
   final int countInPending;
   final int countResolved;
+  final int countReview;
+  final int countUnassigned;
   final void Function(String status) onSelect;
 
   const StatusTabBarInc({
     super.key,
     required this.selected,
     required this.countAll,
+    required this.countUnresolved,
     required this.countOpen,
     required this.countInPending,
     required this.countResolved,
+    required this.countReview,
+    required this.countUnassigned,
     required this.onSelect,
   });
 
@@ -22,9 +28,12 @@ class StatusTabBarInc extends StatelessWidget {
   Widget build(BuildContext context) {
     final filters = [
       ('All', countAll),
+      ('Unresolved', countUnresolved),
       ('Open', countOpen),
       ('In Pending', countInPending),
       ('Resolved', countResolved),
+      ('Review', countReview),
+      ('Unassigned', countUnassigned),
     ];
 
     return SizedBox(

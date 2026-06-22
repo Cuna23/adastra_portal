@@ -90,7 +90,6 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
 
   Widget _exportBtn() => ElevatedButton.icon(
         onPressed: () {
-          // TODO: wire up real export — same pattern as exportAssetsToExcel(vm.assets)
         },
         icon: const Icon(Icons.download_outlined, size: 16),
         label: const Text('Export Excel'),
@@ -154,9 +153,12 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
             StatusTabBarInc(
               selected: vm.filterStatus,
               countAll: vm.countAll,
+              countUnresolved: vm.countUnresolved,
               countOpen: vm.countOpen,
               countInPending: vm.countInPending,
               countResolved: vm.countResolved,
+              countReview: vm.countReview,
+              countUnassigned: vm.countUnassigned,
               onSelect: vm.setFilter,
             ),
 

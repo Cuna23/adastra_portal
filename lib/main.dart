@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'app/module/login/view model/login_vm.dart';
 
  
-void main() {
+void main() { 
   runApp(
     ChangeNotifierProvider(
       create: (_) => AuthViewModel(),
