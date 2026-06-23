@@ -18,27 +18,25 @@ class _IncChartsSectionState extends State<IncChartsSection> {
   static const _textMuted   = Color(0xFF9CA3AF);
   static const _brandBlue   = Color(0xFF185FA5);
 
-  int _selectedDays = 7;
+  String _mode = 'days';   // 'days' or 'months'
 
-  final Map<int, String> _filterLabels = const {
-    7:  'Last 7 days',
-    14: 'Last 14 days',
-    30: 'Last 30 days',
-    60: 'Last 60 days',
+  final Map<String, String> _filterLabels = const {
+    'days':   'By Days',
+    'months': 'By Months',
   };
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<IncidentVM>().fetchWeeklyStats(widget.token, days: _selectedDays);
+      context.read<IncidentVM>().fetchChartStats(widget.token, mode: _mode);
     });
   }
 
-  void _onFilterChanged(int? days) {
-    if (days == null) return;
-    setState(() => _selectedDays = days);
-    context.read<IncidentVM>().fetchWeeklyStats(widget.token, days: days);
+  void _onFilterChanged(String? mode) {
+    if (mode == null) return;
+    setState(() => _mode = mode);
+    context.read<IncidentVM>().fetchChartStats(widget.token, mode: mode);
   }
 
   @override
@@ -114,7 +112,7 @@ class _IncChartsSectionState extends State<IncChartsSection> {
     );
   }
 
-  // ── Filter dropdown — 7/14/30/60 days ───────────────────────────────────
+  // ── Filter dropdown ───────────────────────────────────
   Widget _buildFilterDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -124,12 +122,12 @@ class _IncChartsSectionState extends State<IncChartsSection> {
         border: Border.all(color: _borderColor),
       ),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<int>(
-          value: _selectedDays,
+        child: DropdownButton<String>(
+          value: _mode,
+          isDense: true,
           dropdownColor: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          isDense: true,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: _textMuted),
+          icon: const Icon(Icons.keyboard_arrow_down, size: 15, color: _textMuted),
           style: const TextStyle(fontSize: 12, color: _textPrimary, fontWeight: FontWeight.w500),
           items: _filterLabels.entries
               .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
@@ -157,14 +155,38 @@ class _IncChartsSectionState extends State<IncChartsSection> {
         final maxCount = stats.map((s) => s.count).fold<int>(0, (a, b) => a > b ? a : b);
         final maxY = ((maxCount / 5).ceil() * 5).clamp(5, double.infinity).toDouble();
 
-        // Wider range = thinner bars + fewer label ticks to avoid clutter
-        final barWidth = _selectedDays <= 7 ? 22.0 : (_selectedDays <= 14 ? 14.0 : 6.0);
-        final labelInterval = _selectedDays <= 14 ? 1 : (_selectedDays <= 30 ? 3 : 7);
+        final barWidth = _mode == 'days' ? 22.0 : 16.0;   // 7 bars vs 12 bars
 
         return BarChart(
           BarChartData(
             maxY: maxY,
             alignment: BarChartAlignment.spaceAround,
+            barTouchData: BarTouchData(
+              touchTooltipData: BarTouchTooltipData(
+                getTooltipColor: (_) => const Color(0xFF1B1E28),
+                getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                  return BarTooltipItem(
+                    '${rod.toY.toInt()}',
+                    const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+                  );
+                },
+              ),
+              touchCallback: (event, response) {
+                if (!event.isInterestedForInteractions || response == null || response.spot == null) {
+                  return;
+                }
+                final index = response.spot!.touchedBarGroupIndex;
+                if (index < 0 || index >= stats.length) return;
+
+                final clickedDate = stats[index].date;
+                final vm = context.read<IncidentVM>();
+                if (vm.filterDate == clickedDate) {
+                  vm.setDateFilter(null);
+                } else {
+                  vm.setDateFilter(clickedDate);
+                }
+              },
+            ),
             gridData: FlGridData(
               show: true,
               drawVerticalLine: false,
@@ -193,11 +215,10 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                   getTitlesWidget: (value, _) {
                     final i = value.toInt();
                     if (i < 0 || i >= stats.length) return const SizedBox.shrink();
-                    if (i % labelInterval != 0) return const SizedBox.shrink();
                     return Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
-                        stats[i].day,
+                        stats[i].label,
                         style: const TextStyle(fontSize: 10, color: _textMuted),
                       ),
                     );
@@ -206,6 +227,7 @@ class _IncChartsSectionState extends State<IncChartsSection> {
               ),
             ),
             barGroups: List.generate(stats.length, (i) {
+              final isSelected = context.watch<IncidentVM>().filterDate == stats[i].date;
               return BarChartGroupData(
                 x: i,
                 barRods: [
@@ -213,8 +235,10 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                     toY: stats[i].count.toDouble(),
                     width: barWidth,
                     borderRadius: BorderRadius.circular(4),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFFF8A3D), Color(0xFFFFB36B)],
+                    gradient: LinearGradient(
+                      colors: isSelected
+                          ? [const Color(0xFF185FA5), const Color(0xFF4A8FD4)]
+                          : [const Color(0xFFFF8A3D), const Color(0xFFFFB36B)],
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                     ),

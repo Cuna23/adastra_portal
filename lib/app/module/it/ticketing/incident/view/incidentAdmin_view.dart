@@ -187,6 +187,36 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
 
               const SizedBox(height: 16),
 
+              if (vm.filterDate != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE6F1FB),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.filter_alt_outlined, size: 14, color: Color(0xFF185FA5)),
+                          const SizedBox(width: 6),
+                          Text('Filtered by ${vm.filterDate}',
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF185FA5), fontWeight: FontWeight.w600)),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => vm.setDateFilter(null),
+                            child: const Icon(Icons.close, size: 14, color: Color(0xFF185FA5)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // ── Table — shrinkWrap so it joins the page scroll ───────
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),

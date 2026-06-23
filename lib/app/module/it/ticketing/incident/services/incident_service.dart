@@ -189,10 +189,10 @@ class IncidentService {
     throw Exception(body['message'] ?? 'Failed to update incident');
   }
 
-  //graph data for last 7 days
-  Future<List<IncidentDailyCount>> getWeeklyStats(String token, {int days = 7}) async {
+  //graph data 
+  Future<List<IncidentDailyCount>> getChartStats(String token, {required String mode}) async {
     final res = await http.get(
-      Uri.parse('$baseUrl/incidents/stats/weekly?days=$days'),
+      Uri.parse('$baseUrl/incidents/stats/chart?mode=$mode'),
       headers: _headers(token),
     );
 
@@ -202,6 +202,6 @@ class IncidentService {
           .map((j) => IncidentDailyCount.fromJson(j))
           .toList();
     }
-    throw Exception('Failed to load weekly stats');
+    throw Exception('Failed to load chart stats');
   }
 }

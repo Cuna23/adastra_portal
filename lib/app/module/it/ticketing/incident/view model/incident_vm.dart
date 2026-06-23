@@ -13,8 +13,10 @@ class IncidentVM extends ChangeNotifier {
   String? _error;
   String _filterStatus = 'All';
   String _search = ''; 
+  String? _filterDate;
   List<IncidentDailyCount> _weeklyStats = [];
   bool _isLoadingStats = false;
+  
 
   // ── Getters ───────────────────────────────────────────────────────────────
   List<IncidentModel> get incidents {
@@ -31,6 +33,10 @@ class IncidentVM extends ChangeNotifier {
           (i) => i.status.toLowerCase() == _filterStatus.toLowerCase());
     }
 
+    if (_filterDate != null) {
+      list = list.where((i) => i.createdAt.startsWith(_filterDate!));
+    }
+
     if (_search.trim().isNotEmpty) {
       final q = _search.trim().toLowerCase();
       list = list.where((i) =>
@@ -41,6 +47,7 @@ class IncidentVM extends ChangeNotifier {
 
     return list.toList();
   }
+  String? get filterDate => _filterDate;
 
   List<IncidentDailyCount> get weeklyStats => _weeklyStats;
   bool get isLoadingStats => _isLoadingStats;
@@ -196,6 +203,11 @@ class IncidentVM extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setDateFilter(String? date) {
+    _filterDate = date;
+    notifyListeners();
+  }
+
   // [ADDED] Search — used by table search bar in admin/superadmin view
   void setSearch(String value) {
     _search = value;
@@ -245,12 +257,12 @@ class IncidentVM extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchWeeklyStats(String token, {int days = 7}) async {
+  Future<void> fetchChartStats(String token, {String mode = 'days'}) async {
     _isLoadingStats = true;
     notifyListeners();
 
     try {
-      _weeklyStats = await _service.getWeeklyStats(token, days: days);
+      _weeklyStats = await _service.getChartStats(token, mode: mode);
     } catch (_) {
       _weeklyStats = [];
     }
