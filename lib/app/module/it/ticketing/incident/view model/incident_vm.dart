@@ -71,7 +71,9 @@ class IncidentVM extends ChangeNotifier {
 
     try {
       _incidents = await _service.getIncidents(token);
-    } catch (e) {
+    } catch (e, stack) {
+      print('❌ fetchIncidents ERROR: $e');     // ← tambah ni
+       print(stack);  
       _error = e.toString().replaceFirst('Exception: ', '');
     }
 
