@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view model/incident_vm.dart';
+import 'widget/export_excelInc.dart';
 import 'widget/incChart.dart';
 import 'widget/incDetailDialog.dart';
 import 'widget/tabBar_Inc.dart';
@@ -91,9 +92,8 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
         onChanged: (value) => vm.setSearch(value),
       );
 
-  Widget _exportBtn() => ElevatedButton.icon(
-        onPressed: () {
-        },
+  Widget _exportBtn(IncidentVM vm) => ElevatedButton.icon(   // ← kena ada (IncidentVM vm)
+        onPressed: () => exportIncidentsToExcel(vm.incidents),
         icon: const Icon(Icons.download_outlined, size: 16),
         label: const Text('Export Excel'),
         style: ElevatedButton.styleFrom(
@@ -114,7 +114,7 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
         SizedBox(width: 320, child: _searchField(vm)),
         const Spacer(),
         const SizedBox(width: 10),
-        _exportBtn(),
+        _exportBtn(vm),
       ],
     );
   }
@@ -130,7 +130,7 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [_exportBtn()],
+          children: [_exportBtn(vm)],
         ),
       ],
     );

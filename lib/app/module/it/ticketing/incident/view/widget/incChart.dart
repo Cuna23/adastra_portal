@@ -16,13 +16,29 @@ class _IncChartsSectionState extends State<IncChartsSection> {
   static const _borderColor = Color(0xFFE5E7EB);
   static const _textPrimary = Color(0xFF1B1E28);
   static const _textMuted   = Color(0xFF9CA3AF);
+  static const _brandBlue   = Color(0xFF185FA5);
+
+  int _selectedDays = 7;
+
+  final Map<int, String> _filterLabels = const {
+    7:  'Last 7 days',
+    14: 'Last 14 days',
+    30: 'Last 30 days',
+    60: 'Last 60 days',
+  };
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<IncidentVM>().fetchWeeklyStats(widget.token);
+      context.read<IncidentVM>().fetchWeeklyStats(widget.token, days: _selectedDays);
     });
+  }
+
+  void _onFilterChanged(int? days) {
+    if (days == null) return;
+    setState(() => _selectedDays = days);
+    context.read<IncidentVM>().fetchWeeklyStats(widget.token, days: days);
   }
 
   @override
@@ -32,7 +48,8 @@ class _IncChartsSectionState extends State<IncChartsSection> {
         final isMobile = constraints.maxWidth < 700;
 
         final barCard = _buildCard(
-          title: 'Tickets — Last 7 Days',
+          title: 'Tickets Overview',
+          filter: _buildFilterDropdown(),
           child: _buildBarChart(),
         );
 
@@ -63,9 +80,10 @@ class _IncChartsSectionState extends State<IncChartsSection> {
     );
   }
 
-  Widget _buildCard({required String title, required Widget child}) {
+  // ── Card wrapper — title row + optional filter on the right ───────────
+  Widget _buildCard({required String title, required Widget child, Widget? filter}) {
     return Container(
-      height: 280,
+      height: 300,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -75,12 +93,49 @@ class _IncChartsSectionState extends State<IncChartsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w600, color: _textPrimary)),
-          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(Icons.bar_chart_rounded, size: 18, color: _brandBlue),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(title,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600, color: _textPrimary)),
+              ),
+              if (filter != null) filter,
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Divider(height: 1, thickness: 1, color: _borderColor),
+          const SizedBox(height: 12),
           Expanded(child: child),
         ],
+      ),
+    );
+  }
+
+  // ── Filter dropdown — 7/14/30/60 days ───────────────────────────────────
+  Widget _buildFilterDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _borderColor),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: _selectedDays,
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          isDense: true,
+          icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: _textMuted),
+          style: const TextStyle(fontSize: 12, color: _textPrimary, fontWeight: FontWeight.w500),
+          items: _filterLabels.entries
+              .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+              .toList(),
+          onChanged: _onFilterChanged,
+        ),
       ),
     );
   }
@@ -101,6 +156,10 @@ class _IncChartsSectionState extends State<IncChartsSection> {
 
         final maxCount = stats.map((s) => s.count).fold<int>(0, (a, b) => a > b ? a : b);
         final maxY = ((maxCount / 5).ceil() * 5).clamp(5, double.infinity).toDouble();
+
+        // Wider range = thinner bars + fewer label ticks to avoid clutter
+        final barWidth = _selectedDays <= 7 ? 22.0 : (_selectedDays <= 14 ? 14.0 : 6.0);
+        final labelInterval = _selectedDays <= 14 ? 1 : (_selectedDays <= 30 ? 3 : 7);
 
         return BarChart(
           BarChartData(
@@ -134,11 +193,12 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                   getTitlesWidget: (value, _) {
                     final i = value.toInt();
                     if (i < 0 || i >= stats.length) return const SizedBox.shrink();
+                    if (i % labelInterval != 0) return const SizedBox.shrink();
                     return Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Text(
                         stats[i].day,
-                        style: const TextStyle(fontSize: 11, color: _textMuted),
+                        style: const TextStyle(fontSize: 10, color: _textMuted),
                       ),
                     );
                   },
@@ -151,10 +211,10 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                 barRods: [
                   BarChartRodData(
                     toY: stats[i].count.toDouble(),
-                    width: 22,
+                    width: barWidth,
                     borderRadius: BorderRadius.circular(4),
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFFF8A3D), Color(0xFFFFB36B)], // warm orange gradient
+                      colors: [Color(0xFFFF8A3D), Color(0xFFFFB36B)],
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                     ),
@@ -168,7 +228,6 @@ class _IncChartsSectionState extends State<IncChartsSection> {
     );
   }
 
-  // Placeholder — pie chart integration later
   Widget _buildPiePlaceholder() {
     return Container(
       decoration: BoxDecoration(

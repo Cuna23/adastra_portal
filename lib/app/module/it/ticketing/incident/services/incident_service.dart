@@ -190,9 +190,9 @@ class IncidentService {
   }
 
   //graph data for last 7 days
-  Future<List<IncidentDailyCount>> getWeeklyStats(String token) async {
+  Future<List<IncidentDailyCount>> getWeeklyStats(String token, {int days = 7}) async {
     final res = await http.get(
-      Uri.parse('$baseUrl/incidents/stats/weekly'),
+      Uri.parse('$baseUrl/incidents/stats/weekly?days=$days'),
       headers: _headers(token),
     );
 

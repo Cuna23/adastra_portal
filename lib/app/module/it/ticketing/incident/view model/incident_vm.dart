@@ -245,12 +245,12 @@ class IncidentVM extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchWeeklyStats(String token) async {
+  Future<void> fetchWeeklyStats(String token, {int days = 7}) async {
     _isLoadingStats = true;
     notifyListeners();
 
     try {
-      _weeklyStats = await _service.getWeeklyStats(token);
+      _weeklyStats = await _service.getWeeklyStats(token, days: days);
     } catch (_) {
       _weeklyStats = [];
     }
