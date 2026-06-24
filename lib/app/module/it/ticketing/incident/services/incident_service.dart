@@ -47,6 +47,7 @@ class IncidentService {
     required String subject,
     required String description,
     required String category,
+    String? subcategory,
     required String priority,
     List<int>? attachment,
     String? filename,
@@ -60,6 +61,10 @@ class IncidentService {
       ..fields['description'] = description
       ..fields['category']    = category
       ..fields['priority']    = priority;
+
+    if (subcategory != null && subcategory.trim().isNotEmpty) {
+      req.fields['subcategory'] = subcategory.trim();
+    }
 
   if (attachment != null && filename != null) {
     final ext = filename.split('.').last.toLowerCase();
@@ -161,6 +166,7 @@ class IncidentService {
     required int id,
     required String token,
     required String category,
+    String? subcategory,
     required String priority,
     required String status,
     required int? assignedTo,
@@ -174,6 +180,7 @@ class IncidentService {
       },
       body: jsonEncode({
         'category': category,
+        'subcategory': subcategory,
         'priority': priority,
         'status': status,
         'assigned_to': assignedTo,

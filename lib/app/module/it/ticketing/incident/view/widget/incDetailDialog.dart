@@ -6,7 +6,7 @@ import 'incActivityPanel.dart';
 
 class IncDetailPage extends StatefulWidget {
   final String token;
-  final String role; // 1. Tambah parameter role di sini ('admin', 'super_admin' atau 'staff')
+  final String role; // 'admin', 'super_admin' atau 'staff'
   final int currentUserId; 
   final VoidCallback onBack;
 
@@ -31,9 +31,9 @@ class _IncDetailPageState extends State<IncDetailPage> {
   static const _borderColor   = Color(0xFFE5E7EB);
   static const _bgLight       = Color(0xFFF9FAFB);
 
-  // 3. Tambah Controllers & State untuk Simpan Data Editan Admin
   final _resolutionCtrl = TextEditingController();
   String? _selectedCategory;
+  String? _selectedSubcategory;
   String? _selectedPriority;
   String? _selectedStatus;
   int? _selectedAssignedTo;
@@ -44,11 +44,11 @@ class _IncDetailPageState extends State<IncDetailPage> {
   @override
   void initState() {
     super.initState();
-    // Isi data awal berdasarkan tiket yang dipilih sekarang
     final inc = context.read<IncidentVM>().selected;
     if (inc != null) {
       _resolutionCtrl.text = inc.resolution ?? '';
       _selectedCategory = inc.category;
+      _selectedSubcategory = inc.subcategory;
       _selectedPriority = inc.priority;
       _selectedStatus = inc.status;
       _selectedAssignedTo = inc.assignedTo;
@@ -61,7 +61,6 @@ class _IncDetailPageState extends State<IncDetailPage> {
     super.dispose();
   }
 
-  // 4. Fungsi Utama Hubungkan ke ViewModel Langkah 2 Tadi
   Future<void> _updateIncidentFields() async {
     final vm = context.read<IncidentVM>();
     final inc = vm.selected;
@@ -73,6 +72,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
       token: widget.token,
       id: inc.id,
       category: _selectedCategory ?? inc.category,
+      subcategory: _selectedSubcategory,
       priority: _selectedPriority ?? inc.priority,
       status: _selectedStatus ?? inc.status,
       assignedTo: _selectedAssignedTo,
@@ -254,15 +254,34 @@ class _IncDetailPageState extends State<IncDetailPage> {
             const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
             const SizedBox(height: 20),
 
-            // Paparan kekal asal field read-only hang
+            // Category + Priority
             _fieldRow(
               _readonlyField(label: 'Category', value: inc.category, icon: Icons.category_outlined),
               _readonlyField(label: 'Priority',  value: inc.priority,  icon: Icons.flag_outlined),
             ),
             const SizedBox(height: 14),
+
+            // Subcategory — readonly display for everyone
+            _readonlyField(
+              label: 'Subcategory',
+              value: (inc.subcategory != null && inc.subcategory!.isNotEmpty)
+                  ? inc.subcategory!
+                  : '—',
+              icon: Icons.label_outline,
+              fullWidth: true,
+            ),
+            const SizedBox(height: 14),
+
+            // Requested by + Assigned to
             _fieldRow(
-              _readonlyField(label: 'Reported by', value: inc.user?.name ?? '—',         icon: Icons.person_outline),
-              _readonlyField(label: 'Assigned to', value: _assignedLabel(inc),            icon: Icons.support_agent_outlined),
+              _isAdmin
+                  ? _reportedByDetailCard(inc)
+                  : _readonlyField(
+                      label: 'Requested by',
+                      value: inc.user?.name ?? '—',
+                      icon: Icons.person_outline,
+                    ),
+              _readonlyField(label: 'Assigned to', value: _assignedLabel(inc), icon: Icons.support_agent_outlined),
             ),
             const SizedBox(height: 14),
             _fieldRow(
@@ -303,7 +322,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
               ),
             ],
 
-            // 5. SEKSYEN KAWALAN ADMIN (Hanya muncul jika user adalah Admin/SuperAdmin)
+            // ── Admin Management Action ─────────────────────────────────────
             if (_isAdmin) ...[
               const SizedBox(height: 24),
               const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
@@ -328,6 +347,39 @@ class _IncDetailPageState extends State<IncDetailPage> {
                 ),
               ),
               const SizedBox(height: 14),
+
+              // Change Subcategory — free text, admin editable
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Change Subcategory',
+                      style: TextStyle(fontSize: 12, color: _textSecondary, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 6),
+                  TextFormField(
+                    initialValue: _selectedSubcategory,
+                    onChanged: (val) => _selectedSubcategory = val,
+                    style: const TextStyle(fontSize: 14, color: _textPrimary),
+                    decoration: InputDecoration(
+                      hintText: 'e.g. WiFi, Printer, VPN...',
+                      hintStyle: const TextStyle(fontSize: 13, color: _textMuted),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: _brandBlue, width: 1.2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: _brandBlue, width: 1.5),
+                      ),
+                      isDense: true,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
               _fieldRow(
                 _editableDropdown(
                   label: 'Update Status',
@@ -350,7 +402,6 @@ class _IncDetailPageState extends State<IncDetailPage> {
               ),
               const SizedBox(height: 14),
               
-              // Kotak input Resolution
               const Text('Resolution Comment', style: TextStyle(fontSize: 12, color: _textSecondary, fontWeight: FontWeight.w500)),
               const SizedBox(height: 6),
               TextFormField(
@@ -375,7 +426,6 @@ class _IncDetailPageState extends State<IncDetailPage> {
               ),
               const SizedBox(height: 20),
               
-              // Butang Save Changes
               Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton.icon(
@@ -393,7 +443,6 @@ class _IncDetailPageState extends State<IncDetailPage> {
                 ),
               ),
             ] else ...[
-              // 6. Kalau yang login itu STAFF, dia cuma tayang Resolution dalam kotak read-only sahaja
               if (inc.resolution != null && inc.resolution!.isNotEmpty) ...[
                 const SizedBox(height: 20),
                 const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
@@ -436,7 +485,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
         prefixIcon: Icon(icon, size: 18, color: _textMuted),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         filled: true,
-        fillColor: const Color(0xFFF3F4F6),//kelabu mati
+        fillColor: const Color(0xFFF3F4F6),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: _borderColor, width: 1),
@@ -444,7 +493,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: _borderColor, width: 1),
-        ),// Buang terus border supaya nampak flat
+        ),
       ),
       child: Text(value,
           maxLines: maxLines,
@@ -454,7 +503,59 @@ class _IncDetailPageState extends State<IncDetailPage> {
     );
   }
 
-  // 7. Reusable Widget Helper untuk Dropdown Editan Admin
+  // ── Reported by detail card — admin/superadmin only ──────────────────────
+  // Shows name, email, employee ID, and department for the issuer.
+  Widget _reportedByDetailCard(IncidentModel inc) {
+    final u = inc.user;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _borderColor, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.person_outline, size: 16, color: _textMuted),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(u?.name ?? '—',
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600, color: _textPrimary)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          if (u?.email != null && u!.email!.isNotEmpty)
+            _miniInfoLine(Icons.mail_outline, u.email!),
+          if (u?.empId != null && u!.empId!.isNotEmpty)
+            _miniInfoLine(Icons.badge_outlined, 'Emp ID: ${u.empId}'),
+          if (u?.department != null && u!.department!.isNotEmpty)
+            _miniInfoLine(Icons.apartment_outlined, u.department!),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniInfoLine(IconData icon, String text) => Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Row(
+          children: [
+            Icon(icon, size: 13, color: _textMuted),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(text,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12.5, color: _textSecondary)),
+            ),
+          ],
+        ),
+      );
+
   Widget _editableDropdown({
     required String label,
     required String? value,
@@ -486,7 +587,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: _brandBlue, width: 1.2), // Border biru brand menyerlah
+                borderSide: const BorderSide(color: _brandBlue, width: 1.2),
               ),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _brandBlue, width: 1.5)),
           ),
@@ -496,6 +597,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
   }
 
   Widget _fieldRow(Widget a, Widget b) => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [Expanded(child: a), const SizedBox(width: 12), Expanded(child: b)],
       );
 

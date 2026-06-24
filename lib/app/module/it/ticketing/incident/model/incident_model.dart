@@ -5,6 +5,7 @@ class IncidentModel {
   final String subject;
   final String description;
   final String category;
+  final String? subcategory;
   final String priority;
   final String status;
   final String? attachment;
@@ -25,6 +26,7 @@ class IncidentModel {
     required this.subject,
     required this.description,
     required this.category,
+    this.subcategory,
     required this.priority,
     required this.status,
     this.attachment,
@@ -46,6 +48,7 @@ class IncidentModel {
         subject: j['subject'],
         description: j['description'],
         category: j['category'],
+        subcategory: j['subcategory'],
         priority: j['priority'],
         status: j['status'],
         attachment: j['attachment'],
@@ -69,11 +72,27 @@ class UserMini {
   final int id;
   final String name;
   final String? role;
+  final String? email;
+  final String? empId;
+  final String? department;
 
-  UserMini({required this.id, required this.name, this.role});
+  UserMini({
+    required this.id,
+    required this.name,
+    this.role,
+    this.email,
+    this.empId,
+    this.department,
+  });
 
-  factory UserMini.fromJson(Map<String, dynamic> j) =>
-      UserMini(id: j['id'], name: j['name'], role: j['role']);
+  factory UserMini.fromJson(Map<String, dynamic> j) => UserMini(
+        id: j['id'],
+        name: j['name'],
+        role: j['role'],
+        email: j['email'],
+        empId: j['emp_id'],
+        department: j['department_name'],
+      );
 }
 
 class IncidentLog {

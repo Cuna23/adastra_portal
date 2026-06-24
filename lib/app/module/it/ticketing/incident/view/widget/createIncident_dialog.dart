@@ -19,9 +19,10 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
   static const _textMuted   = Color(0xFF9CA3AF);
   static const _borderColor = Color(0xFFE5E7EB);
 
-  final _formKey     = GlobalKey<FormState>();
-  final _subjectCtrl = TextEditingController();
-  final _descCtrl    = TextEditingController();
+  final _formKey         = GlobalKey<FormState>();
+  final _subjectCtrl     = TextEditingController();
+  final _descCtrl        = TextEditingController();
+  final _subcategoryCtrl = TextEditingController();
 
   String  _category = 'Network';
   String  _priority = 'Low';
@@ -36,6 +37,7 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
   void dispose() {
     _subjectCtrl.dispose();
     _descCtrl.dispose();
+    _subcategoryCtrl.dispose();
     super.dispose();
   }
 
@@ -119,6 +121,7 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
       subject:        _subjectCtrl.text.trim(),
       description:    _descCtrl.text.trim(),
       category:       _category,
+      subcategory:    _subcategoryCtrl.text.trim(),
       priority:       _priority,
       attachmentFile: _attachmentBytes,
       filename:       _attachmentName,
@@ -303,6 +306,22 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
                               ),
                             ),
                           ],
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // Subcategory
+                        TextFormField(
+                          controller: _subcategoryCtrl,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: _textPrimary,
+                          ),
+                          decoration: _fieldDecoration(
+                            'Subcategory (optional)',
+                            icon: Icons.label_outline,
+                          ),
                         ),
 
                         const SizedBox(height: 14),

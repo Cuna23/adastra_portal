@@ -79,7 +79,7 @@ class IncidentVM extends ChangeNotifier {
     try {
       _incidents = await _service.getIncidents(token);
     } catch (e, stack) {
-      print('❌ fetchIncidents ERROR: $e');     // ← tambah ni
+      print('❌ fetchIncidents ERROR: $e');
        print(stack);  
       _error = e.toString().replaceFirst('Exception: ', '');
     }
@@ -108,6 +108,7 @@ class IncidentVM extends ChangeNotifier {
     required String subject,
     required String description,
     required String category,
+    String? subcategory,
     required String priority,
     List<int>? attachmentFile,
     String? filename,
@@ -122,6 +123,7 @@ class IncidentVM extends ChangeNotifier {
         subject: subject,
         description: description,
         category: category,
+        subcategory: subcategory,
         priority: priority,
         attachment: attachmentFile,
         filename: filename,
@@ -224,6 +226,7 @@ class IncidentVM extends ChangeNotifier {
     required String token,
     required int id,
     required String category,
+    String? subcategory,
     required String priority,
     required String status,
     required int? assignedTo,
@@ -238,6 +241,7 @@ class IncidentVM extends ChangeNotifier {
         id: id,
         token: token,
         category: category,
+        subcategory: subcategory,
         priority: priority,
         status: status,
         assignedTo: assignedTo,
