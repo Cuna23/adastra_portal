@@ -35,8 +35,8 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
   static const _systemText = Color(0xFF92660C);
 
   // Own note bubble — sage green (distinct identity, not blue)
-  static const _ownBubbleBg   = Color(0xFFE3F0E3);
-  static const _ownBubbleText = Color(0xFF2F5233);
+  static const _ownBubbleBg   = Color(0xFFE6F0FA); // Biru soft ada tint kelabu
+  static const _ownBubbleText = Color(0xFF1E3A8A); // Teks biru gelap untuk kontras
 
   // Other person's note bubble — neutral cream
   static const _otherBubbleBg   = Color(0xFFF1EFE9);
@@ -124,7 +124,7 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFFAF9F6),
+                color:  Colors.white,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: inc.logs.isEmpty
@@ -170,7 +170,7 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: _ownBubbleText, width: 1.5),
+                      borderSide: const BorderSide(color:_brandBlue, width: 1.5),
                     ),
                     disabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -179,13 +179,13 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 10), 
               SizedBox(
                 height: 48,
                 child: ElevatedButton(
                   onPressed: isClosed || _sendingNote ? null : _sendNote,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _ownBubbleText,
+                    backgroundColor: _brandBlue,
                     disabledBackgroundColor: _ownBubbleText.withOpacity(0.4),
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
