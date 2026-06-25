@@ -14,11 +14,11 @@ class IncidentVM extends ChangeNotifier {
   String _filterStatus = 'All';
   String _search = ''; 
   String? _filterDate;
+  String? _filterDepartment;
   List<IncidentDailyCount> _weeklyStats = [];
   bool _isLoadingStats = false;
   List<IncidentDeptCount> _deptStats = [];
-  bool _isLoadingDept = false;  
-  
+  bool _isLoadingDept = false;        
 
   // ── Getters ───────────────────────────────────────────────────────────────
   List<IncidentModel> get incidents {
@@ -39,6 +39,16 @@ class IncidentVM extends ChangeNotifier {
       list = list.where((i) => i.createdAt.startsWith(_filterDate!));
     }
 
+    if (_filterDepartment != null) {
+      list = list.where((i) {
+        final dept = i.user?.department;
+        if (_filterDepartment == 'Unknown') {
+          return dept == null || dept.isEmpty;     // ← treat null/empty as "Unknown"
+        }
+        return dept == _filterDepartment;
+      });
+    }
+
     if (_search.trim().isNotEmpty) {
       final q = _search.trim().toLowerCase();
       list = list.where((i) =>
@@ -50,6 +60,7 @@ class IncidentVM extends ChangeNotifier {
     return list.toList();
   }
   String? get filterDate => _filterDate;
+  String? get filterDepartment => _filterDepartment;  
 
   List<IncidentDailyCount> get weeklyStats => _weeklyStats;
   bool get isLoadingStats => _isLoadingStats;
@@ -211,6 +222,11 @@ class IncidentVM extends ChangeNotifier {
 
   void setDateFilter(String? date) {
     _filterDate = date;
+    notifyListeners();
+  }
+
+  void setDepartmentFilter(String? dept) {      
+    _filterDepartment = dept;
     notifyListeners();
   }
 

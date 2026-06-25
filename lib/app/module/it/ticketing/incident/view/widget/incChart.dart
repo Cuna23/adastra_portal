@@ -286,16 +286,17 @@ class _IncChartsSectionState extends State<IncChartsSection> {
             child: Text('No data', style: TextStyle(color: _textMuted, fontSize: 13)),
           );
         }
-
+        final selectedDept = context.watch<IncidentVM>().filterDepartment; 
         final total = stats.fold<int>(0, (a, b) => a + b.count);
 
         final sections = List.generate(stats.length, (i) {
           final color = _deptColors[i % _deptColors.length];
           final pct = stats[i].count / total * 100;
+          final isSelected = selectedDept == stats[i].label;
           return PieChartSectionData(
             value: stats[i].count.toDouble(),
-            color: color,
-            radius: 42,
+            color: isSelected || selectedDept == null ? color : color.withOpacity(0.35),
+            radius: isSelected ? 48 : 42,
             title: pct >= 8 ? '${pct.toStringAsFixed(0)}%' : '',
             titleStyle: const TextStyle(
               fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white,
@@ -321,8 +322,28 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                         centerSpaceRadius: 35,
                         sectionsSpace: 2,
                         startDegreeOffset: -90,
+                        pieTouchData: PieTouchData(                          // ← TAMBAH blok ni
+                          touchCallback: (event, response) {
+                            if (!event.isInterestedForInteractions ||
+                                response == null ||
+                                response.touchedSection == null) {
+                              return;
+                            }
+                            final index = response.touchedSection!.touchedSectionIndex;
+                            if (index < 0 || index >= stats.length) return;
+
+                            final clickedDept = stats[index].label;
+                            final vm = context.read<IncidentVM>();
+                            if (vm.filterDepartment == clickedDept) {
+                              vm.setDepartmentFilter(null);
+                            } else {
+                              vm.setDepartmentFilter(clickedDept);
+                            }
+                          },
+                        ),
                       ),
                     ),
+                  
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -343,6 +364,7 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                 mainAxisSize: MainAxisSize.min,
                 children: List.generate(stats.length, (i) {
                   final color = _deptColors[i % _deptColors.length];
+                  final isSelected = selectedDept == stats[i].label;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: Row(
