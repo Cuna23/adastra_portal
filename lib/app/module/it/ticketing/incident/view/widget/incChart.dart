@@ -304,39 +304,40 @@ class _IncChartsSectionState extends State<IncChartsSection> {
           );
         });
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 140,
-              height: 140,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  PieChart(
-                    PieChartData(
-                      sections: sections,
-                      centerSpaceRadius: 35,
-                      sectionsSpace: 2,
-                      startDegreeOffset: -90,
+        return Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 140,
+                height: 140,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    PieChart(
+                      PieChartData(
+                        sections: sections,
+                        centerSpaceRadius: 35,
+                        sectionsSpace: 2,
+                        startDegreeOffset: -90,
+                      ),
                     ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('$total',
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w800, color: _textPrimary)),
-                      const Text('tickets',
-                          style: TextStyle(fontSize: 9, color: _textMuted)),
-                    ],
-                  ),
-                ],
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('$total',
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w800, color: _textPrimary)),
+                        const Text('tickets',
+                            style: TextStyle(fontSize: 9, color: _textMuted)),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 24),
-            Expanded(
-              child: Column(
+              const SizedBox(width: 20),
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
@@ -345,6 +346,7 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
                           width: 10, height: 10,
@@ -354,11 +356,13 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Expanded(
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 130), //adjust space data label & numbering
                           child: Text(stats[i].label,
                               style: const TextStyle(fontSize: 11, color: _textPrimary),
                               overflow: TextOverflow.ellipsis),
                         ),
+                        const SizedBox(width: 10),
                         Text('${stats[i].count}',
                             style: const TextStyle(
                                 fontSize: 11, fontWeight: FontWeight.w700, color: _textPrimary)),
@@ -367,8 +371,8 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                   );
                 }),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
