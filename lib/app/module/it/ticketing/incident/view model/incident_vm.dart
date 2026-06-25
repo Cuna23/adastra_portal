@@ -16,6 +16,8 @@ class IncidentVM extends ChangeNotifier {
   String? _filterDate;
   List<IncidentDailyCount> _weeklyStats = [];
   bool _isLoadingStats = false;
+  List<IncidentDeptCount> _deptStats = [];
+  bool _isLoadingDept = false;  
   
 
   // ── Getters ───────────────────────────────────────────────────────────────
@@ -51,6 +53,8 @@ class IncidentVM extends ChangeNotifier {
 
   List<IncidentDailyCount> get weeklyStats => _weeklyStats;
   bool get isLoadingStats => _isLoadingStats;
+  List<IncidentDeptCount> get deptStats => _deptStats;
+  bool get isLoadingDept => _isLoadingDept;  
 
   IncidentModel? get selected => _selected;
   bool get isLoading => _isLoading;
@@ -272,6 +276,19 @@ class IncidentVM extends ChangeNotifier {
     }
 
     _isLoadingStats = false;
+    notifyListeners();
+  }
+
+  // Pie chart — department breakdown, defaults to current month/year (no filter)
+  Future<void> fetchDeptStats(String token, {int? month, int? year}) async {
+    _isLoadingDept = true;
+    notifyListeners();
+    try {
+      _deptStats = await _service.getDeptStats(token, month: month, year: year);
+    } catch (_) {
+      _deptStats = [];
+    }
+    _isLoadingDept = false;
     notifyListeners();
   }
 }

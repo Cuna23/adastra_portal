@@ -138,3 +138,11 @@ class IncidentDailyCount {
         count: j['count'],
       );
 }
+
+class IncidentDeptCount {
+  final String label;
+  final int count;
+  IncidentDeptCount({required this.label, required this.count});
+  factory IncidentDeptCount.fromJson(Map<String, dynamic> j) =>
+      IncidentDeptCount(label: j['label'], count: j['count']);
+}

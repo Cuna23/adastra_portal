@@ -211,4 +211,23 @@ class IncidentService {
     }
     throw Exception('Failed to load chart stats');
   }
+
+  // Pie chart — department breakdown for a specific month (defaults to current month/year)
+  Future<List<IncidentDeptCount>> getDeptStats(String token, {int? month, int? year}) async {
+    final now = DateTime.now();
+    final m = month ?? now.month;
+    final y = year ?? now.year;
+
+    final res = await http.get(
+      Uri.parse('$baseUrl/incidents/department-stats?month=$m&year=$y'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    final body = jsonDecode(res.body);
+    if (body['success'] == true) {
+      return (body['data'] as List)
+          .map((e) => IncidentDeptCount.fromJson(e))
+          .toList();
+    }
+    return [];
+  }
 }

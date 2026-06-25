@@ -18,7 +18,18 @@ class _IncChartsSectionState extends State<IncChartsSection> {
   static const _textMuted   = Color(0xFF9CA3AF);
   static const _brandBlue   = Color(0xFF185FA5);
 
-  String _mode = 'days';   // 'days' or 'months'
+  static const _deptColors = [
+    Color(0xFF4A90D9), // soft blue
+    Color(0xFF50C878), // emerald green  
+    Color(0xFFFF7F7F), // soft coral
+    Color(0xFFFFB347), // soft orange
+    Color(0xFF9B8EC4), // soft purple
+    Color(0xFF4BC8C8), // teal
+    Color(0xFFF06292), // soft pink
+    Color(0xFF81C784), // light green
+  ];
+
+  String _mode = 'days';   // 'days' or 'months' — bar chart only
 
   final Map<String, String> _filterLabels = const {
     'days':   'By Days',
@@ -30,6 +41,8 @@ class _IncChartsSectionState extends State<IncChartsSection> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<IncidentVM>().fetchChartStats(widget.token, mode: _mode);
+      // Pie chart: no filter, always loads current month/year
+      context.read<IncidentVM>().fetchDeptStats(widget.token);
     });
   }
 
@@ -37,6 +50,13 @@ class _IncChartsSectionState extends State<IncChartsSection> {
     if (mode == null) return;
     setState(() => _mode = mode);
     context.read<IncidentVM>().fetchChartStats(widget.token, mode: mode);
+  }
+
+  String _currentMonthLabel() {
+    const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final now = DateTime.now();
+    return '${months[now.month]} ${now.year}';
   }
 
   @override
@@ -52,8 +72,8 @@ class _IncChartsSectionState extends State<IncChartsSection> {
         );
 
         final pieCard = _buildCard(
-          title: 'Tickets by Department',
-          child: _buildPiePlaceholder(),
+          title: 'Tickets by Department — ${_currentMonthLabel()}',
+          child: _buildDeptPieChart(),
         );
 
         if (isMobile) {
@@ -97,6 +117,7 @@ class _IncChartsSectionState extends State<IncChartsSection> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(title,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                         fontSize: 14, fontWeight: FontWeight.w600, color: _textPrimary)),
               ),
@@ -112,7 +133,7 @@ class _IncChartsSectionState extends State<IncChartsSection> {
     );
   }
 
-  // ── Filter dropdown ───────────────────────────────────
+  // ── Filter dropdown — bar chart only ───────────────────────────────────
   Widget _buildFilterDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -252,23 +273,104 @@ class _IncChartsSectionState extends State<IncChartsSection> {
     );
   }
 
-  Widget _buildPiePlaceholder() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FB),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _borderColor, style: BorderStyle.solid),
-      ),
-      alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.pie_chart_outline, size: 32, color: _textMuted),
-          SizedBox(height: 8),
-          Text('Department breakdown — coming soon',
-              style: TextStyle(fontSize: 12, color: _textMuted)),
-        ],
-      ),
+  Widget _buildDeptPieChart() {
+    return Consumer<IncidentVM>(
+      builder: (context, vm, _) {
+        if (vm.isLoadingDept) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final stats = vm.deptStats;
+        if (stats.isEmpty) {
+          return const Center(
+            child: Text('No data', style: TextStyle(color: _textMuted, fontSize: 13)),
+          );
+        }
+
+        final total = stats.fold<int>(0, (a, b) => a + b.count);
+
+        final sections = List.generate(stats.length, (i) {
+          final color = _deptColors[i % _deptColors.length];
+          final pct = stats[i].count / total * 100;
+          return PieChartSectionData(
+            value: stats[i].count.toDouble(),
+            color: color,
+            radius: 42,
+            title: pct >= 8 ? '${pct.toStringAsFixed(0)}%' : '',
+            titleStyle: const TextStyle(
+              fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white,
+            ),
+            titlePositionPercentageOffset: 0.65,
+          );
+        });
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 140,
+              height: 140,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  PieChart(
+                    PieChartData(
+                      sections: sections,
+                      centerSpaceRadius: 35,
+                      sectionsSpace: 2,
+                      startDegreeOffset: -90,
+                    ),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('$total',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w800, color: _textPrimary)),
+                      const Text('tickets',
+                          style: TextStyle(fontSize: 9, color: _textMuted)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(stats.length, (i) {
+                  final color = _deptColors[i % _deptColors.length];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 10, height: 10,
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(stats[i].label,
+                              style: const TextStyle(fontSize: 11, color: _textPrimary),
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        Text('${stats[i].count}',
+                            style: const TextStyle(
+                                fontSize: 11, fontWeight: FontWeight.w700, color: _textPrimary)),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
