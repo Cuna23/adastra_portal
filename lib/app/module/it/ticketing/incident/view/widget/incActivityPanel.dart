@@ -31,8 +31,8 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
   static const _bgLight       = Color(0xFFF9FAFB);
 
   // System banner (Created/Updated/Resolved) — warm amber, like WhatsApp's notice
-  static const _systemBg   = Color(0xFFFFF1D6);
-  static const _systemText = Color(0xFF92660C);
+  static const _systemBg   = Color(0xFFF3F4F6);
+  static const _systemText = Color(0xFF6B7280);
 
   // Own note bubble — sage green (distinct identity, not blue)
   static const _ownBubbleBg   = Color(0xFFE6F0FA); // Biru soft ada tint kelabu
