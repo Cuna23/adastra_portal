@@ -187,7 +187,7 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
 
               const SizedBox(height: 16),
 
-              if (vm.filterDate != null)
+              if (vm.filterDate != null || vm.filterDepartment != null)
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
                 child: Row(
@@ -203,11 +203,18 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
                         children: [
                           const Icon(Icons.filter_alt_outlined, size: 14, color: Color(0xFF185FA5)),
                           const SizedBox(width: 6),
-                          Text('Filtered by ${vm.filterDate}',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF185FA5), fontWeight: FontWeight.w600)),
+                          Text(
+                            vm.filterDate != null
+                                ? 'Filtered by ${vm.filterDate}'
+                                : 'Filtered by department: ${vm.filterDepartment}',
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF185FA5), fontWeight: FontWeight.w600),
+                          ),
                           const SizedBox(width: 8),
                           GestureDetector(
-                            onTap: () => vm.setDateFilter(null),
+                            onTap: () {
+                              vm.setDateFilter(null);
+                              vm.setDepartmentFilter(null);
+                            },
                             child: const Icon(Icons.close, size: 14, color: Color(0xFF185FA5)),
                           ),
                         ],

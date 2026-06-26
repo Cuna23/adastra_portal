@@ -36,7 +36,17 @@ class IncidentVM extends ChangeNotifier {
     }
 
     if (_filterDate != null) {
-      list = list.where((i) => i.createdAt.startsWith(_filterDate!));
+      list = list.where((i) {
+        try {
+          final localDate = DateTime.parse(i.createdAt).toLocal();
+          final key = '${localDate.year.toString().padLeft(4, '0')}-'
+              '${localDate.month.toString().padLeft(2, '0')}-'
+              '${localDate.day.toString().padLeft(2, '0')}';
+          return key == _filterDate;
+        } catch (_) {
+          return false;
+        }
+      });
     }
 
     if (_filterDepartment != null) {
@@ -222,11 +232,13 @@ class IncidentVM extends ChangeNotifier {
 
   void setDateFilter(String? date) {
     _filterDate = date;
+    if (date != null) _filterDepartment = null; 
     notifyListeners();
   }
 
   void setDepartmentFilter(String? dept) {      
     _filterDepartment = dept;
+    if (dept != null) _filterDate = null;
     notifyListeners();
   }
 

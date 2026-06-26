@@ -192,11 +192,11 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                   );
                 },
               ),
-              touchCallback: (event, response) {
-                if (!event.isInterestedForInteractions || response == null || response.spot == null) {
-                  return;
-                }
-                final index = response.spot!.touchedBarGroupIndex;
+                touchCallback: (event, response) {
+                  if (event is! FlTapUpEvent || response == null || response.spot == null) {  
+                    return;
+                  }
+                  final index = response.spot!.touchedBarGroupIndex;
                 if (index < 0 || index >= stats.length) return;
 
                 final clickedDate = stats[index].date;
@@ -322,14 +322,14 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                         centerSpaceRadius: 35,
                         sectionsSpace: 2,
                         startDegreeOffset: -90,
-                        pieTouchData: PieTouchData(                          // ← TAMBAH blok ni
-                          touchCallback: (event, response) {
-                            if (!event.isInterestedForInteractions ||
-                                response == null ||
-                                response.touchedSection == null) {
-                              return;
-                            }
-                            final index = response.touchedSection!.touchedSectionIndex;
+                        pieTouchData: PieTouchData(                         
+                        touchCallback: (event, response) {
+                          if (event is! FlTapUpEvent ||                                           
+                              response == null ||
+                              response.touchedSection == null) {
+                            return;
+                          }
+                          final index = response.touchedSection!.touchedSectionIndex;
                             if (index < 0 || index >= stats.length) return;
 
                             final clickedDept = stats[index].label;
