@@ -38,9 +38,9 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
   static const _ownBubbleBg   = Color(0xFFE6F0FA); // Biru soft ada tint kelabu
   static const _ownBubbleText = Color(0xFF1E3A8A); // Teks biru gelap untuk kontras
 
-  // Other person's note bubble — neutral cream
-  static const _otherBubbleBg   = Color(0xFFF1EFE9);
-  static const _otherBubbleText = Color(0xFF3D3D3A);
+  // Other person's note bubble 
+  static const _otherBubbleBg   = Color(0xFFE4E6EA);  // darker grey
+  static const _otherBubbleText = Color(0xFF1F2937);   // dark text, tak pudar
 
   final _noteCtrl       = TextEditingController();
   final _activityScroll = ScrollController();
@@ -98,9 +98,9 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
           // Header
           Row(
             children: [
-              const Icon(Icons.timeline_outlined, size: 16, color: _textSecondary),
+              const Icon(Icons.person_outline, size: 16, color: _textSecondary),
               const SizedBox(width: 8),
-              const Text('Activity',
+              const Text('Chat with us',
                   style: TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600, color: _textSecondary)),
               const Spacer(),
@@ -211,53 +211,38 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
   }
 
   // ── System banner — "Ticket submitted", "Incident updated", etc. ───────
-
   Widget _systemBanner(IncidentLog log) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 320),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            color: _systemBg,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    log.action == 'Resolved'
-                        ? Icons.check_circle_outline
-                        : Icons.info_outline,
-                    size: 13,
-                    color: _systemText,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          const Expanded(child: Divider(thickness: 0.5, color: _borderColor)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  log.description,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: _textPrimary,
                   ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      log.description,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: _systemText,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '· ${_formatTime(log.createdAt)}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: _textSecondary,
                   ),
-                ],
-              ),
-              const SizedBox(height: 3),
-              Text(
-                _formatDate(log.createdAt),
-                style: TextStyle(fontSize: 10, color: _systemText.withOpacity(0.7)),
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
-        ),
+          const Expanded(child: Divider(thickness: 0.5, color: _borderColor)),
+        ],
       ),
     );
   }
