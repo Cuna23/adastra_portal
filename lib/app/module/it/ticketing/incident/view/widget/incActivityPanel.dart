@@ -45,15 +45,11 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
   final _noteCtrl       = TextEditingController();
   final _activityScroll = ScrollController();
   bool  _sendingNote    = false;
-  int?  _editingLogId;
-  int?  _savingLogId;
-  final Map<int, TextEditingController> _editCtrl = {};
 
   @override
   void dispose() {
     _noteCtrl.dispose();
     _activityScroll.dispose();
-    for (final c in _editCtrl.values) c.dispose();
     super.dispose();
   }
 
@@ -270,11 +266,6 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
 
   Widget _noteBubble(IncidentLog log) {
     final isMine    = log.userId == widget.currentUserId;
-    final isEditing = _editingLogId == log.id;
-
-    if (isMine && !_editCtrl.containsKey(log.id)) {
-      _editCtrl[log.id] = TextEditingController(text: log.description);
-    }
 
     final bubbleBg   = isMine ? _ownBubbleBg : _otherBubbleBg;
     final bubbleText = isMine ? _ownBubbleText : _otherBubbleText;
@@ -298,9 +289,7 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
                   bottomRight: Radius.circular(isMine ? 2 : 12),
                 ),
               ),
-              child: isEditing
-                  ? _buildEditMode(log)
-                  : Column(
+              child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -326,46 +315,6 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
                                 style: TextStyle(fontSize: 13, color: bubbleText, height: 1.4),
                               ),
                             ),
-                            if (isMine)
-                              SizedBox(
-                                width: 24, height: 24,
-                                child: PopupMenuButton<String>(
-                                  color: const Color(0xFFF8FAFC),
-                                  icon: Icon(Icons.more_vert, size: 14, color: bubbleText.withOpacity(0.6)),
-                                  padding: EdgeInsets.zero,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                  elevation: 2,
-                                  onSelected: (val) {
-                                    if (val == 'edit') {
-                                      _editCtrl[log.id]?.text = log.description;
-                                      setState(() => _editingLogId = log.id);
-                                    } else if (val == 'delete') {
-                                      _confirmDelete(log);
-                                    }
-                                  },
-                                  itemBuilder: (_) => [
-                                    const PopupMenuItem(
-                                      value: 'edit',
-                                      height: 38,
-                                      child: Row(children: [
-                                        Icon(Icons.edit_outlined, size: 15, color: _textSecondary),
-                                        SizedBox(width: 8),
-                                        Text('Edit', style: TextStyle(fontSize: 13, color: _textPrimary)),
-                                      ]),
-                                    ),
-                                    const PopupMenuItem(
-                                      value: 'delete',
-                                      height: 38,
-                                      child: Row(children: [
-                                        Icon(Icons.delete_outline, size: 15, color: Color(0xFFA32D2D)),
-                                        SizedBox(width: 8),
-                                        Text('Delete', style: TextStyle(fontSize: 13, color: Color(0xFFA32D2D))),
-                                      ]),
-                                    ),
-                                  ],
-                                ),
-                              ),
                           ],
                         ),
                         const SizedBox(height: 3),
@@ -379,132 +328,6 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
       ),
     );
   }
-
-  // ── Edit mode ─────────────────────────────────────────────────────────────
-
-  Widget _buildEditMode(IncidentLog log) {
-    final ctrl     = _editCtrl[log.id]!;
-    final isSaving = _savingLogId == log.id;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.6), borderRadius: BorderRadius.circular(6)),
-          child: Text('Editing',
-              style: TextStyle(
-                  fontSize: 11, color: _ownBubbleText, fontWeight: FontWeight.w600)),
-        ),
-        TextField(
-          controller: ctrl,
-          maxLines: 3,
-          minLines: 1,
-          autofocus: true,
-          style: const TextStyle(fontSize: 13, color: _textPrimary),
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            filled: true,
-            fillColor: Colors.white,
-            enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: _borderColor)),
-            focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: _ownBubbleText, width: 0.5)),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: isSaving ? null : () => setState(() => _editingLogId = null),
-              style: TextButton.styleFrom(
-                foregroundColor: _textSecondary,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text('Cancel', style: TextStyle(fontSize: 13)),
-            ),
-            const SizedBox(width: 8),
-            SizedBox(
-              height: 34,
-              child: ElevatedButton(
-                onPressed: isSaving
-                    ? null
-                    : () async {
-                        final newNote = ctrl.text.trim();
-                        if (newNote.isEmpty) return;
-                        setState(() => _savingLogId = log.id);
-                        final ok = await widget.vm.updateNote(
-                          token:      widget.token,
-                          incidentId: widget.inc.id,
-                          logId:      log.id,
-                          note:       newNote,
-                        );
-                        if (mounted) {
-                          setState(() {
-                            _savingLogId = null;
-                            if (ok) _editingLogId = null;
-                          });
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _ownBubbleText,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: isSaving
-                    ? const SizedBox(
-                        width: 14, height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Save', style: TextStyle(fontSize: 13, color: Colors.white)),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // ── Confirm delete ────────────────────────────────────────────────────────
-
-  void _confirmDelete(IncidentLog log) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFFF8FAFC),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: const Text('Delete note?',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _textPrimary)),
-        content: const Text('This note will be permanently removed.',
-            style: TextStyle(fontSize: 13, color: _textSecondary)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: _textSecondary)),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await widget.vm.deleteNote(
-                token:      widget.token,
-                incidentId: widget.inc.id,
-                logId:      log.id,
-              );
-            },
-            child: const Text('Delete', style: TextStyle(color: Color(0xFFA32D2D))),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   String _formatDate(String iso) {
