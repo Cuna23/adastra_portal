@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../model/asset_model.dart';
 import '../../view model/asset_vm.dart';
 import 'editA_dialog.dart';
+import 'viewA_dialog.dart';
 
 class AssetTable extends StatefulWidget {
   
@@ -302,12 +303,17 @@ class _AssetTableState extends State<AssetTable> {
 
     return SizedBox(
       width: _minWidth,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        color: isSelected ? _brandBlueBg.withOpacity(0.5) : Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: [
+      child: InkWell(
+        onTap: () => showDialog(
+          context: context,
+          builder: (_) => ViewADialog(asset: asset),
+        ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          color: isSelected ? _brandBlueBg.withOpacity(0.5) : Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
             // Checkbox
             SizedBox(
               width: _wCheck,
@@ -480,8 +486,9 @@ class _AssetTableState extends State<AssetTable> {
           ],
         ),
       ),
-      );
-    }
+    ),
+  );
+}
   
   
 
