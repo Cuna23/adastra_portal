@@ -309,6 +309,8 @@ class _EditADialogState extends State<EditADialog> {
                             items: const [
                               DropdownMenuItem(
                                   value: 'Pending', child: Text('Pending')),
+                                DropdownMenuItem(
+                                  value: 'Available', child: Text('Available')),
                               DropdownMenuItem(
                                   value: 'In Process', child: Text('In Process')),
                               DropdownMenuItem(

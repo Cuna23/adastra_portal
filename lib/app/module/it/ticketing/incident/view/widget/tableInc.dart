@@ -159,16 +159,6 @@ class _IncidentTableState extends State<IncidentTable> {
               ),
             );
 
-        // Widget buildList({required bool shrink}) => ListView.separated(
-        //       controller: shrink ? null : scrollController,
-        //       shrinkWrap: shrink,
-        //       physics: shrink ? const NeverScrollableScrollPhysics() : null,
-        //       itemCount: rows.length,
-        //       separatorBuilder: (_, __) =>
-        //           const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
-        //       itemBuilder: (context, i) => _buildRow(context, rows[i], 0), // width set below via SizedBox parent
-        //     );
-
         // ── Header + rows share ONE horizontal scroll ──────────────────────
         final tableBody = Scrollbar(
           controller: _hScrollController,

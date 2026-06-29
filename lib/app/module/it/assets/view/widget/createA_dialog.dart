@@ -298,6 +298,9 @@ class _CreateADialogState extends State<CreateADialog> {
                               DropdownMenuItem(
                                   value: 'Pending',
                                   child: Text('Pending')),
+                                DropdownMenuItem(
+                                  value: 'Available',
+                                  child: Text('Available')),
                               DropdownMenuItem(
                                   value: 'In Process',
                                   child: Text('In Process')),

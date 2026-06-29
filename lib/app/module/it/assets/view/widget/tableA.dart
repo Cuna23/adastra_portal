@@ -104,45 +104,51 @@ class _AssetTableState extends State<AssetTable> {
 
   String _statusLabel(String? s) => s ?? '—';
 
-({Color bg, Color fg}) _statusColors(String? status) {
-  switch (status) {
-    case 'Pending':
-      return (
-        bg: Color(0xFFE6F1FB),
-        fg: Color(0xFF185FA5)
-      );
+  ({Color bg, Color fg}) _statusColors(String? status) {
+    switch (status) {
+      case 'Pending':
+        return (
+          bg: Color(0xFFE6F1FB),
+          fg: Color(0xFF185FA5)
+        );
 
-    case 'In Process':
-      return (
-        bg: _maintAmberBg,
-        fg: _maintAmber
-      );
+      case 'Available':
+        return (
+          bg: _availGreenBg,
+          fg: _availGreen
+        );
 
-    case 'Resolved':
-      return (
-        bg: _availGreenBg,
-        fg: _availGreen
-      );
+      case 'In Process':
+        return (
+          bg: _maintAmberBg,
+          fg: _maintAmber
+        );
 
-    case 'Maintenance':
-      return (
-        bg: _maintAmberBg,
-        fg: _maintAmber
-      );
+      case 'Resolved':
+        return (
+          bg: Color(0xFFE0F7F5),
+          fg: Color(0xFF0F766E)
+        );
 
-    case 'Disposed':
-      return (
-        bg: _dispGrayBg,
-        fg: _dispGray
-      );
+      case 'Maintenance':
+        return (
+          bg: _maintAmberBg,
+          fg: _maintAmber
+        );
 
-    default:
-      return (
-        bg: _dispGrayBg,
-        fg: _dispGray
-      );
+      case 'Disposed':
+        return (
+          bg: _dispGrayBg,
+          fg: _dispGray
+        );
+
+      default:
+        return (
+          bg: _dispGrayBg,
+          fg: _dispGray
+        );
+    }
   }
-}
 
   // ── Build ────────────────────────────────────────────────────────────────
 
@@ -506,6 +512,11 @@ class _AssetTableState extends State<AssetTable> {
       (a) => a.status == 'Pending'
     ).length;
 
+  final available =
+    vm.assets.where(
+      (a) => a.status == 'Available'
+    ).length;
+
   final inProcess =
       vm.assets.where(
         (a) => a.status == 'In Process'
@@ -542,6 +553,13 @@ class _AssetTableState extends State<AssetTable> {
             ),
           ),
           const Spacer(),
+            if (available > 0) ...[
+              Text('$available available',
+                  style: const TextStyle(
+                      fontSize: 11, color: _availGreen, fontWeight: FontWeight.w500)),
+              const SizedBox(width: 12),
+            ],
+
             if (resolved > 0) ...[
               Text('$resolved resolved',
                   style: const TextStyle(

@@ -329,6 +329,10 @@ class _CloneADialogState extends State<CloneADialog> {
                               DropdownMenuItem(
                                   value: 'Available', child: Text('Available')),
                               DropdownMenuItem(
+                                  value: 'In Process', child: Text('In Process')),
+                              DropdownMenuItem(
+                                  value: 'Resolved', child: Text('Resolved')),
+                              DropdownMenuItem(
                                   value: 'Maintenance',
                                   child: Text('Maintenance')),
                               DropdownMenuItem(

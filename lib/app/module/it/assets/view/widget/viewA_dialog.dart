@@ -21,8 +21,9 @@ class ViewADialog extends StatelessWidget {
   ({Color bg, Color fg}) _statusColors(String? s) {
     switch (s) {
       case 'Pending':     return (bg: _brandBlueBg, fg: _brandBlue);
+      case 'Available':   return (bg: _availGreenBg, fg: _availGreen);
       case 'In Process':  return (bg: _maintAmberBg, fg: _maintAmber);
-      case 'Resolved':    return (bg: _availGreenBg, fg: _availGreen);
+      case 'Resolved':    return (bg: const Color(0xFFE0F7F5), fg: const Color(0xFF0F766E));
       case 'Maintenance': return (bg: _maintAmberBg, fg: _maintAmber);
       case 'Disposed':    return (bg: _dispGrayBg,   fg: _dispGray);
       default:            return (bg: _dispGrayBg,   fg: _dispGray);
