@@ -56,7 +56,7 @@ class _CloneADialogState extends State<CloneADialog> {
     remarkController   = TextEditingController(text: widget.asset.remark ?? '');
 
     categoryId          = widget.asset.categoryId;
-    status              = widget.asset.status ?? 'Available';
+    status              = widget.asset.status ?? 'Pending';
     selectedDepartment  = widget.asset.department;
     selectedAssignedTo  = widget.asset.assignedTo;
     selectedApprovedBy  = widget.asset.approvedBy;

@@ -112,7 +112,13 @@ class _AssetTableState extends State<AssetTable> {
         fg: Color(0xFF185FA5)
       );
 
-    case 'Available':
+    case 'In Process':
+      return (
+        bg: _maintAmberBg,
+        fg: _maintAmber
+      );
+
+    case 'Resolved':
       return (
         bg: _availGreenBg,
         fg: _availGreen
@@ -124,7 +130,7 @@ class _AssetTableState extends State<AssetTable> {
         fg: _maintAmber
       );
 
-    case 'Dispose':
+    case 'Disposed':
       return (
         bg: _dispGrayBg,
         fg: _dispGray
@@ -500,9 +506,14 @@ class _AssetTableState extends State<AssetTable> {
       (a) => a.status == 'Pending'
     ).length;
 
-  final available =
+  final inProcess =
       vm.assets.where(
-        (a) => a.status == 'Available'
+        (a) => a.status == 'In Process'
+      ).length;
+
+  final resolved =
+      vm.assets.where(
+        (a) => a.status == 'Resolved'
       ).length;
 
   final maintenance =
@@ -512,7 +523,7 @@ class _AssetTableState extends State<AssetTable> {
 
   final dispose =
       vm.assets.where(
-        (a) => a.status == 'Dispose'
+        (a) => a.status == 'Disposed'
       ).length;
 
     return Container(
@@ -531,20 +542,26 @@ class _AssetTableState extends State<AssetTable> {
             ),
           ),
           const Spacer(),
-          if (available > 0) ...[
-            Text('$available available',
-                style: const TextStyle(
-                    fontSize: 11, color: _availGreen, fontWeight: FontWeight.w500)),
-            const SizedBox(width: 12),
-          ],
-          if (maintenance > 0)
-            Text('$maintenance maintenance',
-                style: const TextStyle(
-                    fontSize: 11, color: _maintAmber, fontWeight: FontWeight.w500)),
-          if (dispose > 0)
-            Text('$dispose disposed',
-                style: const TextStyle(
-                    fontSize: 11, color: _dispGray, fontWeight: FontWeight.w500)),
+            if (resolved > 0) ...[
+              Text('$resolved resolved',
+                  style: const TextStyle(
+                      fontSize: 11, color: _availGreen, fontWeight: FontWeight.w500)),
+              const SizedBox(width: 12),
+            ],
+            if (inProcess > 0) ...[
+              Text('$inProcess in process',
+                  style: const TextStyle(
+                      fontSize: 11, color: _maintAmber, fontWeight: FontWeight.w500)),
+              const SizedBox(width: 12),
+            ],
+            if (maintenance > 0)
+              Text('$maintenance maintenance',
+                  style: const TextStyle(
+                      fontSize: 11, color: _maintAmber, fontWeight: FontWeight.w500)),
+            if (dispose > 0)
+              Text('$dispose disposed',
+                  style: const TextStyle(
+                      fontSize: 11, color: _dispGray, fontWeight: FontWeight.w500)),
 
           // Pagination
           if (vm.lastPage > 1) ...[

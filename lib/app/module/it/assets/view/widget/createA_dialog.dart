@@ -25,7 +25,7 @@ class _CreateADialogState extends State<CreateADialog> {
   final remarkController      = TextEditingController();
 
   int?    categoryId;
-  String  status              = 'Available';
+  String  status              = 'Pending';
   String? selectedDepartment;
   String? selectedAssignedTo;
   String? selectedApprovedBy;
@@ -299,8 +299,11 @@ class _CreateADialogState extends State<CreateADialog> {
                                   value: 'Pending',
                                   child: Text('Pending')),
                               DropdownMenuItem(
-                                  value: 'Available',
-                                  child: Text('Available')),
+                                  value: 'In Process',
+                                  child: Text('In Process')),
+                              DropdownMenuItem(
+                                  value: 'Resolved',
+                                  child: Text('Resolved')),
                               DropdownMenuItem(
                                   value: 'Maintenance',
                                   child: Text('Maintenance')),

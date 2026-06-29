@@ -53,7 +53,7 @@ class _EditADialogState extends State<EditADialog> {
     remarkController   = TextEditingController(text: widget.asset.remark ?? '');
 
     categoryId          = widget.asset.categoryId;
-    status              = widget.asset.status ?? 'Available';
+    status              = widget.asset.status ?? 'Pending';
     selectedDepartment  = widget.asset.department;
     selectedAssignedTo  = widget.asset.assignedTo;
     selectedApprovedBy  = widget.asset.approvedBy;
@@ -310,7 +310,9 @@ class _EditADialogState extends State<EditADialog> {
                               DropdownMenuItem(
                                   value: 'Pending', child: Text('Pending')),
                               DropdownMenuItem(
-                                  value: 'Available', child: Text('Available')),
+                                  value: 'In Process', child: Text('In Process')),
+                              DropdownMenuItem(
+                                  value: 'Resolved', child: Text('Resolved')),
                               DropdownMenuItem(
                                   value: 'Maintenance',
                                   child: Text('Maintenance')),
