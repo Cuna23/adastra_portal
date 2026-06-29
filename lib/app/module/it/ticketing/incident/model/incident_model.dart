@@ -128,13 +128,23 @@ class IncidentLog {
 class IncidentDailyCount {
   final String label;
   final String date;
+  final String start;
+  final String end;
   final int count;
 
-  IncidentDailyCount({required this.label, required this.date, required this.count});
+  IncidentDailyCount({
+    required this.label,
+    required this.date,
+    required this.start,
+    required this.end,
+    required this.count,
+  });
 
   factory IncidentDailyCount.fromJson(Map<String, dynamic> j) => IncidentDailyCount(
         label: j['label'],
         date: j['date'],
+        start: j['start'] ?? j['date'],
+        end: j['end'] ?? j['date'],
         count: j['count'],
       );
 }

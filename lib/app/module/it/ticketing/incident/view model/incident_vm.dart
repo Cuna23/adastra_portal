@@ -14,6 +14,8 @@ class IncidentVM extends ChangeNotifier {
   String _filterStatus = 'All';
   String _search = ''; 
   String? _filterDate;
+  DateTime? _filterRangeStart;
+  DateTime? _filterRangeEnd;
   String? _filterDepartment;
   List<IncidentDailyCount> _weeklyStats = [];
   bool _isLoadingStats = false;
@@ -35,14 +37,12 @@ class IncidentVM extends ChangeNotifier {
           (i) => i.status.toLowerCase() == _filterStatus.toLowerCase());
     }
 
-    if (_filterDate != null) {
+    if (_filterRangeStart != null && _filterRangeEnd != null) {
       list = list.where((i) {
         try {
-          final localDate = DateTime.parse(i.createdAt).toLocal();
-          final key = '${localDate.year.toString().padLeft(4, '0')}-'
-              '${localDate.month.toString().padLeft(2, '0')}-'
-              '${localDate.day.toString().padLeft(2, '0')}';
-          return key == _filterDate;
+          final d = DateTime.parse(i.createdAt).toLocal();
+          final day = DateTime(d.year, d.month, d.day);
+          return !day.isBefore(_filterRangeStart!) && !day.isAfter(_filterRangeEnd!);
         } catch (_) {
           return false;
         }
@@ -190,15 +190,21 @@ class IncidentVM extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setDateFilter(String? date) {
-    _filterDate = date;
-    if (date != null) _filterDepartment = null; 
+  void setDateFilter(String? key, {DateTime? start, DateTime? end}) {
+    _filterDate = key;
+    _filterRangeStart = start;
+    _filterRangeEnd = end;
+    if (key != null) _filterDepartment = null;
     notifyListeners();
   }
 
-  void setDepartmentFilter(String? dept) {      
+  void setDepartmentFilter(String? dept) {
     _filterDepartment = dept;
-    if (dept != null) _filterDate = null;
+    if (dept != null) {
+      _filterDate = null;
+      _filterRangeStart = null;
+      _filterRangeEnd = null;
+    }
     notifyListeners();
   }
 

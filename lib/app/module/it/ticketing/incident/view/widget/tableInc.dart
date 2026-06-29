@@ -51,6 +51,7 @@ class _IncidentTableState extends State<IncidentTable> {
   static const _reviewPurpleBg = Color(0xFFEFE6F8);
 
   // Fixed column widths — triggers horizontal scroll when screen is narrow
+  static const double _wNo       = 44.0;
   static const double _wTicket   = 140.0;
   static const double _wSubject  = 220.0;
   static const double _wIssuer = 150.0;
@@ -61,8 +62,8 @@ class _IncidentTableState extends State<IncidentTable> {
   static const double _wDate     = 110.0;
 
   double get _minWidth =>
-      _wTicket + _wSubject + (showIssuerColumn ? _wIssuer : 0) + _wCat + _wPrio +
-      _wStatus + _wAssign + _wDate + 120 + 32.0;
+        _wNo + _wTicket + _wSubject + (showIssuerColumn ? _wIssuer : 0) + _wCat + _wPrio +
+        _wStatus + _wAssign + _wDate + 120 + 32.0;
 
   // Shared horizontal ScrollController — header + all rows move together
   final ScrollController _hScrollController = ScrollController();
@@ -158,15 +159,15 @@ class _IncidentTableState extends State<IncidentTable> {
               ),
             );
 
-        Widget buildList({required bool shrink}) => ListView.separated(
-              controller: shrink ? null : scrollController,
-              shrinkWrap: shrink,
-              physics: shrink ? const NeverScrollableScrollPhysics() : null,
-              itemCount: rows.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
-              itemBuilder: (context, i) => _buildRow(context, rows[i], 0), // width set below via SizedBox parent
-            );
+        // Widget buildList({required bool shrink}) => ListView.separated(
+        //       controller: shrink ? null : scrollController,
+        //       shrinkWrap: shrink,
+        //       physics: shrink ? const NeverScrollableScrollPhysics() : null,
+        //       itemCount: rows.length,
+        //       separatorBuilder: (_, __) =>
+        //           const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
+        //       itemBuilder: (context, i) => _buildRow(context, rows[i], 0), // width set below via SizedBox parent
+        //     );
 
         // ── Header + rows share ONE horizontal scroll ──────────────────────
         final tableBody = Scrollbar(
@@ -191,7 +192,7 @@ class _IncidentTableState extends State<IncidentTable> {
                       separatorBuilder: (_, __) => const Divider(
                           height: 0.5, thickness: 0.5, color: _borderColor),
                       itemBuilder: (context, i) =>
-                          _buildRow(context, rows[i], tableWidth),
+                          _buildRow(context, rows[i], tableWidth, i + 1),
                     );
 
               return SingleChildScrollView(
@@ -249,6 +250,7 @@ class _IncidentTableState extends State<IncidentTable> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
+          _hLabel('NO',          _wNo),
           _hLabel('TICKET NO',   _wTicket),
           _hLabel('SUBJECT',     _wSubject),
           if (showIssuerColumn) _hLabel('ISSUER', _wIssuer),
@@ -277,25 +279,34 @@ class _IncidentTableState extends State<IncidentTable> {
 
   // ── Data row ─────────────────────────────────────────────────────────────
 
-  Widget _buildRow(BuildContext context, IncidentModel inc, double width) {
-    final sc = _statusColors(inc.status);
-    final pc = _prioColors(inc.priority);
-    final assignedLabel = _assignedLabel(inc);
-    final isIT      = inc.assignedUser?.role == 'super_admin';
-    final isPending = inc.assignedUser == null;
+  Widget _buildRow(BuildContext context, IncidentModel inc, double width, int rowNo) {
+      final sc = _statusColors(inc.status);
+      final pc = _prioColors(inc.priority);
+      final assignedLabel = _assignedLabel(inc);
+      final isIT      = inc.assignedUser?.role == 'super_admin';
+      final isPending = inc.assignedUser == null;
 
-    return InkWell(
-      onTap: () => onView(inc.id),
-      child: SizedBox(
-        width: width,
-        child: Container(
-          color: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              // Ticket No
-              SizedBox(
-                width: _wTicket,
+      return InkWell(
+        onTap: () => onView(inc.id),
+        child: SizedBox(
+          width: width,
+          child: Container(
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                // No.
+                SizedBox(
+                  width: _wNo,
+                  child: Text(
+                    '$rowNo',
+                    style: const TextStyle(fontSize: 13, color: _textSecondary),
+                  ),
+                ),
+
+                // Ticket No
+                SizedBox(
+                  width: _wTicket,
                 child: Text(
                   inc.ticketNo,
                   style: const TextStyle(

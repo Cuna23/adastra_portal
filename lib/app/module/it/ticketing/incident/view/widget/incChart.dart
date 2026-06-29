@@ -33,6 +33,7 @@ class _IncChartsSectionState extends State<IncChartsSection> {
 
   final Map<String, String> _filterLabels = const {
     'days':   'By Days',
+    'weeks':  'By Weeks',
     'months': 'By Months',
   };
 
@@ -176,7 +177,11 @@ class _IncChartsSectionState extends State<IncChartsSection> {
         final maxCount = stats.map((s) => s.count).fold<int>(0, (a, b) => a > b ? a : b);
         final maxY = ((maxCount / 5).ceil() * 5).clamp(5, double.infinity).toDouble();
 
-        final barWidth = _mode == 'days' ? 22.0 : 16.0;   // 7 bars vs 12 bars
+        final barWidth = switch (_mode) {
+          'days'  => 22.0,   // 7 bars
+          'weeks' => 28.0,   // 4-5 bars
+          _       => 16.0,   // 12 bars (months)
+        };
 
         return BarChart(
           BarChartData(
@@ -192,19 +197,23 @@ class _IncChartsSectionState extends State<IncChartsSection> {
                   );
                 },
               ),
-                touchCallback: (event, response) {
-                  if (event is! FlTapUpEvent || response == null || response.spot == null) {  
-                    return;
-                  }
-                  final index = response.spot!.touchedBarGroupIndex;
+              touchCallback: (event, response) {
+                if (event is! FlTapUpEvent || response == null || response.spot == null) {
+                  return;
+                }
+                final index = response.spot!.touchedBarGroupIndex;
                 if (index < 0 || index >= stats.length) return;
 
-                final clickedDate = stats[index].date;
+                final stat = stats[index];
                 final vm = context.read<IncidentVM>();
-                if (vm.filterDate == clickedDate) {
+                if (vm.filterDate == stat.date) {
                   vm.setDateFilter(null);
                 } else {
-                  vm.setDateFilter(clickedDate);
+                  vm.setDateFilter(
+                    stat.date,
+                    start: DateTime.parse(stat.start),
+                    end: DateTime.parse(stat.end),
+                  );
                 }
               },
             ),
