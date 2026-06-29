@@ -170,7 +170,7 @@ class _HomeBody extends StatelessWidget {
  
         return const Center(child: Text('Access Denied'));
       case 8:
-        return const Center(child: Text('Side Request — coming soon'));
+        return const Center(child: Text('Service Request — coming soon'));
       case 0:
       default:
         return _buildDashboard(authVm, isMobile);

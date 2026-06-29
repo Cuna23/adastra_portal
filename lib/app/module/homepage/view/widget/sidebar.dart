@@ -101,7 +101,7 @@ class _SidebarState extends State<Sidebar> {
              _ticketingParentItem(isMobile: isMobile),
             if (_isTicketingExpanded) ...[
               _subSubMenuItem(index: 7, title: 'Incident Report', isMobile: isMobile),
-              _subSubMenuItem(index: 8, title: 'Side Request',    isMobile: isMobile),
+              _subSubMenuItem(index: 8, title: 'Service Request',    isMobile: isMobile),
             ],
           ],
         ],
