@@ -141,43 +141,41 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
           const SizedBox(height: 12),
 
           // Note input
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _noteCtrl,
-                  enabled: !isClosed,
-                  maxLines: 3,
-                  minLines: 1,
-                  style: const TextStyle(fontSize: 13, color: _textPrimary),
-                  decoration: InputDecoration(
-                    labelText: isClosed
-                        ? 'Ticket closed — no more notes'
-                        : 'Add a note or additional information...',
-                    labelStyle: const TextStyle(fontSize: 12, color: _textMuted),
-                    prefixIcon: const Icon(Icons.notes_outlined, size: 16, color: _textMuted),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    filled: true,
-                    fillColor: isClosed ? _bgLight : Colors.white,
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: _borderColor, width: 1),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color:_brandBlue, width: 1.5),
-                    ),
-                    disabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: _borderColor, width: 1),
-                    ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final field = TextField(
+                controller: _noteCtrl,
+                enabled: !isClosed,
+                maxLines: 3,
+                minLines: 1,
+                style: const TextStyle(fontSize: 13, color: _textPrimary),
+                decoration: InputDecoration(
+                  labelText: isClosed
+                      ? 'Ticket closed — no more notes'
+                      : 'Add a note or additional information...',
+                  labelStyle: const TextStyle(fontSize: 12, color: _textMuted),
+                  prefixIcon: const Icon(Icons.notes_outlined, size: 16, color: _textMuted),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  filled: true,
+                  fillColor: isClosed ? _bgLight : Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: _borderColor, width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: _brandBlue, width: 1.5),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: _borderColor, width: 1),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10), 
-              SizedBox(
+              );
+
+              final sendBtn = SizedBox(
                 height: 48,
+                width: constraints.maxWidth < 360 ? double.infinity : null,
                 child: ElevatedButton(
                   onPressed: isClosed || _sendingNote ? null : _sendNote,
                   style: ElevatedButton.styleFrom(
@@ -191,10 +189,39 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
                       ? const SizedBox(
                           width: 16, height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.send, size: 16, color: Colors.white),
+                      : (constraints.maxWidth < 360
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.send, size: 16, color: Colors.white),
+                                SizedBox(width: 6),
+                                Text('Send', style: TextStyle(color: Colors.white, fontSize: 13)),
+                              ],
+                            )
+                          : const Icon(Icons.send, size: 16, color: Colors.white)),
                 ),
-              ),
-            ],
+              );
+
+              if (constraints.maxWidth < 360) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    field,
+                    const SizedBox(height: 10),
+                    sendBtn,
+                  ],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(child: field),
+                  const SizedBox(width: 10),
+                  sendBtn,
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -250,20 +277,23 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
   // ── Note bubble — chat style, left/right based on current user ─────────
 
   Widget _noteBubble(IncidentLog log) {
-    final isMine    = log.userId == widget.currentUserId;
+      final isMine    = log.userId == widget.currentUserId;
 
-    final bubbleBg   = isMine ? _ownBubbleBg : _otherBubbleBg;
-    final bubbleText = isMine ? _ownBubbleText : _otherBubbleText;
+      final bubbleBg   = isMine ? _ownBubbleBg : _otherBubbleBg;
+      final bubbleText = isMine ? _ownBubbleText : _otherBubbleText;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Flexible(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 280),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxBubbleWidth = constraints.maxWidth * 0.78;
+            return Row(
+              mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: maxBubbleWidth),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: bubbleBg,
@@ -307,9 +337,11 @@ class _IncActivityPanelState extends State<IncActivityPanel> {
                             style: TextStyle(fontSize: 10, color: bubbleText.withOpacity(0.55))),
                       ],
                     ),
-            ),
-          ),
-        ],
+                  ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

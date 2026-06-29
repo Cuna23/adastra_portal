@@ -139,7 +139,7 @@ class _IncDetailPageState extends State<IncDetailPage> {
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 700;
+                      final wide = constraints.maxWidth >= 800;
                       if (wide) {
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,11 +166,14 @@ class _IncDetailPageState extends State<IncDetailPage> {
                           children: [
                             _buildDetailPanel(inc),
                             const SizedBox(height: 16),
-                            IncActivityPanel(
-                              token:         widget.token,
-                              inc:           inc,
-                              vm:            vm,
-                              currentUserId: widget.currentUserId,
+                            SizedBox(
+                              height: 520,
+                              child: IncActivityPanel(
+                                token:         widget.token,
+                                inc:           inc,
+                                vm:            vm,
+                                currentUserId: widget.currentUserId,
+                              ),
                             ),
                           ],
                         ),
@@ -200,10 +203,11 @@ class _IncDetailPageState extends State<IncDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Ticket header ────────────────────────────────────────
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < 420;
+
+                final iconBox = Container(
                   width: 40, height: 40,
                   decoration: BoxDecoration(
                     color: _brandBlueBg,
@@ -211,29 +215,28 @@ class _IncDetailPageState extends State<IncDetailPage> {
                   ),
                   child: const Icon(Icons.confirmation_number_outlined,
                       color: _brandBlue, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(inc.subject,
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: _textPrimary)),
-                      const SizedBox(height: 2),
-                      Text(inc.ticketNo,
-                          style: const TextStyle(
-                              fontSize: 12,
-                              color: _textMuted,
-                              fontFamily: 'monospace')),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Wrap(
+                );
+
+                final titleBlock = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(inc.subject,
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: _textPrimary)),
+                    const SizedBox(height: 2),
+                    Text(inc.ticketNo,
+                        style: const TextStyle(
+                            fontSize: 12,
+                            color: _textMuted,
+                            fontFamily: 'monospace')),
+                  ],
+                );
+
+                final pills = Wrap(
                   spacing: 6,
+                  runSpacing: 6,
                   children: [
                     _pill(inc.status,
                         bg: _statusColors(inc.status).bg,
@@ -242,8 +245,37 @@ class _IncDetailPageState extends State<IncDetailPage> {
                         bg: _prioColors(inc.priority).bg,
                         fg: _prioColors(inc.priority).fg),
                   ],
-                ),
-              ],
+                );
+
+                if (isNarrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          iconBox,
+                          const SizedBox(width: 12),
+                          Expanded(child: titleBlock),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      pills,
+                    ],
+                  );
+                }
+
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    iconBox,
+                    const SizedBox(width: 12),
+                    Expanded(child: titleBlock),
+                    const SizedBox(width: 8),
+                    pills,
+                  ],
+                );
+              },
             ),
 
             const SizedBox(height: 20),
@@ -677,14 +709,26 @@ class _IncDetailPageState extends State<IncDetailPage> {
     );
   }
 
-  Widget _fieldRow(Widget a, Widget b) => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: a),
-          const SizedBox(width: 12),
-          Expanded(child: b),
-        ],
+  Widget _fieldRow(Widget a, Widget b) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 480) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [a, const SizedBox(height: 12), b],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: a),
+              const SizedBox(width: 12),
+              Expanded(child: b),
+            ],
+          );
+        },
       );
+    }
 
   Widget _pill(String text, {required Color bg, required Color fg}) =>
       Container(
