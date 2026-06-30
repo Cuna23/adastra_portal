@@ -5,6 +5,7 @@ class UserModel {
   final String role;
   final String status;
   final int? departmentId;
+  final String? departmentName;
 
   UserModel({
     required this.id,
@@ -13,6 +14,7 @@ class UserModel {
     required this.role,
     required this.status,
     this.departmentId,
+    this.departmentName,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -22,7 +24,7 @@ class UserModel {
       email: json['email'],
       role: json['role'],
       status: json['status'],
-      departmentId: json['department_id'],
+      departmentName: json['department']?['department_name'],
     );
   }
 

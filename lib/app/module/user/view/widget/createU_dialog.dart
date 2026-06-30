@@ -23,6 +23,14 @@ class _CreateUDialogState extends State<CreateUDialog> {
   int? departmentId;
   bool _obscurePassword = true; // [NEW] toggle password visibility
 
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      context.read<UserViewModel>().fetchDepartments(widget.token);
+    });
+  }
+
   // [NEW] Allowed email domains
   static const _allowedDomains = ['@adastra.com.my', '@adastraip.com'];
 
@@ -74,9 +82,10 @@ class _CreateUDialogState extends State<CreateUDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = context.read<UserViewModel>();
+    return Consumer<UserViewModel>(
+      builder: (context, vm, _) {
+        return Dialog(
 
-    return Dialog(
       // [CHANGED] Replaced AlertDialog with custom Dialog for modern look
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
@@ -224,6 +233,29 @@ class _CreateUDialogState extends State<CreateUDialog> {
                     ),
                     const SizedBox(height: 14),
 
+                    // Department dropdown
+                    DropdownButtonFormField<int>(
+                      iconEnabledColor: _textMuted,
+                      style: const TextStyle(
+                        color: _textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      value: departmentId,
+                      decoration: _fieldDecoration('Department',
+                          icon: Icons.apartment_outlined),
+                      dropdownColor: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      items: vm.departments.map((dept) {
+                        return DropdownMenuItem<int>(
+                          value: dept.id,
+                          child: Text(dept.departmentName),
+                        );
+                      }).toList(),
+                      onChanged: (v) => setState(() => departmentId = v),
+                    ),
+                    const SizedBox(height: 24),
+
                     // [CHANGED] Status dropdown styled
                     DropdownButtonFormField<String>(
                       iconEnabledColor: _textMuted,
@@ -307,6 +339,8 @@ class _CreateUDialogState extends State<CreateUDialog> {
           ),
         ),
       ),
+      );
+      },
     );
   }
-}
+  }

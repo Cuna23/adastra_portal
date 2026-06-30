@@ -56,6 +56,10 @@ class _CloneUDialogState extends State<CloneUDialog> {
         setState(() => _emailServerError = null);
       }
     });
+
+    Future.microtask(() {
+      context.read<UserViewModel>().fetchDepartments(widget.token);
+    });
   }
 
   @override
@@ -99,11 +103,11 @@ class _CloneUDialogState extends State<CloneUDialog> {
     );
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
-    final vm = context.read<UserViewModel>();
-
-    return Dialog(
+    return Consumer<UserViewModel>(
+      builder: (context, vm, _) {
+        return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         width: 420,
@@ -266,6 +270,28 @@ class _CloneUDialogState extends State<CloneUDialog> {
 
                     const SizedBox(height: 14),
 
+                    DropdownButtonFormField<int>(
+                      iconEnabledColor: _textMuted,
+                      style: const TextStyle(
+                          color: _textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500),
+                      value: departmentId,
+                      decoration: _fieldDecoration('Department',
+                          icon: Icons.apartment_outlined),
+                      dropdownColor: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      items: vm.departments.map((dept) {
+                        return DropdownMenuItem<int>(
+                          value: dept.id,
+                          child: Text(dept.departmentName),
+                        );
+                      }).toList(),
+                      onChanged: (v) => setState(() => departmentId = v),
+                    ),
+
+                    const SizedBox(height: 24),
+
                     // ── Status ──
                     DropdownButtonFormField<String>(
                       iconEnabledColor: _textMuted,
@@ -384,6 +410,8 @@ class _CloneUDialogState extends State<CloneUDialog> {
           ),
         ),
       ),
+      );
+    },
     );
   }
 }

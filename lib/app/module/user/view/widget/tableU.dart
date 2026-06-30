@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../model/user_model.dart';
 import '../../view model/user_vm.dart';
 import 'editU_dialog.dart';
+import 'viewU_dialog.dart';
 
 class UserTable extends StatelessWidget {
   final String role;
@@ -135,6 +136,7 @@ class UserTable extends StatelessWidget {
           const SizedBox(width: 8),
           _headerLabel('USER', flex: 5),
           _headerLabel('ROLE', flex: 2),
+          _headerLabel('DEPARTMENT', flex: 2),
           _headerLabel('STATUS', flex: 2),
           const SizedBox(
             width: 88,
@@ -173,7 +175,12 @@ class UserTable extends StatelessWidget {
   Widget _buildRow(BuildContext context, UserModel user, UserViewModel vm) {
     final isSelected = selectedIds.contains(user.id);
 
-    return AnimatedContainer(
+    return InkWell(
+      onTap: () => showDialog(
+        context: context,
+        builder: (_) => ViewUDialog(user: user),
+      ),
+      child: AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       color: isSelected ? _brandBlueBg.withOpacity(0.5) : Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -257,6 +264,16 @@ class UserTable extends StatelessWidget {
             ),
           ),
 
+          // Department
+          Expanded(
+            flex: 2,
+            child: Text(
+              user.departmentName ?? '—',
+              style: const TextStyle(fontSize: 12, color: _textSecondary),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+
           // Status badge
           Expanded(
             flex: 2,
@@ -323,6 +340,7 @@ class UserTable extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 

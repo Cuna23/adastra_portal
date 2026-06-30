@@ -45,6 +45,10 @@ class _EditUDialogState extends State<EditUDialog> {
     role            = widget.user.role;
     status          = widget.user.status;
     departmentId    = widget.user.departmentId;
+
+    Future.microtask(() {
+      context.read<UserViewModel>().fetchDepartments(widget.token);
+    });
   }
 
   @override
@@ -85,11 +89,11 @@ class _EditUDialogState extends State<EditUDialog> {
     );
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
-    final vm = context.read<UserViewModel>();
-
-    return Dialog(
+    return Consumer<UserViewModel>(
+      builder: (context, vm, _) {
+        return Dialog(
       // [CHANGED] Replaced AlertDialog with styled Dialog
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
@@ -200,6 +204,27 @@ class _EditUDialogState extends State<EditUDialog> {
                     ),
                     const SizedBox(height: 14),
 
+                    DropdownButtonFormField<int>(
+                      style: const TextStyle(
+                        color: _textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      value: departmentId,
+                      decoration: _fieldDecoration('Department',
+                          icon: Icons.apartment_outlined),
+                      dropdownColor: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      items: vm.departments.map((dept) {
+                        return DropdownMenuItem<int>(
+                          value: dept.id,
+                          child: Text(dept.departmentName),
+                        );
+                      }).toList(),
+                      onChanged: (v) => setState(() => departmentId = v),
+                    ),
+                    const SizedBox(height: 24),
+
                     // [CHANGED] Status dropdown styled
                     DropdownButtonFormField<String>(
                       style: const TextStyle(
@@ -283,5 +308,7 @@ class _EditUDialogState extends State<EditUDialog> {
         ),
       ),
     );
+  },
+  );
   }
 }
