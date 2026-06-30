@@ -7,7 +7,6 @@ class StatusTabBarInc extends StatelessWidget {
   final int countOpen;
   final int countInPending;
   final int countResolved;
-  final int countReview;
   final int countUnassigned;
   final void Function(String status) onSelect;
 
@@ -19,7 +18,6 @@ class StatusTabBarInc extends StatelessWidget {
     required this.countOpen,
     required this.countInPending,
     required this.countResolved,
-    required this.countReview,
     required this.countUnassigned,
     required this.onSelect,
   });
@@ -32,7 +30,6 @@ class StatusTabBarInc extends StatelessWidget {
       ('Open', countOpen),
       ('In Pending', countInPending),
       ('Resolved', countResolved),
-      ('Review', countReview),
       ('Unassigned', countUnassigned),
     ];
 

@@ -91,7 +91,6 @@ class IncidentVM extends ChangeNotifier {
       _incidents.where((i) => i.status == 'In Pending').length;
   int get countResolved =>
       _incidents.where((i) => i.status == 'Resolved').length;
-  int get countReview => _incidents.where((i) => i.status == 'Review').length;
   int get countUnassigned =>
       _incidents.where((i) => i.assignedUser == null).length;
 

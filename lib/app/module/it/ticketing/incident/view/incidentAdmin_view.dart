@@ -174,7 +174,6 @@ class _IncidentAdminViewState extends State<IncidentAdminView> {
                 countOpen: vm.countOpen,
                 countInPending: vm.countInPending,
                 countResolved: vm.countResolved,
-                countReview: vm.countReview,
                 countUnassigned: vm.countUnassigned,
                 onSelect: vm.setFilter,
               ),
