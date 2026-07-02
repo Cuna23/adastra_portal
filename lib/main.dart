@@ -1,5 +1,6 @@
 import 'package:adastra_portal/app/router.dart'; // [NEW]
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'app/module/login/view model/login_vm.dart';
 
@@ -16,11 +17,13 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late final AuthViewModel _authVm;
+  late final GoRouter _router; 
 
   @override
   void initState() {
     super.initState();
     _authVm = AuthViewModel();
+    _router = buildRouter(_authVm); 
     _authVm.tryAutoLogin(); 
   }
 
@@ -41,8 +44,6 @@ class _MyAppState extends State<MyApp> {
             );
           }
 
-          final router = buildRouter(authVm);
-
           return MaterialApp.router(
             title: 'Adastra Portal',
             debugShowCheckedModeBanner: false,
@@ -53,7 +54,7 @@ class _MyAppState extends State<MyApp> {
               ),
               useMaterial3: true,
             ),
-            routerConfig: router,
+            routerConfig: _router,
           );
         },
       ),
