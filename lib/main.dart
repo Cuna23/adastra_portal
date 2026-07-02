@@ -1,35 +1,62 @@
-import 'package:adastra_portal/app/module/login/view/login_view.dart';
+import 'package:adastra_portal/app/router.dart'; // [NEW]
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app/module/login/view model/login_vm.dart';
 
- 
-void main() { 
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthViewModel(),
-      child: const MyApp(),
-    ),
-  );
+void main() {
+  runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget { 
   const MyApp({super.key});
-  
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final AuthViewModel _authVm;
+
+  @override
+  void initState() {
+    super.initState();
+    _authVm = AuthViewModel();
+    _authVm.tryAutoLogin(); 
+  }
+
   @override
   Widget build(BuildContext context) {
-     
-    return MaterialApp(
-      title: 'Auth Test',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData( 
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF4F6EF7),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
+    return ChangeNotifierProvider.value(
+      value: _authVm,
+      child: Builder(
+        builder: (context) {
+          final authVm = context.watch<AuthViewModel>();
+
+          if (authVm.isInitializing) { // [NEW] splash while checking saved token
+            return const MaterialApp(
+              debugShowCheckedModeBanner: false,
+              home: Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              ),
+            );
+          }
+
+          final router = buildRouter(authVm);
+
+          return MaterialApp.router(
+            title: 'Adastra Portal',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF4F6EF7),
+                brightness: Brightness.dark,
+              ),
+              useMaterial3: true,
+            ),
+            routerConfig: router,
+          );
+        },
       ),
-      home: const LoginScreen(),
     );
   }
 }

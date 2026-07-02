@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../login/view model/login_vm.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:url_launcher/link.dart';
 
 // [CHANGED] StatelessWidget → StatefulWidget to handle IT Management expand/collapse
 class Sidebar extends StatefulWidget {
   final int selectedIndex;
-  final Function(int) onItemSelected;
+  final List<String> pageRoutes;
 
   const Sidebar({
     super.key,
     required this.selectedIndex,
-    required this.onItemSelected,
+    required this.pageRoutes,
   });
 
   @override
@@ -118,38 +121,28 @@ class _SidebarState extends State<Sidebar> {
   }) {
     final bool isSelected = widget.selectedIndex == index;
 
-    return InkWell(
-      onTap: () => widget.onItemSelected(index),
-      child: Container(
-        margin: EdgeInsets.symmetric(
-          horizontal: isMobile ? 8 : 12,
-          vertical: isMobile ? 4 : 6,
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 12 : 16,
-          vertical: isMobile ? 12 : 14,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white.withOpacity(0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: isMobile ? 20 : 22),
-            const SizedBox(width: 14),
-            Text(
-              title,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: isMobile ? 13 : 14,
-                fontWeight: FontWeight.w500,
-              ),
+    return Link( // [NEW]
+      uri: Uri.parse(widget.pageRoutes[index]),
+      builder: (context, followLink) {
+        return InkWell(
+          onTap: followLink, // [CHANGED] dari widget.onItemSelected(index)
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12, vertical: isMobile ? 4 : 6),
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 12 : 16, vertical: isMobile ? 12 : 14),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white.withOpacity(0.15) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
             ),
-          ],
-        ),
-      ),
+            child: Row(
+              children: [
+                Icon(icon, color: Colors.white, size: isMobile ? 20 : 22),
+                const SizedBox(width: 14),
+                Text(title, style: TextStyle(color: Colors.white, fontSize: isMobile ? 13 : 14, fontWeight: FontWeight.w500)),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -212,73 +205,77 @@ class _SidebarState extends State<Sidebar> {
     required int index,
     required String title,
     required bool isMobile,
-    bool comingSoon = false, // [NEW]
+    bool comingSoon = false,
   }) {
     final bool isSelected = widget.selectedIndex == index;
 
-    return InkWell(
-      onTap: comingSoon ? null : () => widget.onItemSelected(index), // [NEW] disable tap if coming soon
-      child: Container(
-        margin: EdgeInsets.only(
-          left: isMobile ? 40 : 48,
-          right: isMobile ? 8 : 12,
-          top: 2,
-          bottom: 2,
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 12 : 14,
-          vertical: isMobile ? 10 : 11,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white.withOpacity(0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.circle,
-              size: isSelected ? 7 : 5,
-              color: isSelected ? Colors.white : Colors.white54,
+    return Link( // [NEW]
+      uri: Uri.parse(widget.pageRoutes[index]),
+      builder: (context, followLink) {
+        return InkWell(
+          onTap: comingSoon ? null : followLink, // [CHANGED] dari () => widget.onItemSelected(index)
+          child: Container(
+            margin: EdgeInsets.only(
+              left: isMobile ? 40 : 48,
+              right: isMobile ? 8 : 12,
+              top: 2,
+              bottom: 2,
             ),
-            const SizedBox(width: 10),
-            Text(
-              title,
-              style: TextStyle(
-                color: comingSoon
-                    ? Colors.white38 // [NEW] dimmed if coming soon
-                    : isSelected
-                        ? Colors.white
-                        : Colors.white70,
-                fontSize: isMobile ? 12 : 13,
-                fontWeight:
-                    isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 14,
+              vertical: isMobile ? 10 : 11,
             ),
-            // [NEW] coming soon badge
-            if (comingSoon) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Colors.white.withOpacity(0.15)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.circle,
+                  size: isSelected ? 7 : 5,
+                  color: isSelected ? Colors.white : Colors.white54,
                 ),
-                child: const Text(
-                  'Soon',
+                const SizedBox(width: 10),
+                Text(
+                  title,
                   style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
+                    color: comingSoon
+                        ? Colors.white38
+                        : isSelected
+                            ? Colors.white
+                            : Colors.white70,
+                    fontSize: isMobile ? 12 : 13,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
-              ),
-            ],
-          ],
-        ),
-      ),
+                if (comingSoon) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Soon',
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -345,48 +342,53 @@ class _SidebarState extends State<Sidebar> {
   }) {
     final bool isSelected = widget.selectedIndex == index;
 
-    return InkWell(
-      onTap: () => widget.onItemSelected(index),
-      child: Container(
-        margin: EdgeInsets.only(
-          left: isMobile ? 58 : 68,
-          right: isMobile ? 8 : 12,
-          top: 2,
-          bottom: 2,
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 10 : 12,
-          vertical: isMobile ? 8 : 9,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white.withOpacity(0.15)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: isSelected ? 5 : 4,
-              height: isSelected ? 5 : 4,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? Colors.white : Colors.white38,
-              ),
+    return Link( // [NEW]
+      uri: Uri.parse(widget.pageRoutes[index]),
+      builder: (context, followLink) {
+        return InkWell(
+          onTap: followLink, // [CHANGED] dari () => widget.onItemSelected(index)
+          child: Container(
+            margin: EdgeInsets.only(
+              left: isMobile ? 58 : 68,
+              right: isMobile ? 8 : 12,
+              top: 2,
+              bottom: 2,
             ),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white54,
-                fontSize: isMobile ? 11 : 12,
-                fontWeight:
-                    isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 10 : 12,
+              vertical: isMobile ? 8 : 9,
             ),
-          ],
-        ),
-      ),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Colors.white.withOpacity(0.15)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: isSelected ? 5 : 4,
+                  height: isSelected ? 5 : 4,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected ? Colors.white : Colors.white38,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.white54,
+                    fontSize: isMobile ? 11 : 12,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

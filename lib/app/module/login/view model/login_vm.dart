@@ -1,6 +1,7 @@
 import 'package:adastra_portal/app/api/config.dart' show ApiService;
 import 'package:adastra_portal/app/module/login/model/login_model.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 enum AuthState { idle, loading, success, error }
@@ -12,6 +13,7 @@ class AuthViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? _token;
   User? _currentUser;
+  bool _isInitializing = true; //save token state when app is initializing
 
   // Getters
   AuthState get state => _state;
@@ -19,7 +21,38 @@ class AuthViewModel extends ChangeNotifier {
   String? get token => _token;
   User? get currentUser => _currentUser;
   bool get isLoggedIn => _token != null;
+  bool get isInitializing => _isInitializing;
 
+  Future<void> tryAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedToken = prefs.getString('auth_token');
+
+    if (savedToken == null) {
+      _isInitializing = false;
+      notifyListeners();
+      return;
+    }
+
+    _token = savedToken;
+    try {
+      final user = await _apiService.getMe(savedToken);
+      if (user != null) {
+        _currentUser = user;
+        _state = AuthState.success;
+      } else {
+        // token invalid/expired
+        _token = null;
+        await prefs.remove('auth_token');
+      }
+    } catch (_) {
+      _token = null;
+      await prefs.remove('auth_token');
+    }
+
+    _isInitializing = false;
+    notifyListeners();
+  }
+  
   Future<bool> login(String email, String password) async {
     _setState(AuthState.loading);
     _errorMessage = null;
@@ -30,6 +63,10 @@ class AuthViewModel extends ChangeNotifier {
       if (response.success && response.token != null) {
         _token = response.token;
         _currentUser = response.user;
+
+      final prefs = await SharedPreferences.getInstance(); 
+      await prefs.setString('auth_token', _token!);    
+
         _setState(AuthState.success);
         return true;
       } else {
@@ -53,6 +90,9 @@ class AuthViewModel extends ChangeNotifier {
     } catch (_) {
       // Even if API call fails, clear local state
     }
+
+    final prefs = await SharedPreferences.getInstance(); 
+    await prefs.remove('auth_token'); 
 
     _token = null;
     _currentUser = null;

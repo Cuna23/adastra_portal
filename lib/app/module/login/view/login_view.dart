@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../homepage/view/home_view.dart';
+import 'package:go_router/go_router.dart';
 import '../view model/login_vm.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -33,12 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (success && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
-        ),
-      );
+      context.go('/dashboard'); 
     }
   }
 
