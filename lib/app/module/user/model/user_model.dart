@@ -24,6 +24,7 @@ class UserModel {
       email: json['email'],
       role: json['role'],
       status: json['status'],
+      departmentId: json['department_id'] ?? json['department']?['id'],
       departmentName: json['department']?['department_name'],
     );
   }
