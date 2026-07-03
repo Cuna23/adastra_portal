@@ -130,11 +130,11 @@ class _AssetTableState extends State<AssetTable> {
           fg: Color(0xFF0F766E)
         );
 
-      case 'Maintenance':
-        return (
-          bg: _maintAmberBg,
-          fg: _maintAmber
-        );
+    case 'Maintenance':
+      return (
+        bg: Color(0xFFFCE7E7),
+        fg: Color(0xFFB42318)
+      );
 
       case 'Disposed':
         return (
