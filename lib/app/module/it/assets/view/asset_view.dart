@@ -98,7 +98,7 @@ class _AssetViewState extends State<AssetView> {
   void _confirmDelete(AssetModel asset, AssetViewModel vm) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog( // [CHANGED] guna dialogContext, bukan `_`
         backgroundColor: Colors.white,
         title: const Text(
           'Delete Asset',
@@ -111,7 +111,7 @@ class _AssetViewState extends State<AssetView> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext), // [CHANGED]
             style: TextButton.styleFrom(foregroundColor: _brandBlue),
             child: const Text('Cancel',
                 style: TextStyle(fontWeight: FontWeight.w600)),
@@ -127,7 +127,7 @@ class _AssetViewState extends State<AssetView> {
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext); // [CHANGED]
               setState(() => _selectedIds.remove(asset.id));
               vm.removeAsset(asset.id, widget.token);
             },
