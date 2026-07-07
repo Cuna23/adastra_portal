@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../view model/home_vm.dart';
 import 'widget/sidebar.dart';
 import '../../login/view model/login_vm.dart';
-import '../../login/view/login_view.dart';
 
 // [CHANGED] HomeScreen -> HomeShell, terima child widget dari ShellRoute
 class HomeShell extends StatelessWidget {
