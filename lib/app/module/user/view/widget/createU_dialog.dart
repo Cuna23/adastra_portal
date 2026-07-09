@@ -228,6 +228,8 @@ class _CreateUDialogState extends State<CreateUDialog> {
                             value: "admin", child: Text("Admin")),
                         DropdownMenuItem(
                             value: "staff", child: Text("Staff")),
+                        DropdownMenuItem(
+                            value: "hod", child: Text("HOD")),
                       ],
                       onChanged: (v) => setState(() => role = v!),
                     ),

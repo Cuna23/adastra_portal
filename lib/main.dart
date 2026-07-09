@@ -45,7 +45,7 @@ class _MyAppState extends State<MyApp> {
           }
 
           return MaterialApp.router(
-            title: 'Adastra Portal',
+            title: ' a Portal',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(

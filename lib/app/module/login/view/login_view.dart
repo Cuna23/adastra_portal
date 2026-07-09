@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           // ===== BACKGROUND IMAGE =====
           Image.asset(
-            'assets/images/adastraip_background.jpg',
+            'assets/images/adastraip_background.jpeg',
             fit: BoxFit.cover,
           ),
 
@@ -67,6 +67,47 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
+
+          // ===== LEFT BRANDING (hidden on mobile) =====
+          if (!isMobile)
+            Positioned(
+              left: 200,
+              top: 0,
+              bottom: 0,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,  // logo & text column center sesama
+                  children: [
+                    Image.asset('assets/images/adastraip_logo_white.png', height: 170),
+                    const SizedBox(width: 20),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Adastra IP', style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 45,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                          height: 1.0,   // biar 1.0, jangan sentuh
+                        )),
+                        const SizedBox(height: 4),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 25),
+                          child: const Text('Enterprise Portal', style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 25,
+                          )),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // ===== LOGIN CARD =====
           SafeArea(
