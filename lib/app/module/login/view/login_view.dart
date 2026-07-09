@@ -92,11 +92,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: 45,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.5,
-                          height: 1.0,   // biar 1.0, jangan sentuh
+                          height: 1.0,   
                         )),
                         const SizedBox(height: 4),
                         Padding(
-                          padding: const EdgeInsets.only(left: 25),
+                          padding: const EdgeInsets.only(left: 100),
                           child: const Text('Enterprise Portal', style: TextStyle(
                             color: Colors.white70,
                             fontSize: 25,
@@ -127,73 +127,72 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
                         width: isMobile ? double.infinity : 420,
                         padding: EdgeInsets.all(isMobile ? 24 : 32),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.82),
+                          color: Colors.white.withOpacity(0.62),
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
+                            color: Colors.white.withOpacity(0.25),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
+                              color: Colors.black.withOpacity(0.75),
                               blurRadius: 30,
-                              offset: const Offset(0, 12),
+                              offset: const Offset(0, 16),
                             ),
                           ],
+                          
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // ===== COMPANY HEADER =====
-                            Row(
-                              children: [
-                                Container(
-                                  width: 44,
-                                  height: 44,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.6),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(6),
-                                    child: Image.asset(
-                                      'assets/images/adastraip_logo.jpg',
-                                      fit: BoxFit.contain,
-                                    ),
+                          Row(
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF4F6F9),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6),
+                                  child: Image.asset(
+                                    'assets/images/adastraip_logo.jpg',
+                                    fit: BoxFit.contain,
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Adastra IP',
-                                      style: TextStyle(
-                                        fontSize: isMobile ? 17 : 18,
-                                        fontWeight: FontWeight.w700,
-                                        color: const Color(0xFF1B1E28),
-                                      ),
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Adastra IP',
+                                    style: TextStyle(
+                                      fontSize: isMobile ? 17 : 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF1B1E28),
                                     ),
-                                    Text(
-                                      'Enterprise Portal',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: const Color(0xFF1B1E28)
-                                            .withOpacity(0.6),
-                                      ),
+                                  ),
+                                  Text(
+                                    'Enterprise Portal',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: const Color(0xFF1B1E28).withOpacity(0.6),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
 
-                            SizedBox(height: isMobile ? 24 : 32),
+                          SizedBox(height: isMobile ? 24 : 32),
 
                             // ===== TITLE =====
                             Text(
