@@ -294,62 +294,87 @@ class _CreateSRDialogState extends State<CreateSRDialog> {
                         const SizedBox(height: 14),
 
                         // Quantity + Priority
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF9FAFB),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: _borderColor),
-                                ),
-                                height: 52,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text('Quantity',
-                                        style: TextStyle(fontSize: 13, color: _textMuted)),
-                                    Row(
-                                      children: [
-                                        _stepperBtn(Icons.remove, () {
-                                          if (_quantity > 1) setState(() => _quantity--);
-                                        }),
-                                        SizedBox(
-                                          width: 28,
-                                          child: Text('$_quantity',
-                                              textAlign: TextAlign.center,
-                                              style: const TextStyle(
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: _textPrimary)),
-                                        ),
-                                        _stepperBtn(Icons.add, () {
-                                          if (_quantity < 10) setState(() => _quantity++);
-                                        }),
-                                      ],
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isNarrow = constraints.maxWidth < 380;
+
+                            final quantityBox = Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF9FAFB),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: _borderColor),
+                              ),
+                              height: 52,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Flexible(
+                                    child: Text(
+                                      'Quantity',
+                                      style: TextStyle(fontSize: 13, color: _textMuted),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _stepperBtn(Icons.remove, () {
+                                        if (_quantity > 1) setState(() => _quantity--);
+                                      }),
+                                      SizedBox(
+                                        width: 26,
+                                        child: Text('$_quantity',
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w600,
+                                                color: _textPrimary)),
+                                      ),
+                                      _stepperBtn(Icons.add, () {
+                                        if (_quantity < 10) setState(() => _quantity++);
+                                      }),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                value: _priority,
-                                iconEnabledColor: _textMuted,
-                                style: const TextStyle(
-                                    fontSize: 15, fontWeight: FontWeight.w500, color: _textPrimary),
-                                decoration: _fieldDecoration('Priority', icon: Icons.flag_outlined),
-                                dropdownColor: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                items: _priorities.entries
-                                    .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
-                                    .toList(),
-                                onChanged: (v) => setState(() => _priority = v!),
-                              ),
-                            ),
-                          ],
+                            );
+
+                            final priorityDropdown = DropdownButtonFormField<String>(
+                              value: _priority,
+                              iconEnabledColor: _textMuted,
+                              style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w500, color: _textPrimary),
+                              decoration: _fieldDecoration('Priority', icon: Icons.flag_outlined),
+                              dropdownColor: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              items: _priorities.entries
+                                  .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _priority = v!),
+                            );
+
+                            if (isNarrow) {
+                              // Stacked vertically on narrow screens (phone)
+                              return Column(
+                                children: [
+                                  quantityBox,
+                                  const SizedBox(height: 14),
+                                  priorityDropdown,
+                                ],
+                              );
+                            }
+
+                            // Side-by-side on wider screens
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(child: quantityBox),
+                                const SizedBox(width: 12),
+                                Expanded(child: priorityDropdown),
+                              ],
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 14),

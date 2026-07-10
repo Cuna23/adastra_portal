@@ -52,12 +52,15 @@ class _SRTableState extends State<SRTable> {
   static const double _wSr     = 130.0;
   static const double _wTitle  = 220.0;
   static const double _wType   = 170.0;
+  static const double _wCategory = 140.0;
+  static const double _wQty      = 60.0;
   static const double _wPrio   = 100.0;
   static const double _wStatus = 110.0;
   static const double _wDate   = 110.0;
+  static const double _wNeeded   = 110.0;
 
   double get _minWidth =>
-      _wNo + _wSr + _wTitle + _wType + _wPrio + _wStatus + _wDate + 32.0;
+      _wNo + _wSr + _wTitle + _wType + _wCategory + _wQty + _wPrio + _wStatus + _wDate + _wNeeded + 32.0;
 
   final ScrollController _hScrollController = ScrollController();
 
@@ -243,9 +246,12 @@ class _SRTableState extends State<SRTable> {
           _hLabel('SR NUMBER', _wSr),
           _hLabel('TITLE', _wTitle),
           _hLabel('TYPE', _wType),
+          _hLabel('CATEGORY', _wCategory),
+          _hLabel('QTY', _wQty),
           _hLabel('PRIORITY', _wPrio),
           _hLabel('STATUS', _wStatus),
           _hLabel('SUBMITTED', _wDate),
+          _hLabel('NEEDED BY', _wNeeded),
         ],
       ),
     );
@@ -319,6 +325,21 @@ class _SRTableState extends State<SRTable> {
                 ),
               ),
               SizedBox(
+                width: _wCategory,
+                child: Text(
+                  sr.category,
+                  style: const TextStyle(fontSize: 13, color: _textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(
+                width: _wQty,
+                child: Text(
+                  '${sr.quantity}',
+                  style: const TextStyle(fontSize: 13, color: _textSecondary),
+                ),
+              ),
+              SizedBox(
                 width: _wPrio,
                 child: _pill(_priorityLabel(sr.priority), bg: pc.bg, fg: pc.fg),
               ),
@@ -331,6 +352,14 @@ class _SRTableState extends State<SRTable> {
                 child: Text(
                   _formatDate(sr.createdAt),
                   style: const TextStyle(fontSize: 13, color: _textMuted),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(
+                width: _wNeeded,
+                child: Text(
+                  _formatDate(sr.neededByDate),
+                  style: const TextStyle(fontSize: 13, color: _textSecondary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

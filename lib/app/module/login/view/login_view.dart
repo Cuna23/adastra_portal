@@ -96,10 +96,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         )),
                         const SizedBox(height: 4),
                         Padding(
-                          padding: const EdgeInsets.only(left: 100),
+                          padding: const EdgeInsets.only(left: 20),
                           child: const Text('Enterprise Portal', style: TextStyle(
                             color: Colors.white70,
-                            fontSize: 25,
+                            fontSize: 20,
                           )),
                         ),
                       ],

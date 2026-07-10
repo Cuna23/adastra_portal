@@ -95,7 +95,7 @@ class _ServiceRequestStaffViewState extends State<ServiceRequestStaffView> {
                   ElevatedButton.icon(
                     onPressed: _openCreateDialog,
                     icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add Service'),
+                    label: const Text('Service Request'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _brandBlue,
                       foregroundColor: Colors.white,
