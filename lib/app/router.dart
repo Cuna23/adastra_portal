@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'module/homepage/view/home_view.dart';
+import 'module/it/ticketing/sr/view model/sr_vm.dart';
+import 'module/it/ticketing/sr/view/srStaff_view.dart';
 import 'module/login/view model/login_vm.dart';
 import 'module/login/view/login_view.dart';
 import 'module/it/assets/view/asset_view.dart';
@@ -82,7 +84,27 @@ GoRouter buildRouter(AuthViewModel authVm) {
               return const Center(child: Text('Access Denied'));
             },
           ),
-          GoRoute(path: '/service-request', builder: (_, __) => const Center(child: Text('Service Request — coming soon'))),
+          GoRoute(
+            path: '/service-request',
+            builder: (_, __) {
+              final role = authVm.currentUser?.role.toLowerCase() ?? '';
+              if (role == 'staff') {
+                return ChangeNotifierProvider(
+                  create: (_) => ServiceRequestViewModel(),
+                  child: ServiceRequestStaffView(
+                    token: authVm.token ?? '',
+                    role: role,
+                    currentUserId: authVm.currentUser?.id ?? 0,
+                  ),
+                );
+              }
+              if (role == 'admin' || role == 'super_admin' || role == 'hod') {
+                // TODO: SRAdminView — belum dibuat, letak placeholder buat masa ni
+                return const Center(child: Text('Service Request — Admin/HOD view coming soon'));
+              }
+              return const Center(child: Text('Access Denied'));
+            },
+          ),
         ],
       ),
     ],

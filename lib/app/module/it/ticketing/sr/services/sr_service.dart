@@ -3,9 +3,8 @@ import 'package:http/http.dart' as http;
 
 import '../model/sr_model.dart';
 
-
 class ServiceRequestService {
-  final String baseUrl = "http://127.0.0.1:8000/api";
+  final String baseUrl = "http://localhost:8000/api";
 
   Future<List<ServiceRequestModel>> getServiceRequests(
     String token, {
@@ -16,7 +15,7 @@ class ServiceRequestService {
     if (status != null) queryParams['status'] = status;
     if (search != null) queryParams['search'] = search;
 
-    final uri = Uri.parse(' $baseUrl/service-requests')
+    final uri = Uri.parse('$baseUrl/service-requests')
         .replace(queryParameters: queryParams.isEmpty ? null : queryParams);
 
     final response = await http.get(
@@ -44,55 +43,98 @@ class ServiceRequestService {
     return ServiceRequestModel.fromJson(jsonDecode(response.body));
   }
 
-  Future<void> createServiceRequest(
-    ServiceRequestModel request,
-    String token, {
-    String? attachmentPath,
+  Future<bool> createServiceRequest({
+    required String token,
+    required String requestTitle,
+    required String requestType,
+    required String category,
+    required int quantity,
+    required String priority,
+    required String description,
+    required DateTime neededByDate,
+    List<int>? attachmentBytes,
+    String? filename,
   }) async {
     final uri = Uri.parse('$baseUrl/service-requests');
-    final multipartRequest = http.MultipartRequest('POST', uri);
+    final request = http.MultipartRequest('POST', uri);
 
-    multipartRequest.headers.addAll({
+    request.headers.addAll({
       'Authorization': 'Bearer $token',
       'Accept': 'application/json',
     });
 
-    request.toJson().forEach((key, value) {
-      multipartRequest.fields[key] = value.toString();
-    });
+    request.fields['request_title'] = requestTitle;
+    request.fields['request_type'] = requestType;
+    request.fields['category'] = category;
+    request.fields['quantity'] = quantity.toString();
+    request.fields['priority'] = priority;
+    request.fields['description'] = description;
+    request.fields['needed_by_date'] =
+        neededByDate.toIso8601String().split('T').first;
 
-    if (attachmentPath != null) {
-      multipartRequest.files
-          .add(await http.MultipartFile.fromPath('attachment', attachmentPath));
+    if (attachmentBytes != null && filename != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'attachment',
+        attachmentBytes,
+        filename: filename,
+      ));
     }
 
-    await multipartRequest.send();
+    final streamedResponse = await request.send();
+    return streamedResponse.statusCode == 201;
   }
 
-  Future<void> updateServiceRequest(
-    int id,
-    ServiceRequestModel request,
-    String token, {
-    String? attachmentPath,
+  Future<bool> updateServiceRequest({
+    required int id,
+    required String token,
+    required String requestTitle,
+    required String requestType,
+    required String category,
+    required int quantity,
+    required String priority,
+    required String description,
+    required DateTime neededByDate,
+    List<int>? attachmentBytes,
+    String? filename,
   }) async {
     final uri = Uri.parse('$baseUrl/service-requests/$id');
-    final multipartRequest = http.MultipartRequest('POST', uri);
-    multipartRequest.fields['_method'] = 'PUT';
+    final request = http.MultipartRequest('POST', uri);
+    request.fields['_method'] = 'PUT';
 
-    multipartRequest.headers.addAll({
+    request.headers.addAll({
       'Authorization': 'Bearer $token',
       'Accept': 'application/json',
     });
 
-    request.toJson().forEach((key, value) {
-      multipartRequest.fields[key] = value.toString();
-    });
+    request.fields['request_title'] = requestTitle;
+    request.fields['request_type'] = requestType;
+    request.fields['category'] = category;
+    request.fields['quantity'] = quantity.toString();
+    request.fields['priority'] = priority;
+    request.fields['description'] = description;
+    request.fields['needed_by_date'] =
+        neededByDate.toIso8601String().split('T').first;
 
-    if (attachmentPath != null) {
-      multipartRequest.files
-          .add(await http.MultipartFile.fromPath('attachment', attachmentPath));
+    if (attachmentBytes != null && filename != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'attachment',
+        attachmentBytes,
+        filename: filename,
+      ));
     }
 
-    await multipartRequest.send();
+    final streamedResponse = await request.send();
+    return streamedResponse.statusCode == 200;
+  }
+
+  Future<bool> cancelServiceRequest(int id, String token) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/service-requests/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+    return response.statusCode == 200;
   }
 }
