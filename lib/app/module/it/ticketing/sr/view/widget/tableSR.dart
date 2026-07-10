@@ -9,6 +9,7 @@ class SRTable extends StatefulWidget {
   final ScrollController scrollController;
   final void Function(int id) onView;
   final bool shrinkWrap;
+  final List<ServiceRequestModel>? requestsOverride;
 
   const SRTable({
     super.key,
@@ -17,6 +18,7 @@ class SRTable extends StatefulWidget {
     required this.scrollController,
     required this.onView,
     this.shrinkWrap = false,
+    this.requestsOverride,
   });
 
   @override
@@ -148,7 +150,7 @@ class _SRTableState extends State<SRTable> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final rows = vm.requests;
+        final rows = widget.requestsOverride ?? vm.requests;
 
         Widget buildEmptyState() => Container(
               height: 160,

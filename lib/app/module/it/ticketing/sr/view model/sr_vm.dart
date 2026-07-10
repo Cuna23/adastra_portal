@@ -11,14 +11,27 @@ class ServiceRequestViewModel extends ChangeNotifier {
   bool isSubmitting = false;
   String? error;
 
+  
+  // ── Status counts (based on currently fetched requests) ──
+  int get countAll => requests.length;
+  int get countPending => requests.where((r) => r.status == 'pending').length;
+  int get countApproved => requests.where((r) => r.status == 'approved').length;
+  int get countRejected => requests.where((r) => r.status == 'rejected').length;
+
   Future<void> fetchRequests(String token, {String? status}) async {
     isLoading = true;
+    error = null;
     notifyListeners();
 
-    requests = await _service.getServiceRequests(token, status: status);
-
-    isLoading = false;
-    notifyListeners();
+    try {
+      requests = await _service.getServiceRequests(token, status: status);
+    } catch (e) {
+      error = 'Failed to load service requests: $e';
+      requests = [];
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> selectRequest(String token, int id) async {
