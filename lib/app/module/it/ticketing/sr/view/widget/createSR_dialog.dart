@@ -120,15 +120,39 @@ class _CreateSRDialogState extends State<CreateSRDialog> {
     });
   }
 
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now().add(const Duration(days: 3)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked != null) setState(() => _neededByDate = picked);
-  }
+    Future<void> _pickDate() async {
+      final picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now().add(const Duration(days: 3)),
+        firstDate: DateTime.now(),
+        lastDate: DateTime.now().add(const Duration(days: 365)),
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: _brandBlue,        // header background, selected date circle
+                onPrimary: Colors.white,    // text on selected date
+                onSurface: _textPrimary,    // body text (dates, month/year)
+                surface: Colors.white,      // dialog background
+              ),
+              textButtonTheme: TextButtonThemeData(
+                style: TextButton.styleFrom(
+                  foregroundColor: _brandBlue, // Cancel/OK button text colour
+                ),
+              ),
+              dialogTheme: DialogThemeData(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+            child: child!,
+          );
+        },
+      );
+      if (picked != null) setState(() => _neededByDate = picked);
+    }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;

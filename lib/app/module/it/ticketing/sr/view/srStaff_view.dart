@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view model/sr_vm.dart';
 import 'widget/createSR_dialog.dart';
+import 'widget/srDetail_view.dart';
 import 'widget/tableSR.dart';
 import 'widget/tabBar_sr.dart';
 
@@ -77,17 +78,12 @@ class _ServiceRequestStaffViewState extends State<ServiceRequestStaffView> {
 
     return Consumer<ServiceRequestViewModel>(
       builder: (context, vm, _) {
-        if (_selectedId != null) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Detail view for request #$_selectedId — coming soon'),
-                TextButton(onPressed: _closeDetail, child: const Text('Back')),
-              ],
-            ),
-          );
-        }
+      if (_selectedId != null) {
+        return SRDetailPage(
+          token: widget.token,
+          onBack: _closeDetail,
+        );
+      }
 
         // ── Filter based on selected tab ──
         final filteredRequests = _selectedTab == 'All'
