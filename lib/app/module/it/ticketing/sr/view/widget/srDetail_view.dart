@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../model/sr_model.dart';
 import '../../view model/sr_vm.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SRDetailPage extends StatelessWidget {
   final String token;
@@ -21,6 +22,7 @@ class SRDetailPage extends StatelessWidget {
   static const _borderColor   = Color(0xFFE5E7EB);
   static const _bgLight       = Color(0xFFF9FAFB);
   static const _bgField       = Color(0xFFF3F4F6);
+  static const String _baseUrl = "http://localhost:8000";
 
   static const _typeLabels = {
     'asset_request': 'Asset request',
@@ -30,6 +32,17 @@ class SRDetailPage extends StatelessWidget {
   };
 
   String _typeLabel(String type) => _typeLabels[type] ?? type;
+
+    Future<void> _openAttachment(String? attachmentPath) async {
+    if (attachmentPath == null) return;
+
+    final url = '$_baseUrl/storage/$attachmentPath';
+    final uri = Uri.parse(url);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -211,25 +224,35 @@ class SRDetailPage extends StatelessWidget {
           // ── Attachment ───────────────────────────────────────────
           if (sr.attachmentName != null) ...[
             const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: _bgLight,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: _borderColor, width: 1),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.attach_file, size: 18, color: _textMuted),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      sr.attachmentName!,
-                      style: const TextStyle(fontSize: 13, color: _brandBlue),
-                      overflow: TextOverflow.ellipsis,
+            InkWell(
+              onTap: () => _openAttachment(sr.attachment),
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: _bgLight,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: _borderColor, width: 1),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.attach_file, size: 18, color: _textMuted),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        sr.attachmentName!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: _brandBlue,
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                ],
+                    const Icon(Icons.open_in_new, size: 14, color: _textMuted),
+                  ],
+                ),
               ),
             ),
           ],
