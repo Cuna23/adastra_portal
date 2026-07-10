@@ -200,7 +200,7 @@ class SRDetailPage extends StatelessWidget {
 
           // ── Row 2: Quantity | Priority ─────────────────────────────
           _fieldRow(
-            _readonlyField(label: 'Quantity', value: '${sr.quantity}', icon: Icons.numbers_outlined),
+            _readonlyField(label: 'Quantity/User', value: '${sr.quantity}', icon: Icons.numbers_outlined),
             _readonlyField(label: 'Priority', value: _priorityLabel(sr.priority), icon: Icons.flag_outlined),
           ),
           const SizedBox(height: 14),

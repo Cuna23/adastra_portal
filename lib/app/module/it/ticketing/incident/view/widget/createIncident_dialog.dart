@@ -156,8 +156,8 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
               borderRadius: BorderRadius.circular(20)),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 560),
-            width: MediaQuery.of(context).size.width * 0.85,
-            padding: const EdgeInsets.all(28),
+            width: MediaQuery.of(context).size.width * 0.9,
+            padding: EdgeInsets.all(MediaQuery.of(context).size.width < 400 ? 18 : 28),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -169,20 +169,22 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
                 children: [
 
                   // ── Header ────────────────────────────────────────────
-                  Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: _brandBlueBg,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.add_circle_outline,
-                            color: _brandBlue, size: 20),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _brandBlueBg,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      const SizedBox(width: 12),
-                      const Column(
+                      child: const Icon(Icons.add_circle_outline,
+                          color: _brandBlue, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -193,14 +195,16 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
                               color: _textPrimary,
                             ),
                           ),
+                          SizedBox(height: 2),
                           Text(
                             'Fill in the details of the issue you are experiencing',
                             style: TextStyle(fontSize: 12, color: _textMuted),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
 
                   const SizedBox(height: 20),
 
@@ -256,56 +260,70 @@ class _CreateIncidentDialogState extends State<CreateIncidentDialog> {
                         const SizedBox(height: 14),
 
                         // Category + Priority
-                        Row(
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                value: _category,
-                                iconEnabledColor: _textMuted,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: _textPrimary,
-                                ),
-                                decoration: _fieldDecoration(
-                                  'Category',
-                                  icon: Icons.category_outlined,
-                                ),
-                                dropdownColor: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                items: _categories
-                                    .map((c) => DropdownMenuItem(
-                                        value: c, child: Text(c)))
-                                    .toList(),
-                                onChanged: (v) =>
-                                    setState(() => _category = v!),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isNarrow = constraints.maxWidth < 380;
+
+                            final categoryDropdown = DropdownButtonFormField<String>(
+                              value: _category,
+                              iconEnabledColor: _textMuted,
+                              isExpanded: true,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: _textPrimary,
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: DropdownButtonFormField<String>(
-                                value: _priority,
-                                iconEnabledColor: _textMuted,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: _textPrimary,
-                                ),
-                                decoration: _fieldDecoration(
-                                  'Priority',
-                                  icon: Icons.flag_outlined,
-                                ),
-                                dropdownColor: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                items: _priorities
-                                    .map((p) => DropdownMenuItem(
-                                        value: p, child: Text(p)))
-                                    .toList(),
-                                onChanged: (v) =>
-                                    setState(() => _priority = v!),
+                              decoration: _fieldDecoration(
+                                'Category',
+                                icon: Icons.category_outlined,
                               ),
-                            ),
-                          ],
+                              dropdownColor: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              items: _categories
+                                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _category = v!),
+                            );
+
+                            final priorityDropdown = DropdownButtonFormField<String>(
+                              value: _priority,
+                              iconEnabledColor: _textMuted,
+                              isExpanded: true,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: _textPrimary,
+                              ),
+                              decoration: _fieldDecoration(
+                                'Priority',
+                                icon: Icons.flag_outlined,
+                              ),
+                              dropdownColor: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              items: _priorities
+                                  .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                                  .toList(),
+                              onChanged: (v) => setState(() => _priority = v!),
+                            );
+
+                            if (isNarrow) {
+                              return Column(
+                                children: [
+                                  categoryDropdown,
+                                  const SizedBox(height: 14),
+                                  priorityDropdown,
+                                ],
+                              );
+                            }
+
+                            return Row(
+                              children: [
+                                Expanded(child: categoryDropdown),
+                                const SizedBox(width: 12),
+                                Expanded(child: priorityDropdown),
+                              ],
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 14),

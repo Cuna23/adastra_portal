@@ -27,9 +27,9 @@ class StatusTabBarSR extends StatelessWidget {
       ('Rejected', countRejected),
     ];
 
-    return  Wrap(
-        spacing: 8,
-        runSpacing: 8,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
         children: filters.map((f) {
           return _Tab(
             label: f.$1,
@@ -38,8 +38,9 @@ class StatusTabBarSR extends StatelessWidget {
             onTap: () => onSelect(f.$1),
           );
         }).toList(),
-      );
-    }
+      ),
+    );
+  }
 }
 
 class _Tab extends StatelessWidget {

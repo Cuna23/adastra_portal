@@ -253,7 +253,7 @@ class _CreateSRDialogState extends State<CreateSRDialog> {
                             ),
                           ),
                           Text(
-                            'Submit a request for an asset, software, or access',
+                            'Submit a request',
                             style: TextStyle(fontSize: 12, color: _textMuted),
                           ),
                         ],
@@ -335,7 +335,7 @@ class _CreateSRDialogState extends State<CreateSRDialog> {
                                 children: [
                                   const Flexible(
                                     child: Text(
-                                      'Quantity',
+                                      'Quantity/User',
                                       style: TextStyle(fontSize: 13, color: _textMuted),
                                       overflow: TextOverflow.ellipsis,
                                     ),

@@ -100,7 +100,6 @@ class _ServiceRequestStaffViewState extends State<ServiceRequestStaffView> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // ── Status tab bar (kiri) ──
                 Expanded(
                   child: StatusTabBarSR(
                     selected: _selectedTab,
@@ -111,10 +110,7 @@ class _ServiceRequestStaffViewState extends State<ServiceRequestStaffView> {
                     onSelect: _onSelectTab,
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
-                // ── Add button (kanan) ──
                 ElevatedButton.icon(
                   onPressed: _openCreateDialog,
                   icon: const Icon(Icons.add, size: 16),
