@@ -129,14 +129,14 @@ class _ServiceRequestAdminViewState extends State<ServiceRequestAdminView> {
                           children: [
                             _searchField(),
                             const SizedBox(height: 10),
-                            _exportBtn(vm.requests),
+                            _exportBtn(filtered),
                           ],
                         )
                       : Row(
                           children: [
                             SizedBox(width: 320, child: _searchField()),
                             const Spacer(),
-                            _exportBtn(vm.requests),
+                            _exportBtn(filtered),
                           ],
                         ),
                 );
