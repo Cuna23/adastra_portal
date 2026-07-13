@@ -51,7 +51,7 @@ class _SRTableState extends State<SRTable> {
   // Fixed column widths
   static const double _wNo       = 44.0;
   static const double _wSr       = 130.0;
-  static const double _wEmployee = 160.0;
+  static const double _wEmployee = 130.0;
   static const double _wDept     = 150.0;
   static const double _wTitle    = 200.0;
   static const double _wType     = 170.0;
