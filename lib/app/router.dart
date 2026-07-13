@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'module/homepage/view/home_view.dart';
 import 'module/it/ticketing/sr/view model/sr_vm.dart';
+import 'module/it/ticketing/sr/view/srAdmin_view.dart';
 import 'module/it/ticketing/sr/view/srStaff_view.dart';
 import 'module/login/view model/login_vm.dart';
 import 'module/login/view/login_view.dart';
@@ -99,8 +100,14 @@ GoRouter buildRouter(AuthViewModel authVm) {
                 );
               }
               if (role == 'admin' || role == 'super_admin' || role == 'hod') {
-                // TODO: SRAdminView — belum dibuat, letak placeholder buat masa ni
-                return const Center(child: Text('Service Request — Admin/HOD view coming soon'));
+                return ChangeNotifierProvider(
+                  create: (_) => ServiceRequestViewModel(),
+                  child: ServiceRequestAdminView(
+                    token: authVm.token ?? '',
+                    role: role,
+                    currentUserId: authVm.currentUser?.id ?? 0,
+                  ),
+                );
               }
               return const Center(child: Text('Access Denied'));
             },

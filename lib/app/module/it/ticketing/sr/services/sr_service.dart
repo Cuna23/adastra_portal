@@ -137,4 +137,53 @@ class ServiceRequestService {
     );
     return response.statusCode == 200;
   }
+
+  Future<Map<String, dynamic>> approveServiceRequest(int id, String token) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/service-requests/$id/approve'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return {
+        'success': true,
+        'data': ServiceRequestModel.fromJson(jsonDecode(response.body)),
+      };
+    }
+
+    final body = jsonDecode(response.body);
+    return {
+      'success': false,
+      'message': body['message'] ?? 'Failed to approve request',
+    };
+  }
+
+  Future<Map<String, dynamic>> rejectServiceRequest(
+    int id, String token, String reason) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/service-requests/$id/reject'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'rejection_reason': reason}),
+    );
+
+    if (response.statusCode == 200) {
+      return {
+        'success': true,
+        'data': ServiceRequestModel.fromJson(jsonDecode(response.body)),
+      };
+    }
+
+    final body = jsonDecode(response.body);
+    return {
+      'success': false,
+      'message': body['message'] ?? 'Failed to reject request',
+    };
+  }
 }

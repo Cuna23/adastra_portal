@@ -9,6 +9,7 @@ class SRTable extends StatefulWidget {
   final ScrollController scrollController;
   final void Function(int id) onView;
   final bool shrinkWrap;
+  final bool showEmployeeColumns; 
   final List<ServiceRequestModel>? requestsOverride;
 
   const SRTable({
@@ -18,6 +19,7 @@ class SRTable extends StatefulWidget {
     required this.scrollController,
     required this.onView,
     this.shrinkWrap = false,
+    this.showEmployeeColumns = false,
     this.requestsOverride,
   });
 
@@ -26,14 +28,12 @@ class SRTable extends StatefulWidget {
 }
 
 class _SRTableState extends State<SRTable> {
-  // ── Design tokens — identical to IncidentTable ─────────────────────────
   static const _brandBlue     = Color(0xFF185FA5);
   static const _textPrimary   = Color(0xFF1B1E28);
   static const _textSecondary = Color(0xFF6B7280);
   static const _textMuted     = Color(0xFF9CA3AF);
   static const _borderColor   = Color(0xFFE5E7EB);
 
-  // Status pill colours
   static const _pendAmber   = Color(0xFF854F0B);
   static const _pendAmberBg = Color(0xFFFAEEDA);
   static const _appGreen    = Color(0xFF3B6D11);
@@ -41,7 +41,6 @@ class _SRTableState extends State<SRTable> {
   static const _rejRed      = Color(0xFFA32D2D);
   static const _rejRedBg    = Color(0xFFFCEBEB);
 
-  // Priority pill colours
   static const _highRed     = Color(0xFFA32D2D);
   static const _highRedBg   = Color(0xFFFCEBEB);
   static const _medAmber    = Color(0xFF854F0B);
@@ -50,24 +49,34 @@ class _SRTableState extends State<SRTable> {
   static const _lowGreenBg  = Color(0xFFEAF3DE);
 
   // Fixed column widths
-  static const double _wNo     = 44.0;
-  static const double _wSr     = 130.0;
-  static const double _wTitle  = 220.0;
-  static const double _wType   = 170.0;
+  static const double _wNo       = 44.0;
+  static const double _wSr       = 130.0;
+  static const double _wEmployee = 160.0;
+  static const double _wDept     = 150.0;
+  static const double _wTitle    = 200.0;
+  static const double _wType     = 170.0;
   static const double _wCategory = 140.0;
   static const double _wQty      = 60.0;
-  static const double _wPrio   = 100.0;
-  static const double _wStatus = 110.0;
-  static const double _wDate   = 110.0;
+  static const double _wPrio     = 100.0;
+  static const double _wStatus   = 110.0;
+  static const double _wDate     = 110.0;
   static const double _wNeeded   = 110.0;
 
+  bool get showEmployeeColumns => widget.showEmployeeColumns;
+
   double get _minWidth =>
-      _wNo + _wSr + _wTitle + _wType + _wCategory + _wQty + _wPrio + _wStatus + _wDate + _wNeeded + 32.0;
+      _wNo + _wSr +
+      (showEmployeeColumns ? (_wEmployee + _wDept) : 0) +
+      _wTitle +
+      (showEmployeeColumns ? 0 : _wType) + // Type only for staff view
+      _wCategory +
+      (showEmployeeColumns ? 0 : _wQty) +  // Qty only for staff view
+      _wPrio + _wStatus + _wDate +
+      (showEmployeeColumns ? 0 : _wNeeded) +
+      32.0;
 
   final ScrollController _hScrollController = ScrollController();
 
-  String get role  => widget.role;
-  String get token => widget.token;
   ScrollController get scrollController => widget.scrollController;
   void Function(int) get onView => widget.onView;
 
@@ -88,59 +97,42 @@ class _SRTableState extends State<SRTable> {
 
   String _statusLabel(String status) {
     switch (status) {
-      case 'pending':
-        return 'Pending';
-      case 'approved':
-        return 'Approved';
-      case 'rejected':
-        return 'Rejected';
-      default:
-        return status;
+      case 'pending': return 'Pending';
+      case 'approved': return 'Approved';
+      case 'rejected': return 'Rejected';
+      default: return status;
     }
   }
 
   String _priorityLabel(String p) {
     switch (p) {
-      case 'high':
-        return 'High';
-      case 'medium':
-        return 'Medium';
-      default:
-        return 'Low';
+      case 'high': return 'High';
+      case 'medium': return 'Medium';
+      default: return 'Low';
     }
   }
 
   ({Color bg, Color fg}) _statusColors(String status) {
     switch (status) {
-      case 'approved':
-        return (bg: _appGreenBg, fg: _appGreen);
-      case 'rejected':
-        return (bg: _rejRedBg, fg: _rejRed);
-      default:
-        return (bg: _pendAmberBg, fg: _pendAmber);
+      case 'approved': return (bg: _appGreenBg, fg: _appGreen);
+      case 'rejected': return (bg: _rejRedBg, fg: _rejRed);
+      default: return (bg: _pendAmberBg, fg: _pendAmber);
     }
   }
 
   ({Color bg, Color fg}) _prioColors(String p) {
     switch (p) {
-      case 'high':
-        return (bg: _highRedBg, fg: _highRed);
-      case 'medium':
-        return (bg: _medAmberBg, fg: _medAmber);
-      default:
-        return (bg: _lowGreenBg, fg: _lowGreen);
+      case 'high': return (bg: _highRedBg, fg: _highRed);
+      case 'medium': return (bg: _medAmberBg, fg: _medAmber);
+      default: return (bg: _lowGreenBg, fg: _lowGreen);
     }
   }
 
   String _formatDate(DateTime dt) {
-    const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
+    const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${dt.day} ${months[dt.month]} ${dt.year}';
   }
-
-  // ── Build ────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -153,18 +145,18 @@ class _SRTableState extends State<SRTable> {
         final rows = widget.requestsOverride ?? vm.requests;
 
         Widget buildEmptyState() => Container(
-              height: 160,
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.assignment_outlined, size: 32, color: _textMuted),
-                  SizedBox(height: 8),
-                  Text('No service requests found.',
-                      style: TextStyle(color: _textSecondary, fontSize: 13)),
-                ],
-              ),
-            );
+          height: 160,
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(Icons.assignment_outlined, size: 32, color: _textMuted),
+              SizedBox(height: 8),
+              Text('No service requests found.',
+                  style: TextStyle(color: _textSecondary, fontSize: 13)),
+            ],
+          ),
+        );
 
         final tableBody = Scrollbar(
           controller: _hScrollController,
@@ -173,8 +165,7 @@ class _SRTableState extends State<SRTable> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final tableWidth = _minWidth > constraints.maxWidth
-                  ? _minWidth
-                  : constraints.maxWidth;
+                  ? _minWidth : constraints.maxWidth;
 
               final rowsArea = rows.isEmpty
                   ? buildEmptyState()
@@ -182,8 +173,7 @@ class _SRTableState extends State<SRTable> {
                       controller: widget.shrinkWrap ? null : scrollController,
                       shrinkWrap: widget.shrinkWrap,
                       physics: widget.shrinkWrap
-                          ? const NeverScrollableScrollPhysics()
-                          : null,
+                          ? const NeverScrollableScrollPhysics() : null,
                       itemCount: rows.length,
                       separatorBuilder: (_, __) => const Divider(
                           height: 0.5, thickness: 0.5, color: _borderColor),
@@ -201,8 +191,7 @@ class _SRTableState extends State<SRTable> {
                         widget.shrinkWrap ? MainAxisSize.min : MainAxisSize.max,
                     children: [
                       _buildHeader(tableWidth),
-                      const Divider(
-                          height: 0.5, thickness: 0.5, color: _borderColor),
+                      const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
                       widget.shrinkWrap ? rowsArea : Expanded(child: rowsArea),
                     ],
                   ),
@@ -221,8 +210,7 @@ class _SRTableState extends State<SRTable> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: Column(
-              mainAxisSize:
-                  widget.shrinkWrap ? MainAxisSize.min : MainAxisSize.max,
+              mainAxisSize: widget.shrinkWrap ? MainAxisSize.min : MainAxisSize.max,
               children: [
                 widget.shrinkWrap ? tableBody : Expanded(child: tableBody),
                 const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
@@ -235,8 +223,6 @@ class _SRTableState extends State<SRTable> {
     );
   }
 
-  // ── Header row ───────────────────────────────────────────────────────────
-
   Widget _buildHeader(double width) {
     return Container(
       width: width,
@@ -246,36 +232,29 @@ class _SRTableState extends State<SRTable> {
         children: [
           _hLabel('NO', _wNo),
           _hLabel('SR NUMBER', _wSr),
+          if (showEmployeeColumns) _hLabel('EMPLOYEE', _wEmployee),
+          if (showEmployeeColumns) _hLabel('DEPARTMENT', _wDept),
           _hLabel('TITLE', _wTitle),
-          _hLabel('TYPE', _wType),
+          if (!showEmployeeColumns) _hLabel('TYPE', _wType),
           _hLabel('CATEGORY', _wCategory),
-          _hLabel('QTY', _wQty),
+          if (!showEmployeeColumns) _hLabel('QTY', _wQty),
           _hLabel('PRIORITY', _wPrio),
           _hLabel('STATUS', _wStatus),
           _hLabel('SUBMITTED', _wDate),
-          _hLabel('NEEDED BY', _wNeeded),
+          if (!showEmployeeColumns) _hLabel('NEEDED BY', _wNeeded),
         ],
       ),
     );
   }
 
   Widget _hLabel(String text, double width) => SizedBox(
-        width: width,
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: _textMuted,
-            letterSpacing: 0.5,
-          ),
-        ),
-      );
+    width: width,
+    child: Text(text,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+            color: _textMuted, letterSpacing: 0.5)),
+  );
 
-  // ── Data row ─────────────────────────────────────────────────────────────
-
-  Widget _buildRow(
-      BuildContext context, ServiceRequestModel sr, double width, int rowNo) {
+  Widget _buildRow(BuildContext context, ServiceRequestModel sr, double width, int rowNo) {
     final sc = _statusColors(sr.status);
     final pc = _prioColors(sr.priority);
 
@@ -288,91 +267,75 @@ class _SRTableState extends State<SRTable> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
-              SizedBox(
-                width: _wNo,
-                child: Text('$rowNo',
-                    style: const TextStyle(fontSize: 13, color: _textSecondary)),
-              ),
+              SizedBox(width: _wNo,
+                  child: Text('$rowNo', style: const TextStyle(fontSize: 13, color: _textSecondary))),
               SizedBox(
                 width: _wSr,
-                child: Text(
-                  sr.srNumber,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontFamily: 'monospace',
-                    color: _brandBlue,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Text(sr.srNumber,
+                    style: const TextStyle(fontSize: 12, fontFamily: 'monospace',
+                        color: _brandBlue, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis),
               ),
+              if (showEmployeeColumns)
+                SizedBox(
+                  width: _wEmployee,
+                  child: Text(sr.requesterName ?? '—',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _textPrimary),
+                      overflow: TextOverflow.ellipsis),
+                ),
+              if (showEmployeeColumns)
+                SizedBox(
+                  width: _wDept,
+                  child: Text(sr.requesterDepartment ?? '—',
+                      style: const TextStyle(fontSize: 13, color: _textSecondary),
+                      overflow: TextOverflow.ellipsis),
+                ),
               SizedBox(
                 width: _wTitle,
-                child: Text(
-                  sr.requestTitle,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _textPrimary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Text(sr.requestTitle,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _textPrimary),
+                    overflow: TextOverflow.ellipsis),
               ),
-              SizedBox(
-                width: _wType,
-                child: Text(
-                  _typeLabel(sr.requestType),
-                  style: const TextStyle(fontSize: 13, color: _textSecondary),
-                  overflow: TextOverflow.ellipsis,
+              if (!showEmployeeColumns)
+                SizedBox(
+                  width: _wType,
+                  child: Text(_typeLabel(sr.requestType),
+                      style: const TextStyle(fontSize: 13, color: _textSecondary),
+                      overflow: TextOverflow.ellipsis),
                 ),
-              ),
               SizedBox(
                 width: _wCategory,
-                child: Text(
-                  sr.category,
-                  style: const TextStyle(fontSize: 13, color: _textSecondary),
-                  overflow: TextOverflow.ellipsis,
+                child: Text(sr.category,
+                    style: const TextStyle(fontSize: 13, color: _textSecondary),
+                    overflow: TextOverflow.ellipsis),
+              ),
+              if (!showEmployeeColumns)
+                SizedBox(
+                  width: _wQty,
+                  child: Text('${sr.quantity}',
+                      style: const TextStyle(fontSize: 13, color: _textSecondary)),
                 ),
-              ),
-              SizedBox(
-                width: _wQty,
-                child: Text(
-                  '${sr.quantity}',
-                  style: const TextStyle(fontSize: 13, color: _textSecondary),
-                ),
-              ),
-              SizedBox(
-                width: _wPrio,
-                child: _pill(_priorityLabel(sr.priority), bg: pc.bg, fg: pc.fg),
-              ),
-              SizedBox(
-                width: _wStatus,
-                child: _pill(_statusLabel(sr.status), bg: sc.bg, fg: sc.fg),
-              ),
+              SizedBox(width: _wPrio, child: _pill(_priorityLabel(sr.priority), bg: pc.bg, fg: pc.fg)),
+              SizedBox(width: _wStatus, child: _pill(_statusLabel(sr.status), bg: sc.bg, fg: sc.fg)),
               SizedBox(
                 width: _wDate,
-                child: Text(
-                  _formatDate(sr.createdAt),
-                  style: const TextStyle(fontSize: 13, color: _textMuted),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Text(_formatDate(sr.createdAt),
+                    style: const TextStyle(fontSize: 13, color: _textMuted),
+                    overflow: TextOverflow.ellipsis),
               ),
-              SizedBox(
-                width: _wNeeded,
-                child: Text(
-                  _formatDate(sr.neededByDate),
-                  style: const TextStyle(fontSize: 13, color: _textSecondary),
-                  overflow: TextOverflow.ellipsis,
+              if (!showEmployeeColumns)
+                SizedBox(
+                  width: _wNeeded,
+                  child: Text(_formatDate(sr.neededByDate),
+                      style: const TextStyle(fontSize: 13, color: _textSecondary),
+                      overflow: TextOverflow.ellipsis),
                 ),
-              ),
             ],
           ),
         ),
       ),
     );
   }
-
-  // ── Footer ───────────────────────────────────────────────────────────────
 
   Widget _buildFooter(List<ServiceRequestModel> rows) {
     final total = rows.length;
@@ -387,52 +350,32 @@ class _SRTableState extends State<SRTable> {
         children: [
           const Icon(Icons.assignment_outlined, size: 14, color: _textMuted),
           const SizedBox(width: 6),
-          Text(
-            'Total requests: $total',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: _textSecondary,
-            ),
-          ),
+          Text('Total requests: $total',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _textSecondary)),
           const Spacer(),
           if (pending > 0) ...[
-            Text('$pending pending',
-                style: const TextStyle(
-                    fontSize: 11, color: _pendAmber, fontWeight: FontWeight.w500)),
+            Text('$pending pending', style: const TextStyle(fontSize: 11, color: _pendAmber, fontWeight: FontWeight.w500)),
             const SizedBox(width: 12),
           ],
           if (approved > 0) ...[
-            Text('$approved approved',
-                style: const TextStyle(
-                    fontSize: 11, color: _appGreen, fontWeight: FontWeight.w500)),
+            Text('$approved approved', style: const TextStyle(fontSize: 11, color: _appGreen, fontWeight: FontWeight.w500)),
             const SizedBox(width: 12),
           ],
           if (rejected > 0)
-            Text('$rejected rejected',
-                style: const TextStyle(
-                    fontSize: 11, color: _rejRed, fontWeight: FontWeight.w500)),
+            Text('$rejected rejected', style: const TextStyle(fontSize: 11, color: _rejRed, fontWeight: FontWeight.w500)),
         ],
       ),
     );
   }
-
-  // ── Shared widgets ───────────────────────────────────────────────────────
 
   Widget _pill(String text, {required Color bg, required Color fg}) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
-          overflow: TextOverflow.ellipsis,
-        ),
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
+        child: Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
+            overflow: TextOverflow.ellipsis),
       ),
     );
   }

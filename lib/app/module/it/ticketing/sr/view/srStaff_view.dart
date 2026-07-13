@@ -79,10 +79,11 @@ class _ServiceRequestStaffViewState extends State<ServiceRequestStaffView> {
     return Consumer<ServiceRequestViewModel>(
       builder: (context, vm, _) {
       if (_selectedId != null) {
-        return SRDetailPage(
-          token: widget.token,
-          onBack: _closeDetail,
-        );
+      return SRDetailPage(
+        token: widget.token,
+        role: widget.role,
+        onBack: _closeDetail,
+      );
       }
 
         // ── Filter based on selected tab ──
