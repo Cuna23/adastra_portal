@@ -21,6 +21,7 @@ class ServiceRequestModel {
   final DateTime? reviewedAt;
   final String? rejectionReason;
   final DateTime createdAt;
+  final List<ServiceRequestLogModel> logs;
 
   ServiceRequestModel({
     required this.id,
@@ -45,6 +46,7 @@ class ServiceRequestModel {
     this.reviewedAt,
     this.rejectionReason,
     required this.createdAt,
+    this.logs = const [],
   });
 
   factory ServiceRequestModel.fromJson(Map<String, dynamic> json) {
@@ -73,6 +75,11 @@ class ServiceRequestModel {
           : null,
       rejectionReason: json['rejection_reason'],
       createdAt: DateTime.parse(json['created_at']),
+      logs: json['logs'] != null
+            ? (json['logs'] as List)
+                .map((e) => ServiceRequestLogModel.fromJson(e))
+                .toList()
+            : [],
     );
   }
 
@@ -86,5 +93,34 @@ class ServiceRequestModel {
       'description': description,
       'needed_by_date': neededByDate.toIso8601String().split('T').first,
     };
+  }
+}
+
+class ServiceRequestLogModel {
+  final int id;
+  final String action;
+  final String description;
+  final int userId;
+  final String? userName;
+  final DateTime createdAt;
+
+  ServiceRequestLogModel({
+    required this.id,
+    required this.action,
+    required this.description,
+    required this.userId,
+    this.userName,
+    required this.createdAt,
+  });
+
+  factory ServiceRequestLogModel.fromJson(Map<String, dynamic> json) {
+    return ServiceRequestLogModel(
+      id: json['id'],
+      action: json['action'],
+      description: json['description'],
+      userId: json['user_id'],
+      userName: json['user']?['name'],
+      createdAt: DateTime.parse(json['created_at']),
+    );
   }
 }

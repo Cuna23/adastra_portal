@@ -186,4 +186,29 @@ class ServiceRequestService {
       'message': body['message'] ?? 'Failed to reject request',
     };
   }
+
+  Future<Map<String, dynamic>> addNote(int id, String token, String note) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/service-requests/$id/note'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'note': note}),
+    );
+
+    if (response.statusCode == 200) {
+      return {
+        'success': true,
+        'data': ServiceRequestModel.fromJson(jsonDecode(response.body)),
+      };
+    }
+
+    final body = jsonDecode(response.body);
+    return {
+      'success': false,
+      'message': body['message'] ?? 'Failed to add note',
+    };
+  }
 }

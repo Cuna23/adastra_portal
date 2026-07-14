@@ -82,6 +82,7 @@ class _ServiceRequestStaffViewState extends State<ServiceRequestStaffView> {
       return SRDetailPage(
         token: widget.token,
         role: widget.role,
+        currentUserId: widget.currentUserId,
         onBack: _closeDetail,
       );
       }

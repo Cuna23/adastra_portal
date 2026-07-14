@@ -113,4 +113,18 @@ class ServiceRequestViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> addNote(String token, int id, String note) async {
+    final result = await _service.addNote(id, token, note);
+
+    if (result['success'] == true) {
+      selected = result['data'];
+      notifyListeners();
+      return true;
+    } else {
+      error = result['message'];
+      notifyListeners();
+      return false;
+    }
+  }
 }

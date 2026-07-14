@@ -3,16 +3,19 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../model/sr_model.dart';
 import '../../view model/sr_vm.dart';
+import 'srActPanel.dart';
 
 class SRDetailPage extends StatefulWidget {
   final String token;
   final String role;
+  final int currentUserId;
   final VoidCallback onBack;
 
   const SRDetailPage({
     super.key,
     required this.token,
     required this.role,
+    required this.currentUserId,
     required this.onBack,
   });
 
@@ -202,13 +205,50 @@ class _SRDetailPageState extends State<SRDetailPage> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  child: SingleChildScrollView(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 900),
-                        child: _buildDetailPanel(sr),
-                      ),
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final wide = constraints.maxWidth >= 800;
+
+                      if (wide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 7,
+                              child: SingleChildScrollView(child: _buildDetailPanel(sr)),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 4,
+                              child: SRActivityPanel(
+                                token: widget.token,
+                                sr: sr,
+                                vm: vm,
+                                currentUserId: widget.currentUserId,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+
+                      return SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _buildDetailPanel(sr),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              height: 520,
+                              child: SRActivityPanel(
+                                token: widget.token,
+                                sr: sr,
+                                vm: vm,
+                                currentUserId: widget.currentUserId,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
