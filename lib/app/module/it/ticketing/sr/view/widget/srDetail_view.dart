@@ -645,23 +645,14 @@ class _SRDetailPageState extends State<SRDetailPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Change decision to', style: TextStyle(fontSize: 12, color: _textSecondary, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 6),
-                    DropdownButtonFormField<String>(
+                    _editableDropdown(
+                      label: 'Change decision to',
                       value: _editStatus,
-                      iconEnabledColor: _textMuted,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _borderColor)),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _brandBlue, width: 1.5)),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'approved', child: Text('Approved')),
-                        DropdownMenuItem(value: 'rejected', child: Text('Rejected')),
-                        DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                      ],
+                      items: const ['approved', 'rejected'],
+                      customLabels: const {
+                        'approved': 'Approved',
+                        'rejected': 'Rejected',
+                      },
                       onChanged: (v) => setState(() => _editStatus = v),
                     ),
                     if (_editStatus == 'rejected') ...[
@@ -777,6 +768,54 @@ class _SRDetailPageState extends State<SRDetailPage> {
       ),
       child: Text(value, maxLines: maxLines, overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: _textPrimary)),
+    );
+  }
+
+  Widget _editableDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    Map<String, String>? customLabels,
+    required void Function(String?) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12,
+                color: _textSecondary,
+                fontWeight: FontWeight.w500)),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: items.contains(value) ? value : null,
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          iconEnabledColor: _textMuted,
+          isExpanded: true,
+          items: items.map((item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(customLabels?[item] ?? item,
+                  style: const TextStyle(fontSize: 14, color: _textPrimary)),
+            );
+          }).toList(),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: _brandBlue, width: 1.2),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: _brandBlue, width: 1.5),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

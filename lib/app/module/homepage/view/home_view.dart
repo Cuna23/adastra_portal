@@ -83,6 +83,8 @@ class _HomeBody extends StatelessWidget {
                         await authVm.logout();
                         if (context.mounted) context.go('/login'); // [CHANGED]
                       },
+                      tooltip: 'Logout',
+                      visualDensity: VisualDensity.compact,
                     ),
                   ],
                 ),
