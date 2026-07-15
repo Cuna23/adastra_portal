@@ -45,14 +45,20 @@ class _SRDetailPageState extends State<SRDetailPage> {
   bool _isProcessing = false;
   bool _showRejectField = false;
 
+  bool _showEditPanel = false;
+  String? _editStatus;
+  final _editReasonCtrl = TextEditingController();
+
   bool get _isApprover =>
       widget.role == 'hod' || widget.role == 'admin' || widget.role == 'super_admin';
+  bool get _isSuperAdmin => widget.role == 'super_admin';
 
   String _typeLabel(String type) => _typeLabels[type] ?? type;
 
   @override
   void dispose() {
     _rejectReasonCtrl.dispose();
+    _editReasonCtrl.dispose();
     super.dispose();
   }
 
@@ -168,6 +174,125 @@ class _SRDetailPageState extends State<SRDetailPage> {
         backgroundColor: ok ? const Color(0xFF3B6D11) : const Color(0xFFA32D2D),
       ),
     );
+  }
+
+  Future<void> _submitEditApproval(ServiceRequestModel sr) async {
+  if (_editStatus == null) return;
+
+  if (_editStatus == 'rejected' && _editReasonCtrl.text.trim().isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please provide a reason for rejection')),
+    );
+    return;
+  }
+
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('Change approval decision?',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _textPrimary)),
+      content: Text(
+        'You are about to change this request to "${_statusLabel(_editStatus!)}". This will override the previous decision.',
+        style: const TextStyle(fontSize: 13, color: _textSecondary),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancel', style: TextStyle(color: _textSecondary)),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _brandBlue,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          child: const Text('Confirm'),
+        ),
+      ],
+    ),
+  );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isProcessing = true);
+    final vm = context.read<ServiceRequestViewModel>();
+    final ok = await vm.editApproval(
+      token: widget.token,
+      id: sr.id,
+      status: _editStatus!,
+      rejectionReason: _editStatus == 'rejected' ? _editReasonCtrl.text.trim() : null,
+    );
+    if (!mounted) return;
+    setState(() {
+      _isProcessing = false;
+      if (ok) {
+        _showEditPanel = false;
+        _editStatus = null;
+        _editReasonCtrl.clear();
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok ? 'Approval decision updated' : (vm.error ?? 'Failed to update decision')),
+        backgroundColor: ok ? const Color(0xFF3B6D11) : const Color(0xFFA32D2D),
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(ServiceRequestModel sr) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete this request?',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _textPrimary)),
+        content: Text(
+          'This will permanently delete "${sr.requestTitle}" (${sr.srNumber}). This action cannot be undone.',
+          style: const TextStyle(fontSize: 13, color: _textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: _textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFA32D2D),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isProcessing = true);
+    final vm = context.read<ServiceRequestViewModel>();
+    final ok = await vm.deleteRequest(widget.token, sr.id);
+    if (!mounted) return;
+    setState(() => _isProcessing = false);
+
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Request deleted'), backgroundColor: Color(0xFF3B6D11)),
+      );
+      widget.onBack();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(vm.error ?? 'Failed to delete request'), backgroundColor: const Color(0xFFA32D2D)),
+      );
+    }
   }
 
   @override
@@ -501,13 +626,139 @@ class _SRDetailPageState extends State<SRDetailPage> {
                 ),
                 _readonlyField(label: 'Reviewed at', value: _formatDate(sr.reviewedAt), icon: Icons.update_outlined),
               ),
-              if (sr.status == 'rejected' && sr.rejectionReason != null) ...[
-                const SizedBox(height: 14),
-                _readonlyField(label: 'Reason for rejection', value: sr.rejectionReason!, icon: Icons.gavel_outlined, maxLines: 4, fullWidth: true),
-              ],
+             if (sr.status == 'rejected' && sr.rejectionReason != null) ...[
+              const SizedBox(height: 14),
+              _readonlyField(label: 'Reason for rejection', value: sr.rejectionReason!, icon: Icons.gavel_outlined, maxLines: 4, fullWidth: true),
+            ],
+            ],
+
+            // ── Super Admin: Edit / Delete (only when already reviewed) ───────
+            if (_isSuperAdmin && sr.status != 'pending') ...[
+              const SizedBox(height: 20),
+              const Divider(height: 0.5, thickness: 0.5, color: _borderColor),
+              const SizedBox(height: 20),
+
+              const Text('Super admin controls', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _brandBlue)),
+              const SizedBox(height: 16),
+
+              if (_showEditPanel) ...[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Change decision to', style: TextStyle(fontSize: 12, color: _textSecondary, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: _editStatus,
+                      iconEnabledColor: _textMuted,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _borderColor)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _brandBlue, width: 1.5)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'approved', child: Text('Approved')),
+                        DropdownMenuItem(value: 'rejected', child: Text('Rejected')),
+                        DropdownMenuItem(value: 'pending', child: Text('Pending')),
+                      ],
+                      onChanged: (v) => setState(() => _editStatus = v),
+                    ),
+                    if (_editStatus == 'rejected') ...[
+                      const SizedBox(height: 14),
+                      const Text('Reason', style: TextStyle(fontSize: 12, color: _textSecondary, fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 6),
+                      TextFormField(
+                        controller: _editReasonCtrl,
+                        maxLines: 3,
+                        style: const TextStyle(fontSize: 14, color: _textPrimary),
+                        decoration: InputDecoration(
+                          hintText: 'Explain the reason...',
+                          hintStyle: const TextStyle(fontSize: 13, color: _textMuted),
+                          filled: true,
+                          fillColor: Colors.white,
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _borderColor)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _brandBlue, width: 1.5)),
+                          isDense: true,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _isProcessing ? null : () => setState(() {
+                              _showEditPanel = false;
+                              _editStatus = null;
+                              _editReasonCtrl.clear();
+                            }),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: _textPrimary,
+                              side: const BorderSide(color: _borderColor),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: (_isProcessing || _editStatus == null) ? null : () => _submitEditApproval(sr),
+                            icon: _isProcessing
+                                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : const Icon(Icons.check, size: 16, color: Colors.white),
+                            label: const Text('Save changes'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _brandBlue,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ] else
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _isProcessing ? null : () => setState(() {
+                          _showEditPanel = true;
+                          _editStatus = sr.status;
+                        }),
+                        icon: const Icon(Icons.edit_outlined, size: 16, color: _brandBlue),
+                        label: const Text('Edit decision', style: TextStyle(color: _brandBlue)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: _brandBlue),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _isProcessing ? null : () => _confirmDelete(sr),
+                        icon: const Icon(Icons.delete_outline, size: 16, color: Color(0xFFA32D2D)),
+                        label: const Text('Delete', style: TextStyle(color: Color(0xFFA32D2D))),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFA32D2D)),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ],
-        ],
+        ]
       ),
     );
   }

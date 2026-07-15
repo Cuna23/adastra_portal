@@ -127,4 +127,44 @@ class ServiceRequestViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> editApproval({
+    required String token,
+    required int id,
+    required String status,
+    String? rejectionReason,
+  }) async {
+    final result = await _service.editApproval(
+      id: id,
+      token: token,
+      status: status,
+      rejectionReason: rejectionReason,
+    );
+
+    if (result['success'] == true) {
+      selected = result['data'];
+      await fetchRequests(token);
+      notifyListeners();
+      return true;
+    } else {
+      error = result['message'];
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteRequest(String token, int id) async {
+    final result = await _service.deleteServiceRequest(id, token);
+
+    if (result['success'] == true) {
+      selected = null;
+      await fetchRequests(token);
+      notifyListeners();
+      return true;
+    } else {
+      error = result['message'];
+      notifyListeners();
+      return false;
+    }
+  }
 }

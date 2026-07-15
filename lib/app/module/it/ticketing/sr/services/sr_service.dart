@@ -127,17 +127,6 @@ class ServiceRequestService {
     return streamedResponse.statusCode == 200;
   }
 
-  Future<bool> cancelServiceRequest(int id, String token) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/service-requests/$id'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
-    return response.statusCode == 200;
-  }
-
   Future<Map<String, dynamic>> approveServiceRequest(int id, String token) async {
     final response = await http.patch(
       Uri.parse('$baseUrl/service-requests/$id/approve'),
@@ -209,6 +198,59 @@ class ServiceRequestService {
     return {
       'success': false,
       'message': body['message'] ?? 'Failed to add note',
+    };
+  }
+
+  Future<Map<String, dynamic>> editApproval({
+    required int id,
+    required String token,
+    required String status,
+    String? rejectionReason,
+  }) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/service-requests/$id/edit-approval'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'status': status,
+        if (rejectionReason != null) 'rejection_reason': rejectionReason,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return {
+        'success': true,
+        'data': ServiceRequestModel.fromJson(jsonDecode(response.body)),
+      };
+    }
+
+    final body = jsonDecode(response.body);
+    return {
+      'success': false,
+      'message': body['message'] ?? 'Failed to edit approval',
+    };
+  }
+
+  Future<Map<String, dynamic>> deleteServiceRequest(int id, String token) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/service-requests/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return {'success': true};
+    }
+
+    final body = jsonDecode(response.body);
+    return {
+      'success': false,
+      'message': body['message'] ?? 'Failed to delete request',
     };
   }
 }
