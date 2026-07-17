@@ -90,7 +90,7 @@ class _ServiceRequestAdminViewState extends State<ServiceRequestAdminView> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.role != 'admin' && widget.role != 'super_admin' && widget.role != 'hod') {
+    if (widget.role != 'admin' && widget.role != 'super_admin') {
       return const Center(child: Text('Access Denied'));
     }
 

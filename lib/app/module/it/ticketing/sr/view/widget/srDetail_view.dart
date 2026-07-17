@@ -50,7 +50,7 @@ class _SRDetailPageState extends State<SRDetailPage> {
   final _editReasonCtrl = TextEditingController();
 
   bool get _isApprover =>
-      widget.role == 'hod' || widget.role == 'admin' || widget.role == 'super_admin';
+      widget.role == 'admin' || widget.role == 'super_admin';
   bool get _isSuperAdmin => widget.role == 'super_admin';
 
   String _typeLabel(String type) => _typeLabels[type] ?? type;

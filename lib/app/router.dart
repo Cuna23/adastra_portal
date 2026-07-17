@@ -99,7 +99,7 @@ GoRouter buildRouter(AuthViewModel authVm) {
                   ),
                 );
               }
-              if (role == 'admin' || role == 'super_admin' || role == 'hod') {
+              if (role == 'admin' || role == 'super_admin') {
                 return ChangeNotifierProvider(
                   create: (_) => ServiceRequestViewModel(),
                   child: ServiceRequestAdminView(

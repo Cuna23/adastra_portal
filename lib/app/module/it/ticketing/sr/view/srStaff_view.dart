@@ -71,8 +71,7 @@ class _ServiceRequestStaffViewState extends State<ServiceRequestStaffView> {
   Widget build(BuildContext context) {
     if (widget.role != 'staff' &&
         widget.role != 'admin' &&
-        widget.role != 'super_admin' &&
-        widget.role != 'hod') {
+        widget.role != 'super_admin') {
       return const Center(child: Text('Access Denied'));
     }
 
