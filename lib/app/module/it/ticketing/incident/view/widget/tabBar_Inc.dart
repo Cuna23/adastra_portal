@@ -34,22 +34,23 @@ class StatusTabBarInc extends StatelessWidget {
     ];
 
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-        child: Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: filters.map((f) {
-            return _Tab(
-              label: f.$1,
-              count: f.$2,
-              selected: selected == f.$1,
-              onTap: () => onSelect(f.$1),
-            );
-          }).toList(),
-        ),
-      );
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: filters.map((f) {
+                return _Tab(
+                  label: f.$1,
+                  count: f.$2,
+                  selected: selected == f.$1,
+                  onTap: () => onSelect(f.$1),
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      }
     }
-  }
 
 class _Tab extends StatelessWidget {
   final String label;

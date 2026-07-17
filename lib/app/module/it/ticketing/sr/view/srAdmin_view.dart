@@ -124,13 +124,20 @@ class _ServiceRequestAdminViewState extends State<ServiceRequestAdminView> {
                 final isMobile = constraints.maxWidth < 600;
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
-                  child: isMobile
+                      child: isMobile
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _searchField(),
                             const SizedBox(height: 10),
-                            _exportBtn(filtered),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [_exportBtn(filtered)],
+                              ),
+                            ),
                           ],
                         )
                       : Row(

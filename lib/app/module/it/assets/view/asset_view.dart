@@ -261,15 +261,20 @@ class _AssetViewState extends State<AssetView> {
           const SizedBox(width: 10),
         ],
         SizedBox(width: 320, child: _searchField(vm)),
-        const Spacer(),
         const SizedBox(width: 10),
-        _exportBtn(vm),
-        const SizedBox(width: 10),
-        _categoriesBtn(),
-        const SizedBox(width: 10),
-        _cloneBtn(vm),
-        const SizedBox(width: 10),
-        _addBtn(),
+        Expanded(
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              _exportBtn(vm),
+              _categoriesBtn(),
+              _cloneBtn(vm),
+              _addBtn(),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -334,17 +339,6 @@ class _AssetViewState extends State<AssetView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // ── Category tab bar ──────────────────────────────────────────
-            if (vm.categories.isNotEmpty)
-              CategoryTabBarA(
-                categories: vm.categories,
-                selectedId: vm.selectedCategoryId,
-                onSelect: (id) {
-                  setState(() => _selectedIds.clear());
-                  vm.selectCategory(id, widget.token);
-                },
-              ),
-
             // ── Toolbar row — responsive ──────────────────────────────
             LayoutBuilder(
               builder: (context, constraints) {
@@ -357,6 +351,19 @@ class _AssetViewState extends State<AssetView> {
                 );
               },
             ),
+
+            // ── Category tab bar ──────────────────────────────────────────
+            if (vm.categories.isNotEmpty)
+              CategoryTabBarA(
+                categories: vm.categories,
+                selectedId: vm.selectedCategoryId,
+                onSelect: (id) {
+                  setState(() => _selectedIds.clear());
+                  vm.selectCategory(id, widget.token);
+                },
+              ),
+
+            const SizedBox(height: 12),
 
             // ── Table ─────────────────────────────────────────────────────
             Expanded(
