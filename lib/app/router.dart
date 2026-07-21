@@ -6,6 +6,7 @@ import 'module/it/ticketing/sr/view model/sr_vm.dart';
 import 'module/it/ticketing/sr/view/srAdmin_view.dart';
 import 'module/it/ticketing/sr/view/srStaff_view.dart';
 import 'module/login/view model/login_vm.dart';
+import 'module/login/view/auth_success_view.dart';
 import 'module/login/view/login_view.dart';
 import 'module/it/assets/view/asset_view.dart';
 import 'module/it/assets/view model/asset_vm.dart';
@@ -22,13 +23,21 @@ GoRouter buildRouter(AuthViewModel authVm) {
     redirect: (context, state) {
       final loggedIn = authVm.token != null;
       final loggingIn = state.matchedLocation == '/login';
+      final authSuccess = state.matchedLocation == '/auth-success';
 
-      if (!loggedIn && !loggingIn) return '/login';
+      if (!loggedIn && !loggingIn && !authSuccess) return '/login';
       if (loggedIn && loggingIn) return '/dashboard';
       return null;
     },
     routes: [
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+      GoRoute(
+        path: '/auth-success',
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'];
+          return AuthSuccessScreen(token: token);
+        },
+      ),
 
       ShellRoute(
         builder: (context, state, child) => HomeShell(child: child),

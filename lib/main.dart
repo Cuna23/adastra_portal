@@ -1,4 +1,4 @@
-import 'package:adastra_portal/app/router.dart'; // [NEW]
+import 'package:adastra_portal/app/router.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +19,7 @@ class _MyAppState extends State<MyApp> {
   late final AuthViewModel _authVm;
   late final GoRouter _router; 
 
-  @override
+  @override 
   void initState() {
     super.initState();
     _authVm = AuthViewModel();

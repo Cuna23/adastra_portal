@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../view model/login_vm.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,6 +35,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success && mounted) {
       context.go('/dashboard');
+    }
+  }
+
+  Future<void> _handleMicrosoftLogin() async {
+    // Buka URL redirect Laravel dalam browser (guna url_launcher package)
+    final url = Uri.parse('http://localhost:8000/api/auth/microsoft/redirect');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, webOnlyWindowName: '_self');
     }
   }
 
@@ -366,6 +375,52 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 );
                               },
+                            ),
+                            const SizedBox(height: 16),
+                            // ===== DIVIDER "OR" =====
+                            Row(
+                              children: [
+                                Expanded(child: Divider(color: const Color(0xFF1B1E28).withOpacity(0.15))),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text(
+                                    'OR',
+                                    style: TextStyle(
+                                      color: const Color(0xFF1B1E28).withOpacity(0.4),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(child: Divider(color: const Color(0xFF1B1E28).withOpacity(0.15))),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // ===== MICROSOFT LOGIN BUTTON =====
+                            SizedBox(
+                              width: double.infinity,
+                              height: 52,
+                              child: OutlinedButton.icon(
+                                onPressed: _handleMicrosoftLogin,
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor: Colors.white.withOpacity(0.7),
+                                  side: BorderSide(color: const Color(0xFF1B1E28).withOpacity(0.15)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                icon: Image.asset('assets/images/microsoft_logo.jpg', height: 20),
+                                label: const Text(
+                                  'Continue with Microsoft',
+                                  style: TextStyle(
+                                    color: Color(0xFF1B1E28),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),

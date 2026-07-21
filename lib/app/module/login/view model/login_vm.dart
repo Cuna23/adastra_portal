@@ -110,6 +110,33 @@ class AuthViewModel extends ChangeNotifier {
     } catch (_) {}
   }
 
+  Future<bool> loginWithToken(String token) async {
+    _setState(AuthState.loading);
+    _errorMessage = null;
+
+    _token = token;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
+
+    try {
+      final user = await _apiService.getMe(token);
+      if (user != null) {
+        _currentUser = user;
+        _setState(AuthState.success);
+        return true;
+      } else {
+        _errorMessage = 'Failed to fetch user info';
+        _setState(AuthState.error);
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Cannot connect to server. Check your connection.';
+      _setState(AuthState.error);
+      return false;
+    }
+  }  
+
   void _setState(AuthState newState) {
     _state = newState;
     notifyListeners();
