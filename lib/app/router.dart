@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'common/widgets/external_system_frame.dart';
+import 'module/company/view model/comp_vm.dart';
+import 'module/company/view/comp_view.dart';
 import 'module/homepage/view/home_view.dart';
 import 'module/it/ticketing/sr/view model/sr_vm.dart';
 import 'module/it/ticketing/sr/view/srAdmin_view.dart';
@@ -151,6 +153,16 @@ GoRouter buildRouter(AuthViewModel authVm) {
               }
               return const Center(child: Text('Access Denied'));
             },
+          ),
+          GoRoute(
+            path: '/company',
+            builder: (_, __) => ChangeNotifierProvider(
+              create: (_) => CompanyViewModel(),
+              child: CompanyView(
+                role: authVm.currentUser?.role ?? '',
+                token: authVm.token ?? '',
+              ),
+            ),
           ),
         ],
       ),

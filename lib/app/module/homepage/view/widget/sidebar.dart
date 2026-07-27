@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:url_launcher/link.dart';
 
 class Sidebar extends StatefulWidget {
-  final String currentPath; // [CHANGED] dari selectedIndex (int) -> currentPath (String)
+  final String currentPath;
 
   const Sidebar({
     super.key,
@@ -19,16 +19,15 @@ class Sidebar extends StatefulWidget {
 class _SidebarState extends State<Sidebar> {
   bool _isItExpanded = false;
   bool _isTicketingExpanded = false;
+  // [REMOVED] _isCompanyExpanded — Company is now a single non-expandable item
 
-  // [NEW] role/department helpers
   String? _role(BuildContext ctx) => ctx.watch<AuthViewModel>().currentUser?.role;
 
   bool _isAdminOrSuper(BuildContext ctx) =>
       _role(ctx) == 'admin' || _role(ctx) == 'super_admin';
 
-  // [NEW] centralised access rules per route
   bool _canAccess(BuildContext ctx, String route) {
-    if (_isAdminOrSuper(ctx)) return true; // admin & super_admin get everything
+    if (_isAdminOrSuper(ctx)) return true;
 
     switch (route) {
       case '/dashboard':
@@ -37,11 +36,12 @@ class _SidebarState extends State<Sidebar> {
       case '/autocount':
       case '/incident':
       case '/service-request':
-        return true; // all staff can access
+      case '/company': // [CHANGED] single route, everyone can view
+        return true;
       case '/assets':
-        return false; 
+        return false;
       case '/users':
-        return false; // staff never access User Management
+        return false;
       default:
         return false;
     }
@@ -55,7 +55,6 @@ class _SidebarState extends State<Sidebar> {
     final vm = context.watch<AuthViewModel>();
     final userName = vm.currentUser?.name;
 
-    // [NEW] compute visibility once per build
     final canAssets = _canAccess(context, '/assets');
     final canTicketing = _canAccess(context, '/incident') || _canAccess(context, '/service-request');
     final canItManagement = canAssets || canTicketing;
@@ -65,6 +64,7 @@ class _SidebarState extends State<Sidebar> {
       color: const Color(0xFF005BAC),
       child: Column(
         children: [
+          // Header — stays fixed, does NOT scroll
           Container(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: isMobile ? 20 : 30),
             child: Row(
@@ -96,42 +96,54 @@ class _SidebarState extends State<Sidebar> {
             ),
           ),
 
-          const Divider(color: Colors.white24),
+          const Divider(color: Colors.white24, height: 1),
 
-          // [CHANGED] every item now wrapped with _canAccess check
-          if (_canAccess(context, '/dashboard'))
-            _menuItem(route: '/dashboard', icon: Icons.dashboard_rounded, title: 'Dashboard', isMobile: isMobile),
-          if (_canAccess(context, '/users'))
-            _menuItem(route: '/users', icon: Icons.people_alt_rounded, title: 'User Management', isMobile: isMobile),
-          if (_canAccess(context, '/terra'))
-            _menuItem(route: '/terra', icon: Icons.workspace_premium_rounded, title: 'Terra', isMobile: isMobile),
-          if (_canAccess(context, '/zoho'))
-            _menuItem(route: '/zoho', icon: Icons.grid_view_rounded, title: 'Zoho', isMobile: isMobile),
-          if (_canAccess(context, '/autocount'))
-            _menuItem(route: '/autocount', icon: Icons.admin_panel_settings_rounded, title: 'Autocount', isMobile: isMobile),
+          // Menu list — Expanded + SingleChildScrollView fixes bottom overflow
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(top: 8, bottom: 16),
+              child: Column(
+                children: [
+                  if (_canAccess(context, '/dashboard'))
+                    _menuItem(route: '/dashboard', icon: Icons.dashboard_rounded, title: 'Dashboard', isMobile: isMobile),
+                  if (_canAccess(context, '/users'))
+                    _menuItem(route: '/users', icon: Icons.people_alt_rounded, title: 'User Management', isMobile: isMobile),
 
-          // [CHANGED] IT Management parent only shown if user has access to at least 1 child
-          if (canItManagement) _itManagementItem(isMobile: isMobile, canAssets: canAssets, canTicketing: canTicketing),
+                  if (_canAccess(context, '/terra'))
+                    _menuItem(route: '/terra', icon: Icons.workspace_premium_rounded, title: 'Terra', isMobile: isMobile),
+                  if (_canAccess(context, '/zoho'))
+                    _menuItem(route: '/zoho', icon: Icons.grid_view_rounded, title: 'Zoho', isMobile: isMobile),
+                  if (_canAccess(context, '/autocount'))
+                    _menuItem(route: '/autocount', icon: Icons.admin_panel_settings_rounded, title: 'Autocount', isMobile: isMobile),
 
-          if (_isItExpanded) ...[
-            if (canAssets)
-              _subMenuItem(route: '/assets', title: 'Assets Inventory', isMobile: isMobile),
-            if (canTicketing) ...[
-              _ticketingParentItem(isMobile: isMobile),
-              if (_isTicketingExpanded) ...[
-                if (_canAccess(context, '/incident'))
-                  _subSubMenuItem(route: '/incident', title: 'Incident Report', isMobile: isMobile),
-                if (_canAccess(context, '/service-request'))
-                  _subSubMenuItem(route: '/service-request', title: 'Service Request', isMobile: isMobile),
-              ],
-            ],
-          ],
+                  if (canItManagement) _itManagementItem(isMobile: isMobile, canAssets: canAssets, canTicketing: canTicketing),
+
+                  if (_isItExpanded) ...[
+                    if (canAssets)
+                      _subMenuItem(route: '/assets', title: 'Assets Inventory', isMobile: isMobile),
+                    if (canTicketing) ...[
+                      _ticketingParentItem(isMobile: isMobile),
+                      if (_isTicketingExpanded) ...[
+                        if (_canAccess(context, '/incident'))
+                          _subSubMenuItem(route: '/incident', title: 'Incident Report', isMobile: isMobile),
+                        if (_canAccess(context, '/service-request'))
+                          _subSubMenuItem(route: '/service-request', title: 'Service Request', isMobile: isMobile),
+                      ],
+                    ],
+                  ],
+
+                  // [CHANGED] Company — single non-expandable item, bottom of list
+                  if (_canAccess(context, '/company'))
+                    _menuItem(route: '/company', icon: Icons.apartment_rounded, title: 'Company', isMobile: isMobile),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // ── Regular menu item ── [CHANGED] index -> route
   Widget _menuItem({
     required String route,
     required IconData icon,
@@ -165,7 +177,6 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
-  // [CHANGED] highlight based on whether current path is one of its (visible) children
   Widget _itManagementItem({required bool isMobile, required bool canAssets, required bool canTicketing}) {
     final bool isChildSelected =
         (canAssets && widget.currentPath == '/assets') ||
@@ -199,7 +210,6 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
-  // [CHANGED] index -> route
   Widget _subMenuItem({
     required String route,
     required String title,
@@ -284,7 +294,6 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
-  // [CHANGED] index -> route
   Widget _subSubMenuItem({
     required String route,
     required String title,

@@ -11,6 +11,7 @@ class HomeViewModel extends ChangeNotifier {
     '/assets': 'Assets Inventory',
     '/incident': 'Incident Report',
     '/service-request': 'Service Request',
+    '/company': 'Company', 
   };
 
   String _currentPath = '/dashboard';
