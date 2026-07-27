@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 
+// [NEW] Route -> Title map, replaces fixed-index pageTitles/pageRoutes
 class HomeViewModel extends ChangeNotifier {
-  int _selectedIndex = 0;
-  int get selectedIndex => _selectedIndex;
+  static const Map<String, String> routeTitles = {
+    '/dashboard': 'Dashboard',
+    '/users': 'User Management',
+    '/terra': 'Terra',
+    '/zoho': 'Zoho',
+    '/autocount': 'Autocount',
+    '/assets': 'Assets Inventory',
+    '/incident': 'Incident Report',
+    '/service-request': 'Service Request',
+  };
 
-  final List<String> pageTitles = [
-    'Dashboard', 'User Management', 'Terra', 'Zoho', 'Autocount',
-    'Assets Inventory', 'Ticketing System', 'Incident Report', 'Service Request',
-  ];
+  String _currentPath = '/dashboard';
+  String get currentPath => _currentPath;
 
-  final List<String> pageRoutes = [
-    '/dashboard', '/users', '/terra', '/zoho', '/autocount',
-    '/assets', '/ticketing', '/incident', '/service-request',
-  ];
+  String get currentPageTitle => routeTitles[_currentPath] ?? '—';
 
-  String get currentPageTitle => pageTitles[_selectedIndex];
-
+  // [CHANGED] no more index lookup — just store the matched path directly
   void selectPageFromRoute(String path) {
-    final idx = pageRoutes.indexOf(path);
-    if (idx != -1 && idx != _selectedIndex) {
-      _selectedIndex = idx;
-      Future.microtask(notifyListeners); // [NEW] avoid setState-during-build error
+    if (path != _currentPath) {
+      _currentPath = path;
+      Future.microtask(notifyListeners);
     }
   }
 }

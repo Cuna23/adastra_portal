@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'common/widgets/external_system_frame.dart';
 import 'module/homepage/view/home_view.dart';
 import 'module/it/ticketing/sr/view model/sr_vm.dart';
 import 'module/it/ticketing/sr/view/srAdmin_view.dart';
@@ -53,9 +54,39 @@ GoRouter buildRouter(AuthViewModel authVm) {
               ),
             ),
           ),
-          GoRoute(path: '/terra', builder: (_, __) => const Center(child: Text('Terra'))),
-          GoRoute(path: '/zoho', builder: (_, __) => const Center(child: Text('Zoho'))),
-          GoRoute(path: '/autocount', builder: (_, __) => const Center(child: Text('Autocount'))),
+          GoRoute(
+            path: '/terra',
+            builder: (_, __) => const ExternalSystemFrame(
+              systemKey: 'terra',
+              systemName: 'Terra',
+              url: 'https://practicetestautomation.com/practice-test-login/',
+              embeddable: true,
+            ),
+          ),
+          GoRoute(
+            path: '/zoho',
+            builder: (_, __) => const ExternalSystemFrame(
+              systemKey: 'zoho',
+              systemName: 'Zoho',
+              url: 'https://accounts.zoho.com/signin',
+              embeddable: false,
+              icon: Icons.grid_view_rounded,
+              accentColor: Color(0xFFE42527),
+              description: 'Log in using your Zoho account.',
+            ),
+          ),
+          GoRoute(
+            path: '/autocount',
+            builder: (_, __) => const ExternalSystemFrame(
+              systemKey: 'autocount',
+              systemName: 'AutoCount',
+              url: 'https://auth.autocountcloud.com/identity/account/login/payroll',
+              embeddable: false,
+              icon: Icons.admin_panel_settings_rounded,
+              accentColor: Color(0xFF185FA5),
+              description: 'Log in using your AutoCount account.',
+            ),
+          ),
           GoRoute(
             path: '/assets',
             builder: (_, __) => ChangeNotifierProvider(

@@ -40,19 +40,13 @@ class _HomeBody extends StatelessWidget {
       backgroundColor: const Color(0xFFF4F7FC),
       drawer: isMobile
           ? Drawer(
-              child: Sidebar(
-                selectedIndex: homeVm.selectedIndex,
-                pageRoutes: homeVm.pageRoutes, // [NEW]
-              ),
+              child: Sidebar(currentPath: homeVm.currentPath), // [CHANGED]
             )
           : null,
       body: Row(
         children: [
           if (!isMobile)
-            Sidebar(
-              selectedIndex: homeVm.selectedIndex,
-              pageRoutes: homeVm.pageRoutes, // [NEW]
-            ),
+          Sidebar(currentPath: homeVm.currentPath), // [CHANGED]
           Expanded(
             child: Column(
               children: [
