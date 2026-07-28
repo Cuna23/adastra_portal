@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 // [NEW] Route -> Title map, replaces fixed-index pageTitles/pageRoutes
 class HomeViewModel extends ChangeNotifier {
   static const Map<String, String> routeTitles = {
+    '/company': 'Company Hub',
     '/dashboard': 'Dashboard',
     '/users': 'User Management',
     '/terra': 'Terra',
@@ -11,7 +12,6 @@ class HomeViewModel extends ChangeNotifier {
     '/assets': 'Assets Inventory',
     '/incident': 'Incident Report',
     '/service-request': 'Service Request',
-    '/company': 'Company', 
   };
 
   String _currentPath = '/dashboard';

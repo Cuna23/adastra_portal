@@ -104,6 +104,8 @@ class _SidebarState extends State<Sidebar> {
               padding: const EdgeInsets.only(top: 8, bottom: 16),
               child: Column(
                 children: [
+                  if (_canAccess(context, '/company'))
+                    _menuItem(route: '/company', icon: Icons.apartment_rounded, title: 'Company Hub', isMobile: isMobile),
                   if (_canAccess(context, '/dashboard'))
                     _menuItem(route: '/dashboard', icon: Icons.dashboard_rounded, title: 'Dashboard', isMobile: isMobile),
                   if (_canAccess(context, '/users'))
@@ -131,10 +133,6 @@ class _SidebarState extends State<Sidebar> {
                       ],
                     ],
                   ],
-
-                  // [CHANGED] Company — single non-expandable item, bottom of list
-                  if (_canAccess(context, '/company'))
-                    _menuItem(route: '/company', icon: Icons.apartment_rounded, title: 'Company', isMobile: isMobile),
                 ],
               ),
             ),

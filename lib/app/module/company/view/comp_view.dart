@@ -22,7 +22,6 @@ class _CompanyViewState extends State<CompanyView> {
   @override
   void initState() {
     super.initState();
-    // [NEW] fetch both sections on page load
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vm = context.read<CompanyViewModel>();
       vm.fetchOrgChart(widget.token);
@@ -40,7 +39,6 @@ class _CompanyViewState extends State<CompanyView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Section 1: Organizational Chart ──
           _sectionHeader(
             icon: Icons.account_tree_rounded,
             title: 'Organizational Chart',
@@ -51,7 +49,6 @@ class _CompanyViewState extends State<CompanyView> {
 
           SizedBox(height: isMobile ? 32 : 40),
 
-          // ── Section 2: Floor Mapping ──
           _sectionHeader(
             icon: Icons.map_rounded,
             title: 'Floor Mapping',
@@ -62,7 +59,6 @@ class _CompanyViewState extends State<CompanyView> {
 
           SizedBox(height: isMobile ? 32 : 40),
 
-          // ── Coming soon placeholders ──
           _comingSoonCard(icon: Icons.info_outline_rounded, title: 'About', isMobile: isMobile),
           const SizedBox(height: 12),
           _comingSoonCard(icon: Icons.flag_outlined, title: 'Vision & Mission', isMobile: isMobile),
@@ -89,6 +85,8 @@ class _CompanyViewState extends State<CompanyView> {
   }
 
   // ── Org Chart section ──
+  // [CHANGED] image now wrapped in Center + ConstrainedBox(maxWidth: 700) +
+  // AspectRatio(16/9) so the card doesn't stretch full-width when empty/loading/error.
   Widget _orgChartSection(CompanyViewModel vm, bool isMobile) {
     return Container(
       width: double.infinity,
@@ -123,44 +121,49 @@ class _CompanyViewState extends State<CompanyView> {
               isMobile: isMobile,
             )
           else
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: InteractiveViewer(
-                    minScale: 0.5,
-                    maxScale: 4,
-                    child: Image.network(
-                      vm.orgChart!.imageUrl!,
-                      width: double.infinity,
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, progress) {
-                        if (progress == null) return child;
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 60),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      },
-                      errorBuilder: (_, __, ___) => _emptyState(
-                        icon: Icons.broken_image_outlined,
-                        message: 'Failed to load image.',
-                        isMobile: isMobile,
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 700),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: InteractiveViewer(
+                          minScale: 0.5,
+                          maxScale: 4,
+                          child: Image.network(
+                            vm.orgChart!.imageUrl!,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return const Center(child: CircularProgressIndicator());
+                            },
+                            errorBuilder: (_, __, ___) => _emptyState(
+                              icon: Icons.broken_image_outlined,
+                              message: 'Failed to load image.',
+                              isMobile: isMobile,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      if (_isSuperAdmin)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: _deleteButton(
+                            onTap: () => _confirmDelete(
+                              id: vm.orgChart!.id,
+                              isOrgChart: true,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                if (_isSuperAdmin)
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: _deleteButton(
-                      onTap: () => _confirmDelete(
-                        id: vm.orgChart!.id,
-                        isOrgChart: true,
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             ),
         ],
       ),
@@ -210,6 +213,7 @@ class _CompanyViewState extends State<CompanyView> {
     );
   }
 
+  // [CHANGED] same Center + ConstrainedBox + AspectRatio treatment as org chart
   Widget _floorMapCard(CompanyModel floor, bool isMobile) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -237,19 +241,26 @@ class _CompanyViewState extends State<CompanyView> {
           ),
           const SizedBox(height: 8),
           if (floor.imageUrl != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: InteractiveViewer(
-                minScale: 0.5,
-                maxScale: 4,
-                child: Image.network(
-                  floor.imageUrl!,
-                  width: double.infinity,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => _emptyState(
-                    icon: Icons.broken_image_outlined,
-                    message: 'Failed to load image.',
-                    isMobile: isMobile,
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 700),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: InteractiveViewer(
+                      minScale: 0.5,
+                      maxScale: 4,
+                      child: Image.network(
+                        floor.imageUrl!,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => _emptyState(
+                          icon: Icons.broken_image_outlined,
+                          message: 'Failed to load image.',
+                          isMobile: isMobile,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
