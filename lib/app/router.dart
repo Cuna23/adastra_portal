@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import 'common/widgets/external_system_frame.dart';
 import 'module/company/view model/comp_vm.dart';
 import 'module/company/view/comp_view.dart';
+import 'module/dashboard/view model/dash_vm.dart';
+import 'module/dashboard/view/dashAdmin_view.dart';
+import 'module/dashboard/view/dashStaff_view.dart';
 import 'module/homepage/view/home_view.dart';
 import 'module/it/ticketing/sr/view model/sr_vm.dart';
 import 'module/it/ticketing/sr/view/srAdmin_view.dart';
@@ -45,7 +48,18 @@ GoRouter buildRouter(AuthViewModel authVm) {
       ShellRoute(
         builder: (context, state, child) => HomeShell(child: child),
         routes: [
-          GoRoute(path: '/dashboard', builder: (_, __) => const DashboardBody()),
+          GoRoute(
+            path: '/dashboard',
+            builder: (_, __) {
+              final role = authVm.currentUser?.role.toLowerCase() ?? '';
+              return ChangeNotifierProvider(
+                create: (_) => DashboardViewModel(),
+                child: role == 'staff'
+                    ? DashboardStaffView(token: authVm.token ?? '')
+                    : DashboardAdminView(token: authVm.token ?? ''),
+              );
+            },
+          ),
           GoRoute(
             path: '/users',
             builder: (_, __) => ChangeNotifierProvider(
