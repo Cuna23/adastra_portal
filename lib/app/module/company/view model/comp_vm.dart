@@ -8,6 +8,7 @@ class CompanyViewModel extends ChangeNotifier {
   final CompanyService _service = CompanyService();
 
   CompanyModel? orgChart;
+  CompanyModel? visionMission; 
   List<CompanyModel> floorMaps = [];
   CompanyModel? about;
   String visionText = '';
@@ -59,9 +60,10 @@ class CompanyViewModel extends ChangeNotifier {
 
   Future<void> fetchVisionMission(String token, {bool notify = true}) async {
     try {
-      final vm = await _service.getVisionMission(token);
-      if (vm?.content != null) {
-        final decoded = jsonDecode(vm!.content!);
+      final data = await _service.getVisionMission(token);
+      visionMission = data; // [NEW]
+      if (data?.content != null) {
+        final decoded = jsonDecode(data!.content!);
         visionText = decoded['vision'] ?? '';
         missionText = decoded['mission'] ?? '';
       }
@@ -115,6 +117,28 @@ class CompanyViewModel extends ChangeNotifier {
       } else {
         await fetchFloorMaps(token);
       }
+    }
+    return ok;
+  }
+
+  Future<bool> deleteAbout(String token) async {
+    if (about == null) return false;
+    final ok = await _service.deleteCompanyItem(about!.id, token);
+    if (ok) {
+      about = null;
+      notifyListeners();
+    }
+    return ok;
+  }
+
+  Future<bool> deleteVisionMission(String token) async {
+    if (visionMission == null) return false;
+    final ok = await _service.deleteCompanyItem(visionMission!.id, token);
+    if (ok) {
+      visionMission = null;
+      visionText = '';
+      missionText = '';
+      notifyListeners();
     }
     return ok;
   }

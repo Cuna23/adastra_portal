@@ -172,7 +172,7 @@ GoRouter buildRouter(AuthViewModel authVm) {
             path: '/company',
             builder: (_, __) => ChangeNotifierProvider(
               create: (_) => CompanyViewModel(),
-              child: CompanyView(
+              child: CompanyHomeView(
                 role: authVm.currentUser?.role ?? '',
                 token: authVm.token ?? '',
               ),
