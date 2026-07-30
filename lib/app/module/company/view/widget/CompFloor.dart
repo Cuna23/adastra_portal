@@ -31,18 +31,26 @@ class FloorMapContent extends StatelessWidget {
               child: Text(
                 'Floor mapping',
                 style: TextStyle(
-                  fontSize: 16, 
-                  fontWeight: FontWeight.w700, 
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
                   color: Color(0xFF1B1E28),
                 ),
-              )
+              ),
             ),
+            // [CHANGED] TextButton -> ElevatedButton, same filled-blue style as "Add User".
+            // Also fixed label fontSize (was 16, now 12 to match the rest of the buttons).
             if (_isAdminOrSuper)
-              TextButton.icon(
+              ElevatedButton.icon(
                 onPressed: () => _pickAndUploadFloorMap(context, vm),
                 icon: const Icon(Icons.add_rounded, size: 16),
-                label: const Text('Add floor', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                style: TextButton.styleFrom(foregroundColor: const Color(0xFF185FA5), padding: const EdgeInsets.symmetric(horizontal: 8)),
+                label: const Text('Add floor', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF185FA5),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
               ),
           ],
         ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'CompMenu.dart';
 
 // ── Team categories ──
 enum TeamCategory {
@@ -89,64 +88,58 @@ List<TeamMember> hardcodedTeamMembers() => [
       ),
     ];
 
-// ── Avatar with kebab menu ──
+// ── Avatar (tap-only now — no more external kebab menu / "Show menu" tooltip) ──
+// [CHANGED] Removed onEdit/onDelete/deleteEnabled + the CompMenu Positioned overlay.
+// Edit/Delete now live inside the bio popup instead (see showTeamMemberBio below).
 class TeamMemberAvatar extends StatelessWidget {
   final TeamMember member;
   final VoidCallback onTap;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
-  final bool deleteEnabled;
 
   const TeamMemberAvatar({
     super.key,
     required this.member,
     required this.onTap,
-    this.onEdit,
-    this.onDelete,
-    this.deleteEnabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 100,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: member.bg,
-                  backgroundImage: member.photo != null ? NetworkImage(member.photo!.path) : null,
-                  child: member.photo == null ? Icon(Icons.person_rounded, size: 24, color: member.color) : null,
-                ),
-                const SizedBox(height: 6),
-                Text(member.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
-                Text(member.position, textAlign: TextAlign.center, style: const TextStyle(fontSize: 9, color: Color(0xFF9AA5B1))),
-              ],
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 26,
+              backgroundColor: member.bg,
+              backgroundImage: member.photo != null ? NetworkImage(member.photo!.path) : null,
+              child: member.photo == null ? Icon(Icons.person_rounded, size: 24, color: member.color) : null,
             ),
-          ),
-          if (onEdit != null || onDelete != null)
-            Positioned(
-              top: -4,
-              right: 4,
-              child: Container(
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                child: CompMenu(onEdit: onEdit, onDelete: onDelete, deleteEnabled: deleteEnabled),
-              ),
-            ),
-        ],
+            const SizedBox(height: 6),
+            Text(member.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
+            Text(member.position, textAlign: TextAlign.center, style: const TextStyle(fontSize: 9, color: Color(0xFF9AA5B1))),
+          ],
+        ),
       ),
     );
   }
 }
 
 // ── Bio popup ──
-void showTeamMemberBio(BuildContext context, TeamMember m) {
+// [CHANGED] Now accepts onEdit/onDelete/deleteEnabled to render Edit/Delete
+// buttons INSIDE the dialog (was previously an external 3-dot menu on the avatar).
+// [CHANGED] Added a close "X" icon top-right (Stack + Positioned).
+// [CHANGED] Bottom "Close" button is now a filled blue button, same style as "Add User".
+void showTeamMemberBio(
+  BuildContext context,
+  TeamMember m, {
+  VoidCallback? onEdit,
+  VoidCallback? onDelete,
+  bool deleteEnabled = true,
+}) {
+  final showActionsRow = onEdit != null || (onDelete != null && deleteEnabled);
+
   showDialog(
     context: context,
     builder: (ctx) => Dialog(
@@ -155,26 +148,97 @@ void showTeamMemberBio(BuildContext context, TeamMember m) {
         constraints: const BoxConstraints(maxWidth: 380),
         child: Container(
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Stack(
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: m.bg,
-                backgroundImage: m.photo != null ? NetworkImage(m.photo!.path) : null,
-                child: m.photo == null ? Icon(Icons.person_rounded, size: 26, color: m.color) : null,
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12), // room for the close X above
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: m.bg,
+                    backgroundImage: m.photo != null ? NetworkImage(m.photo!.path) : null,
+                    child: m.photo == null ? Icon(Icons.person_rounded, size: 26, color: m.color) : null,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(m.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
+                  Text(m.position, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: m.color)),
+                  const SizedBox(height: 4),
+                  Text(m.team.label, style: const TextStyle(fontSize: 11, color: Color(0xFF9AA5B1))),
+                  const SizedBox(height: 10),
+                  Text(
+                    m.background.isNotEmpty ? m.background : 'No background info yet.',
+                    style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF4B5563)),
+                  ),
+                  if (showActionsRow) ...[
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        if (onEdit != null)
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                onEdit();
+                              },
+                              icon: const Icon(Icons.edit_outlined, size: 15, color: Color(0xFF185FA5)),
+                              label: const Text('Edit', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF185FA5))),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                          ),
+                        if (onEdit != null && onDelete != null && deleteEnabled) const SizedBox(width: 8),
+                        if (onDelete != null && deleteEnabled)
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                onDelete();
+                              },
+                              icon: const Icon(Icons.delete_outline, size: 15, color: Color(0xFFD92D20)),
+                              label: const Text('Delete', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFD92D20))),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFF0B4B4)),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF185FA5),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text('Close', style: TextStyle(fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              Text(m.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
-              Text(m.position, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: m.color)),
-              const SizedBox(height: 4),
-              Text(m.team.label, style: const TextStyle(fontSize: 11, color: Color(0xFF9AA5B1))),
-              const SizedBox(height: 10),
-              Text(m.background.isNotEmpty ? m.background : 'No background info yet.', style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF4B5563))),
-              const SizedBox(height: 16),
-              Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))),
+              Positioned(
+                top: -4,
+                right: -4,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  icon: const Icon(Icons.close, size: 18, color: Color(0xFF9CA3AF)),
+                  splashRadius: 16,
+                  tooltip: 'Close',
+                ),
+              ),
             ],
           ),
         ),
@@ -210,7 +274,7 @@ Future<TeamMember?> showTeamMemberForm(BuildContext context, {TeamMember? existi
                 const Text('Fill in the member\'s details', style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
                 const SizedBox(height: 18),
 
-                const Text('Photo', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('Photo', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
                 const SizedBox(height: 8),
                 InkWell(
                   onTap: () async {
@@ -228,32 +292,50 @@ Future<TeamMember?> showTeamMemberForm(BuildContext context, {TeamMember? existi
                 ),
                 const SizedBox(height: 16),
 
-                const Text('Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
                 const SizedBox(height: 6),
-                TextField(controller: nameCtrl, decoration: _decoration('e.g. Ahmad Zaki')),
+                // [CHANGED] added explicit style: darker text color instead of default grey
+                TextField(
+                  controller: nameCtrl,
+                  style: const TextStyle(fontSize: 14, color: Color(0xFF1B1E28)),
+                  decoration: _decoration('e.g. Ahmad Zaki'),
+                ),
                 const SizedBox(height: 14),
 
-                const Text('Position', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('Position', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
                 const SizedBox(height: 6),
-                TextField(controller: positionCtrl, decoration: _decoration('e.g. Managing Director')),
+                TextField(
+                  controller: positionCtrl,
+                  style: const TextStyle(fontSize: 14, color: Color(0xFF1B1E28)),
+                  decoration: _decoration('e.g. Managing Director'),
+                ),
                 const SizedBox(height: 14),
 
-                const Text('Team', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('Team', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<TeamCategory>(
                   value: selectedTeam,
                   dropdownColor: Colors.white,
                   decoration: _decoration(null),
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF1B1E28)),
                   items: TeamCategory.values
-                      .map((t) => DropdownMenuItem(value: t, child: Text(t.label, style: const TextStyle(fontSize: 13))))
+                      .map((t) => DropdownMenuItem(
+                            value: t,
+                            child: Text(t.label, style: const TextStyle(fontSize: 13, color: Color(0xFF1B1E28))),
+                          ))
                       .toList(),
                   onChanged: (val) => setDialogState(() => selectedTeam = val ?? selectedTeam),
                 ),
                 const SizedBox(height: 14),
 
-                const Text('Background', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                const Text('Background', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
                 const SizedBox(height: 6),
-                TextField(controller: bgCtrl, maxLines: 3, decoration: _decoration('Short bio or background...')),
+                TextField(
+                  controller: bgCtrl,
+                  maxLines: 3,
+                  style: const TextStyle(fontSize: 14, color: Color(0xFF1B1E28)),
+                  decoration: _decoration('Short bio or background...'),
+                ),
                 const SizedBox(height: 20),
 
                 Row(

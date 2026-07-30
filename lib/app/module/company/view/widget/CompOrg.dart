@@ -74,12 +74,19 @@ class _OrgChartContentState extends State<OrgChartContent> {
             const Expanded(
               child: Text('Teams and leadership', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
             ),
+            // [CHANGED] TextButton -> ElevatedButton, same filled-blue style as "Add User"
             if (_isAdminOrSuper)
-              TextButton.icon(
+              ElevatedButton.icon(
                 onPressed: _addMember,
                 icon: const Icon(Icons.add_rounded, size: 16),
                 label: const Text('Add member', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                style: TextButton.styleFrom(foregroundColor: const Color(0xFF185FA5), padding: const EdgeInsets.symmetric(horizontal: 8)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF185FA5),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
               ),
           ],
         ),
@@ -108,12 +115,20 @@ class _OrgChartContentState extends State<OrgChartContent> {
                       spacing: 16,
                       runSpacing: 16,
                       children: teamMembers
+                          // [CHANGED] onEdit/onDelete no longer passed to the avatar —
+                          // they're passed into showTeamMemberBio so the buttons
+                          // render INSIDE the detail popup instead of the avatar's
+                          // external kebab menu (that was causing the stray
+                          // "Show menu" tooltip overlapping the name text).
                           .map((m) => TeamMemberAvatar(
                                 member: m,
-                                onTap: () => showTeamMemberBio(context, m),
-                                onEdit: _isAdminOrSuper ? () => _editMember(m) : null,
-                                onDelete: _isAdminOrSuper ? () => _deleteMember(m) : null,
-                                deleteEnabled: _isSuperAdmin,
+                                onTap: () => showTeamMemberBio(
+                                  context,
+                                  m,
+                                  onEdit: _isAdminOrSuper ? () => _editMember(m) : null,
+                                  onDelete: _isAdminOrSuper ? () => _deleteMember(m) : null,
+                                  deleteEnabled: _isSuperAdmin,
+                                ),
                               ))
                           .toList(),
                     ),
@@ -179,8 +194,21 @@ class _OrgChartContentState extends State<OrgChartContent> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(leading: const Icon(Icons.edit_outlined), title: const Text('Edit title'), onTap: () => Navigator.pop(ctx, 'title')),
-            ListTile(leading: const Icon(Icons.upload_rounded), title: Text(vm.orgChart == null ? 'Upload chart' : 'Replace chart'), onTap: () => Navigator.pop(ctx, 'upload')),
+            // [CHANGED] title text was using the default ListTile style (faded grey);
+            // now explicit dark + semi-bold, matching the rest of the design system.
+            ListTile(
+              leading: const Icon(Icons.edit_outlined, color: Color(0xFF1B1E28)),
+              title: const Text('Edit title', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
+              onTap: () => Navigator.pop(ctx, 'title'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.upload_rounded, color: Color(0xFF1B1E28)),
+              title: Text(
+                vm.orgChart == null ? 'Upload chart' : 'Replace chart',
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28)),
+              ),
+              onTap: () => Navigator.pop(ctx, 'upload'),
+            ),
           ],
         ),
       ),
