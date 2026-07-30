@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Adastra IP', style: TextStyle(
+                        const Text('Adastra', style: TextStyle(
                           color: Colors.white,
                           fontSize: 45,
                           fontWeight: FontWeight.w700,
@@ -106,9 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 4),
                         Padding(
                           padding: const EdgeInsets.only(left: 20),
-                          child: const Text('Enterprise Portal', style: TextStyle(
+                          child: const Text('An Intellectual Property Firm', style: TextStyle(
                             color: Colors.white70,
                             fontSize: 20,
+                            fontWeight: FontWeight.w500,
                           )),
                         ),
                       ],

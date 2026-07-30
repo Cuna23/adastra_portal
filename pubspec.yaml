@@ -67,6 +67,7 @@ flutter:
     - assets/images/adastraip_background.jpeg
     - assets/images/adastraip_logo_white.png
     - assets/images/microsoft_logo.jpg
+    - assets/images/adastraip_logo2.webp
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

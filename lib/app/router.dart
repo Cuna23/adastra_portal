@@ -8,6 +8,7 @@ import 'module/dashboard/view model/dash_vm.dart';
 import 'module/dashboard/view/dashAdmin_view.dart';
 import 'module/dashboard/view/dashStaff_view.dart';
 import 'module/homepage/view/home_view.dart';
+import 'module/homepage/view/widget/appsHome.dart';
 import 'module/it/ticketing/sr/view model/sr_vm.dart';
 import 'module/it/ticketing/sr/view/srAdmin_view.dart';
 import 'module/it/ticketing/sr/view/srStaff_view.dart';
@@ -69,6 +70,10 @@ GoRouter buildRouter(AuthViewModel authVm) {
                 token: authVm.token ?? '',
               ),
             ),
+          ),
+          GoRoute(
+            path: '/apps',
+            builder: (_, __) => const AppsHomeView(),
           ),
           GoRoute(
             path: '/terra',

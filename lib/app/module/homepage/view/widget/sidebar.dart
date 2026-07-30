@@ -34,6 +34,7 @@ class _SidebarState extends State<Sidebar> {
       case '/terra':
       case '/zoho':
       case '/autocount':
+      case '/apps': 
       case '/incident':
       case '/service-request':
       case '/company': // [CHANGED] single route, everyone can view
@@ -110,13 +111,8 @@ class _SidebarState extends State<Sidebar> {
                     _menuItem(route: '/dashboard', icon: Icons.dashboard_rounded, title: 'Dashboard', isMobile: isMobile),
                   if (_canAccess(context, '/users'))
                     _menuItem(route: '/users', icon: Icons.people_alt_rounded, title: 'User Management', isMobile: isMobile),
-
-                  if (_canAccess(context, '/terra'))
-                    _menuItem(route: '/terra', icon: Icons.workspace_premium_rounded, title: 'Terra', isMobile: isMobile),
-                  if (_canAccess(context, '/zoho'))
-                    _menuItem(route: '/zoho', icon: Icons.grid_view_rounded, title: 'Zoho', isMobile: isMobile),
-                  if (_canAccess(context, '/autocount'))
-                    _menuItem(route: '/autocount', icon: Icons.admin_panel_settings_rounded, title: 'Autocount', isMobile: isMobile),
+                  if (_canAccess(context, '/apps'))
+                    _menuItem(route: '/apps', icon: Icons.apps_rounded, title: 'Apps', isMobile: isMobile),
 
                   if (canItManagement) _itManagementItem(isMobile: isMobile, canAssets: canAssets, canTicketing: canTicketing),
 

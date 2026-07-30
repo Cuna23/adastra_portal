@@ -9,6 +9,7 @@ class HomeViewModel extends ChangeNotifier {
     '/terra': 'Terra',
     '/zoho': 'Zoho',
     '/autocount': 'Autocount',
+    '/apps': 'Apps',
     '/assets': 'Assets Inventory',
     '/incident': 'Incident Report',
     '/service-request': 'Service Request',

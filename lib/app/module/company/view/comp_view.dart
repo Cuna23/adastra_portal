@@ -6,6 +6,7 @@ import 'widget/CompMenu.dart';
 import 'widget/CompDialog.dart';
 import 'widget/CompOrg.dart';
 
+enum CompanyTab { about, vision, org, floor }
 
 class CompanyHomeView extends StatefulWidget {
   final String role;
@@ -17,6 +18,10 @@ class CompanyHomeView extends StatefulWidget {
 }
 
 class _CompanyHomeViewState extends State<CompanyHomeView> {
+  static const _brand = Color(0xFF185FA5);
+
+  CompanyTab _selectedTab = CompanyTab.about; // [NEW] About us default
+
   bool get _isAdminOrSuper => widget.role == 'admin' || widget.role == 'super_admin';
   bool get _isSuperAdmin => widget.role == 'super_admin';
 
@@ -34,259 +39,226 @@ class _CompanyHomeViewState extends State<CompanyHomeView> {
     final isMobile = MediaQuery.of(context).size.width < 600;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(isMobile ? 20 : 32),
-      child: Column(
-        children: [
-          Image.asset('assets/images/adastraip_logo.jpg', width: 160, height: 160, fit: BoxFit.contain),
-          const SizedBox(height: 12),
-          const Text('Adastra IP', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
-          const Text('Company Hub', style: TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
-          const SizedBox(height: 24),
+      padding: EdgeInsets.only(
+          top: 12, 
+          bottom: 20, 
+          left: isMobile ? 16 : 32, 
+          right: isMobile ? 16 : 32,
+        ),
+        child: Column(
+          children: [
+            Image.asset(
+              'assets/images/adastraip_logo2.webp', 
+              height: 170,
+              fit: BoxFit.contain,
+            ),
 
+          // ── Tab bar ──
           Wrap(
             alignment: WrapAlignment.center,
-            spacing: 16,
-            runSpacing: 16,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              SizedBox(
-                width: 200, // [FIX] fixed size — kecikkan angka ni untuk lagi kecik
-                height: 200,
-                child: _navCard(
-                  icon: Icons.apartment_rounded,
-                  cardColor: const Color(0xFFE6F1FB),
-                  iconColor: const Color(0xFF185FA5),
-                  title: 'About us',
-                  onTap: () => _showAboutPopup(vm),
-                ),
+              _tabPill(
+                'About us', 
+                CompanyTab.about,
+                bg: const Color(0xFFE6F1FB),
+                color: const Color(0xFF185FA5),
               ),
-              SizedBox(
-                width: 200,
-                height: 200,
-                child: _navCard(
-                  icon: Icons.flag_rounded,
-                  cardColor: const Color(0xFFE1F5EE),
-                  iconColor: const Color(0xFF0F6E56),
-                  title: 'Vision and mission',
-                  onTap: () => _showVisionMissionPopup(vm),
-                ),
+              _tabPill(
+                'Vision and mission', 
+                CompanyTab.vision,
+                bg: const Color(0xFFE1F5EE),
+                color: const Color(0xFF0F6E56),
               ),
-              SizedBox(
-                width: 200,
-                height: 200,
-                child: _navCard(
-                  icon: Icons.account_tree_rounded,
-                  cardColor: const Color(0xFFEEF2FF),
-                  iconColor: const Color(0xFF4F46E5),
-                  title: 'Organizational chart',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChangeNotifierProvider.value(
-                        value: vm,
-                        child: OrgChartView(role: widget.role, token: widget.token),
-                      ),
-                    ),
-                  ),
-                ),
+              _tabPill(
+                'Organizational chart', 
+                CompanyTab.org,
+                bg: const Color(0xFFEEF2FF),
+                color: const Color(0xFF4F46E5),
               ),
-              SizedBox(
-                width: 200,
-                height: 200,
-                child: _navCard(
-                  icon: Icons.map_rounded,
-                  cardColor: const Color(0xFFFEF3E2),
-                  iconColor: const Color(0xFFB45309),
-                  title: 'Floor mapping',
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChangeNotifierProvider.value(
-                        value: vm,
-                        child: FloorMapView(role: widget.role, token: widget.token),
-                      ),
-                    ),
-                  ),
-                ),
+              _tabPill(
+                'Floor mapping', 
+                CompanyTab.floor,
+                bg: const Color(0xFFFEF3E2),
+                color: const Color(0xFFB45309),
               ),
             ],
+          ),
+          const SizedBox(height: 20),
+
+          // ── Content box ──
+          Container(
+            //width: double.infinity,
+            constraints: const BoxConstraints(minHeight: 200, maxWidth: 1000),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE5E9F0)),
+            ),
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
+            child: vm.isLoading
+                ? const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator()))
+                : _buildContent(vm, isMobile),
           ),
         ],
       ),
     );
   }
 
-Widget _navCard({
-    required IconData icon,
-    required Color cardColor,
-    required Color iconColor,
-    required String title,
-    required VoidCallback onTap,
+  Widget _tabPill(
+    String label, 
+    CompanyTab tab, {
+    required Color bg, 
+    required Color color,
   }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
+    final isSelected = _selectedTab == tab;
+
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTab = tab),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8.5),
         decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE5E9F0)),
+          // KEKAL WARNA ASAL DARIPADA AWAL
+          color: bg, 
+          borderRadius: BorderRadius.circular(10), // [Bentuk Tab SR]
+          border: Border.all(
+            // Bila active: border lebih tebal & gelap mengikut warna tema
+            // Bila tak active: border lembut/lutsinar
+            color: isSelected ? color : color.withOpacity(0.3),
+            width: isSelected ? 1.5 : 0.8,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.15),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : [],
         ),
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            // Bila active: teks lebih tebal
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: color, // Teks terus guna warna tema dari awal lagi
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(CompanyViewModel vm, bool isMobile) {
+    switch (_selectedTab) {
+      case CompanyTab.about:
+        return _aboutContent(vm, isMobile);
+      case CompanyTab.vision:
+        return _visionMissionContent(vm, isMobile);
+      case CompanyTab.org:
+        return OrgChartContent(role: widget.role, token: widget.token); // [CHANGED] content-only widget
+      case CompanyTab.floor:
+        return FloorMapContent(role: widget.role, token: widget.token); // [CHANGED] content-only widget
+    }
+  }
+
+  // ── About content ──
+  Widget _aboutContent(CompanyViewModel vm, bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-              child: Icon(icon, size: 28, color: iconColor), // [FIX] icon lebih besar
+            // Besarkan ikon dari 16 ke 22
+            const Icon(Icons.apartment_rounded, size: 22, color: Color(0xFF185FA5)),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'About us',
+                style: TextStyle(
+                  fontSize: 16, // [UBAH DI SINI] Besarkan dari 12 ke 16
+                  fontWeight: FontWeight.w700, // Tebalkan fon
+                  color: Color(0xFF1B1E28),    // Tukar ke warna gelap
+                ),
+              ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28)),
-            ),
+            if (_isAdminOrSuper)
+              CompMenu(
+                onEdit: () => _editAbout(vm),
+                onDelete: () => _deleteAbout(vm),
+                deleteEnabled: _isSuperAdmin,
+              ),
           ],
         ),
-      ),
+        const SizedBox(height: 14),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE5E7EB))),
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            (vm.about?.content?.isNotEmpty ?? false) ? vm.about!.content! : 'No description yet.',
+            style: const TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF374151)), // Besarkan sedikit teks perenggan
+          ),
+        ),
+      ],
     );
   }
 
-  // ── About popup ──
-  void _showAboutPopup(CompanyViewModel vm) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Container( 
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(color: const Color(0xFFE6F1FB), borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.apartment_rounded, size: 18, color: Color(0xFF185FA5)),
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text('About us', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
-                    ),
-                    if (_isAdminOrSuper)
-                      CompMenu(
-                        onEdit: () {
-                          Navigator.pop(ctx);
-                          _editAbout(vm);
-                        },
-                        onDelete: () {
-                          Navigator.pop(ctx);
-                          _deleteAbout(vm);
-                        },
-                        deleteEnabled: _isSuperAdmin, // [NEW] admin: grayed out
-                      ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      icon: const Icon(Icons.close, size: 18, color: Color(0xFF9CA3AF)),
-                      splashRadius: 16,
-                    ),
-                  ],
+  // ── Vision & Mission content ──
+  Widget _visionMissionContent(CompanyViewModel vm, bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.flag_rounded, size: 22, color: Color(0xFF0F6E56)),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                'Vision and mission',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1B1E28),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  (vm.about?.content?.isNotEmpty ?? false) ? vm.about!.content! : 'No description yet.',
-                  style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF4B5563)),
-                ),
-              ],
+              ),
             ),
+            if (_isAdminOrSuper)
+              CompMenu(
+                onEdit: () => _editVisionMission(vm),
+                onDelete: () => _deleteVisionMission(vm),
+                deleteEnabled: _isSuperAdmin,
+              ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE5E7EB))),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Vision', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0F6E56))),
+              const SizedBox(height: 4),
+              Text(vm.visionText.isNotEmpty ? vm.visionText : 'Not set yet.', style: const TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF374151))),
+              const SizedBox(height: 16),
+              const Text('Mission', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF0F6E56))),
+              const SizedBox(height: 4),
+              Text(vm.missionText.isNotEmpty ? vm.missionText : 'Not set yet.', style: const TextStyle(fontSize: 14, height: 1.6, color: Color(0xFF374151))),
+            ],
           ),
         ),
-      ),
-    );
-  }
-
-  // ── Vision & Mission popup ──
-  void _showVisionMissionPopup(CompanyViewModel vm) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Container( // [FIX] tambah background putih eksplisit
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(color: const Color(0xFFE1F5EE), borderRadius: BorderRadius.circular(8)),
-                      child: const Icon(Icons.flag_rounded, size: 18, color: Color(0xFF0F6E56)),
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text('Vision and mission', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
-                    ),
-                    if (_isAdminOrSuper)
-                      CompMenu(
-                        onEdit: () {
-                          Navigator.pop(ctx);
-                          _editVisionMission(vm);
-                        },
-                        onDelete: () {
-                          Navigator.pop(ctx);
-                          _deleteVisionMission(vm);
-                        },
-                        deleteEnabled: _isSuperAdmin, // [NEW] admin: grayed out
-                      ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      icon: const Icon(Icons.close, size: 18, color: Color(0xFF9CA3AF)),
-                      splashRadius: 16,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text('Vision', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF0F6E56))),
-                const SizedBox(height: 2),
-                Text(vm.visionText.isNotEmpty ? vm.visionText : 'Not set yet.',
-                    style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF4B5563))),
-                const SizedBox(height: 10),
-                Text('Mission', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF0F6E56))),
-                const SizedBox(height: 2),
-                Text(vm.missionText.isNotEmpty ? vm.missionText : 'Not set yet.',
-                    style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF4B5563))),
-              ],
-            ),
-          ),
-        ),
-      ),
+      ],
     );
   }
 
   // ── Actions ──
   Future<void> _editAbout(CompanyViewModel vm) async {
-    final content = await StyledDialogs.textPrompt(
-      context,
-      title: 'About us',
-      subtitle: 'Describe the company',
-      icon: Icons.apartment_rounded,
-      hint: 'Describe the company',
-      initial: vm.about?.content,
-      multiline: true,
-    );
+    final content = await StyledDialogs.textPrompt(context, title: 'About us', subtitle: 'Describe the company', icon: Icons.apartment_rounded, hint: 'Describe the company', initial: vm.about?.content, multiline: true);
     if (content == null || content.trim().isEmpty) return;
     final ok = await vm.updateAbout(content.trim(), widget.token);
     if (!mounted) return;
