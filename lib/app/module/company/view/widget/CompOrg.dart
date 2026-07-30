@@ -5,32 +5,24 @@ import '../../view model/comp_vm.dart';
 import 'CompDialog.dart';
 import 'CompImage.dart';
 import 'CompMenu.dart';
+import 'CompTeam.dart';
 
-// [HARDCODED] — TODO: ganti dengan data dari backend bila table `directors` dah siap
-class DirectorInfo {
-  final String name;
-  final String position;
-  final String bio;
-  final Color color;
-  final Color bg;
-
-  const DirectorInfo({required this.name, required this.position, required this.bio, required this.color, required this.bg});
-}
-
-const List<DirectorInfo> _hardcodedDirectors = [
-  DirectorInfo(name: 'Ahmad Zaki', position: 'Managing Director', bio: 'Leads overall strategy and operations for Adastra IP.', color: Color(0xFF185FA5), bg: Color(0xFFE6F1FB)),
-  DirectorInfo(name: 'Sarah Lim', position: 'Co-founder', bio: 'Oversees client relations and business development.', color: Color(0xFF0F6E56), bg: Color(0xFFE1F5EE)),
-  DirectorInfo(name: 'Rajesh Kumar', position: 'Head of IP Practice', bio: 'Heads the trademark and patent practice groups.', color: Color(0xFF854F0B), bg: Color(0xFFFAEEDA)),
-];
-
-// [CHANGED] StatelessWidget content-only — bukan page lagi
-class OrgChartContent extends StatelessWidget {
+// [CHANGED] StatefulWidget — perlu simpan local team members state
+class OrgChartContent extends StatefulWidget {
   final String role;
   final String token;
   const OrgChartContent({super.key, required this.role, required this.token});
 
-  bool get _isAdminOrSuper => role == 'admin' || role == 'super_admin';
-  bool get _isSuperAdmin => role == 'super_admin';
+  @override
+  State<OrgChartContent> createState() => _OrgChartContentState();
+}
+
+class _OrgChartContentState extends State<OrgChartContent> {
+  // [HARDCODED] — TODO: ganti dengan fetch dari CompanyViewModel bila backend siap
+  List<TeamMember> _members = hardcodedTeamMembers();
+
+  bool get _isAdminOrSuper => widget.role == 'admin' || widget.role == 'super_admin';
+  bool get _isSuperAdmin => widget.role == 'super_admin';
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +31,7 @@ class OrgChartContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── Org chart image ──
         Row(
           children: [
             const Icon(Icons.account_tree_rounded, size: 22, color: Color(0xFF185FA5)),
@@ -48,8 +41,8 @@ class OrgChartContent extends StatelessWidget {
             ),
             if (_isAdminOrSuper)
               CompMenu(
-                onEdit: () => _orgChartMenu(context, vm),
-                onDelete: vm.orgChart != null ? () => _deleteOrgChart(context, vm) : null,
+                onEdit: () => _orgChartMenu(vm),
+                onDelete: vm.orgChart != null ? () => _deleteOrgChart(vm) : null,
                 deleteEnabled: _isSuperAdmin,
               ),
           ],
@@ -57,7 +50,7 @@ class OrgChartContent extends StatelessWidget {
         const SizedBox(height: 14),
 
         if (vm.orgChart == null || vm.orgChart!.imageUrl == null)
-          _emptyState(context, vm)
+          _emptyChartState(vm)
         else
           GestureDetector(
             onTap: () => ImageViewerPage.show(context, vm.orgChart!.imageUrl!),
@@ -73,69 +66,87 @@ class OrgChartContent extends StatelessWidget {
             ),
           ),
 
-        const SizedBox(height: 20),
-        const Text('Leadership', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
-        const SizedBox(height: 4),
-        const Text('Tap a director to view their profile.', style: TextStyle(fontSize: 12, color: Color(0xFF9AA5B1))),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          children: _hardcodedDirectors.map((d) => _directorAvatar(context, d)).toList(),
+        const SizedBox(height: 24),
+
+        // ── Teams & leadership ──
+        Row(
+          children: [
+            const Expanded(
+              child: Text('Teams and leadership', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
+            ),
+            if (_isAdminOrSuper)
+              TextButton.icon(
+                onPressed: _addMember,
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: const Text('Add member', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                style: TextButton.styleFrom(foregroundColor: const Color(0xFF185FA5), padding: const EdgeInsets.symmetric(horizontal: 8)),
+              ),
+          ],
         ),
+        const SizedBox(height: 4),
+        const Text('Tap a member to view their profile.', style: TextStyle(fontSize: 12, color: Color(0xFF9AA5B1))),
+        const SizedBox(height: 14),
+
+        if (_members.isEmpty)
+          const Text('No team members added yet.', style: TextStyle(fontSize: 12, color: Color(0xFF9AA5B1)))
+        else
+          Column(
+            children: TeamCategory.values.map((team) {
+              final teamMembers = _members.where((m) => m.team == team).toList();
+              if (teamMembers.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      team.label,
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF9AA5B1), letterSpacing: 0.3),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: teamMembers
+                          .map((m) => TeamMemberAvatar(
+                                member: m,
+                                onTap: () => showTeamMemberBio(context, m),
+                                onEdit: _isAdminOrSuper ? () => _editMember(m) : null,
+                                onDelete: _isAdminOrSuper ? () => _deleteMember(m) : null,
+                                deleteEnabled: _isSuperAdmin,
+                              ))
+                          .toList(),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
       ],
     );
   }
 
-  Widget _directorAvatar(BuildContext context, DirectorInfo d) {
-    return InkWell(
-      onTap: () => _showDirectorBio(context, d),
-      borderRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        width: 90,
-        child: Column(
-          children: [
-            CircleAvatar(radius: 26, backgroundColor: d.bg, child: Icon(Icons.person_rounded, size: 24, color: d.color)),
-            const SizedBox(height: 6),
-            Text(d.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
-            Text(d.position, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10, color: Color(0xFF9AA5B1))),
-          ],
-        ),
-      ),
-    );
+  // ── Team member actions (local state only) ──
+  Future<void> _addMember() async {
+    final result = await showTeamMemberForm(context);
+    if (result == null) return;
+    setState(() => _members = [..._members, result]);
   }
 
-  void _showDirectorBio(BuildContext context, DirectorInfo d) {
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
-          child: Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(radius: 28, backgroundColor: d.bg, child: Icon(Icons.person_rounded, size: 26, color: d.color)),
-                const SizedBox(height: 12),
-                Text(d.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
-                Text(d.position, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: d.color)),
-                const SizedBox(height: 10),
-                Text(d.bio, style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF4B5563))),
-                const SizedBox(height: 16),
-                Align(alignment: Alignment.centerRight, child: TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  Future<void> _editMember(TeamMember m) async {
+    final result = await showTeamMemberForm(context, existing: m);
+    if (result == null) return;
+    setState(() => _members = _members.map((x) => x.id == m.id ? result : x).toList());
   }
 
-  Widget _emptyState(BuildContext context, CompanyViewModel vm) {
+  Future<void> _deleteMember(TeamMember m) async {
+    final confirmed = await StyledDialogs.confirmDelete(context, itemLabel: m.name, message: 'This will remove ${m.name} from the team list.');
+    if (confirmed != true || !mounted) return;
+    setState(() => _members = _members.where((x) => x.id != m.id).toList());
+  }
+
+  // ── Org chart image actions ──
+  Widget _emptyChartState(CompanyViewModel vm) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE5E7EB))),
@@ -148,7 +159,7 @@ class OrgChartContent extends StatelessWidget {
           if (_isAdminOrSuper) ...[
             const SizedBox(height: 10),
             OutlinedButton.icon(
-              onPressed: () => _pickAndUploadOrgChart(context, vm),
+              onPressed: () => _pickAndUploadOrgChart(vm),
               icon: const Icon(Icons.upload_rounded, size: 15),
               label: const Text('Upload', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
               style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF185FA5), side: const BorderSide(color: Color(0xFFCBD5E1))),
@@ -159,7 +170,7 @@ class OrgChartContent extends StatelessWidget {
     );
   }
 
-  void _orgChartMenu(BuildContext context, CompanyViewModel vm) async {
+  void _orgChartMenu(CompanyViewModel vm) async {
     final choice = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.white,
@@ -174,36 +185,36 @@ class OrgChartContent extends StatelessWidget {
         ),
       ),
     );
-    if (choice == 'title') await _editOrgChartTitle(context, vm);
-    if (choice == 'upload') await _pickAndUploadOrgChart(context, vm);
+    if (choice == 'title') await _editOrgChartTitle(vm);
+    if (choice == 'upload') await _pickAndUploadOrgChart(vm);
   }
 
-  Future<void> _pickAndUploadOrgChart(BuildContext context, CompanyViewModel vm) async {
+  Future<void> _pickAndUploadOrgChart(CompanyViewModel vm) async {
     final picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (image == null) return;
-    final ok = await vm.uploadOrgChart(image, token);
-    if (!context.mounted) return;
-    _showSnack(context, ok ? 'Organizational chart uploaded.' : 'Upload failed. Please try again.', success: ok);
+    final ok = await vm.uploadOrgChart(image, widget.token);
+    if (!mounted) return;
+    _showSnack(ok ? 'Organizational chart uploaded.' : 'Upload failed. Please try again.', success: ok);
   }
 
-  Future<void> _editOrgChartTitle(BuildContext context, CompanyViewModel vm) async {
+  Future<void> _editOrgChartTitle(CompanyViewModel vm) async {
     final title = await StyledDialogs.textPrompt(context, title: 'Chart title', subtitle: 'Rename the organizational chart', icon: Icons.edit_outlined, hint: 'e.g. Company structure', initial: vm.orgChart?.title);
     if (title == null || title.trim().isEmpty) return;
-    final ok = await vm.updateTitle(vm.orgChart!.id, title.trim(), token, isOrgChart: true);
-    if (!context.mounted) return;
-    _showSnack(context, ok ? 'Title updated.' : 'Update failed. Please try again.', success: ok);
+    final ok = await vm.updateTitle(vm.orgChart!.id, title.trim(), widget.token, isOrgChart: true);
+    if (!mounted) return;
+    _showSnack(ok ? 'Title updated.' : 'Update failed. Please try again.', success: ok);
   }
 
-  Future<void> _deleteOrgChart(BuildContext context, CompanyViewModel vm) async {
+  Future<void> _deleteOrgChart(CompanyViewModel vm) async {
     final confirmed = await StyledDialogs.confirmDelete(context, itemLabel: 'chart', message: 'This will remove the organizational chart for everyone.');
-    if (confirmed != true || !context.mounted) return;
-    final ok = await vm.deleteItem(vm.orgChart!.id, token, isOrgChart: true);
-    if (!context.mounted) return;
-    _showSnack(context, ok ? 'Deleted successfully.' : 'Delete failed. Please try again.', success: ok);
+    if (confirmed != true || !mounted) return;
+    final ok = await vm.deleteItem(vm.orgChart!.id, widget.token, isOrgChart: true);
+    if (!mounted) return;
+    _showSnack(ok ? 'Deleted successfully.' : 'Delete failed. Please try again.', success: ok);
   }
 
-  void _showSnack(BuildContext context, String message, {required bool success}) {
+  void _showSnack(String message, {required bool success}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: success ? const Color(0xFF2E7D52) : const Color(0xFFD64545), behavior: SnackBarBehavior.floating),
     );
