@@ -6,6 +6,8 @@ import '../../login/view model/login_vm.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:go_router/go_router.dart';
 
+import 'widget/calendar.dart';
+
 class DashboardAdminView extends StatefulWidget {
   final String token;
   const DashboardAdminView({super.key, required this.token});
@@ -69,7 +71,9 @@ class _DashboardAdminViewState extends State<DashboardAdminView> {
                   children: [
                     _incidentsDonutCard(stats, isMobile),
                     const SizedBox(height: 16),
-                    _needsAttentionCard(stats, isMobile),
+                    CalendarWidget(token: widget.token),
+                    const SizedBox(height: 16),
+                    _needsAttentionCard(stats, isMobile, compact: true),
                   ],
                 )
               : IntrinsicHeight(
@@ -78,7 +82,17 @@ class _DashboardAdminViewState extends State<DashboardAdminView> {
                     children: [
                       Expanded(flex: 5, child: _incidentsDonutCard(stats, isMobile)),
                       const SizedBox(width: 16),
-                      Expanded(flex: 6, child: _needsAttentionCard(stats, isMobile)),
+                      Expanded(
+                        flex: 6,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            CalendarWidget(token: widget.token),
+                            const SizedBox(height: 16),
+                            _needsAttentionCard(stats, isMobile, compact: true),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -220,7 +234,8 @@ class _DashboardAdminViewState extends State<DashboardAdminView> {
   }
 
   // ── Needs attention ──
-  Widget _needsAttentionCard(AdminDashboardStats stats, bool isMobile) {
+  Widget _needsAttentionCard(AdminDashboardStats stats, bool isMobile, {bool compact = false}) {
+    final items = compact ? stats.needsAttention.take(3).toList() : stats.needsAttention;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE5E9F0))),
@@ -234,17 +249,17 @@ class _DashboardAdminViewState extends State<DashboardAdminView> {
             ],
           ),
           const SizedBox(height: 8),
-          if (stats.needsAttention.isEmpty)
+          if (items.isEmpty)
             const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Text('Nothing needs attention right now.', style: TextStyle(fontSize: 12, color: Color(0xFF9AA5B1))))
           else
             Column(
-              children: List.generate(stats.needsAttention.length, (i) {
-                final item = stats.needsAttention[i];
-                final isLast = i == stats.needsAttention.length - 1;
+              children: List.generate(items.length, (i) {
+                final item = items[i];
+                final isLast = i == items.length - 1;
                 return InkWell(
                   onTap: () => context.go(item.type == 'incident' ? '/incident' : '/service-request'),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: EdgeInsets.symmetric(vertical: compact ? 6 : 10),
                     decoration: BoxDecoration(border: isLast ? null : const Border(bottom: BorderSide(color: Color(0xFFE5E9F0), width: 0.5))),
                     child: Row(
                       children: [
