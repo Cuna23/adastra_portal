@@ -9,12 +9,14 @@ class IncidentStaffView extends StatefulWidget {
   final String token;
   final String role;
   final int currentUserId;
+  final bool openCreate; 
 
   const IncidentStaffView({
     super.key,
     required this.token,
     required this.role,
     required this.currentUserId,
+    this.openCreate = false,
   });
 
   @override
@@ -34,6 +36,7 @@ class _IncidentStaffViewState extends State<IncidentStaffView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<IncidentVM>().fetchIncidents(widget.token);
+      if (widget.openCreate) _openReportDialog();
     });
   }
 

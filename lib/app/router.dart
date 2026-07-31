@@ -121,8 +121,9 @@ GoRouter buildRouter(AuthViewModel authVm) {
           GoRoute(path: '/ticketing', builder: (_, __) => const Center(child: Text('Ticketing System'))),
           GoRoute(
             path: '/incident',
-            builder: (_, __) {
+            builder: (context, state) {
               final role = authVm.currentUser?.role.toLowerCase() ?? '';
+              final openCreate = state.uri.queryParameters['new'] == 'true'; // [NEW]
               if (role == 'staff') {
                 return ChangeNotifierProvider(
                   create: (_) => IncidentVM(),
@@ -130,6 +131,7 @@ GoRouter buildRouter(AuthViewModel authVm) {
                     token: authVm.token ?? '',
                     role: role,
                     currentUserId: authVm.currentUser?.id ?? 0,
+                    openCreate: openCreate, // [NEW]
                   ),
                 );
               }
@@ -148,8 +150,9 @@ GoRouter buildRouter(AuthViewModel authVm) {
           ),
           GoRoute(
             path: '/service-request',
-            builder: (_, __) {
+            builder: (context, state) {
               final role = authVm.currentUser?.role.toLowerCase() ?? '';
+              final openCreate = state.uri.queryParameters['new'] == 'true'; // [NEW]
               if (role == 'staff') {
                 return ChangeNotifierProvider(
                   create: (_) => ServiceRequestViewModel(),
@@ -157,6 +160,7 @@ GoRouter buildRouter(AuthViewModel authVm) {
                     token: authVm.token ?? '',
                     role: role,
                     currentUserId: authVm.currentUser?.id ?? 0,
+                    openCreate: openCreate, // [NEW]
                   ),
                 );
               }

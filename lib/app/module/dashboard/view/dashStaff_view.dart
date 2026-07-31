@@ -87,8 +87,8 @@ class _DashboardStaffViewState extends State<DashboardStaffView> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _quickActionCard(Icons.add_alert_outlined, 'Report an incident', () => context.go('/incident')),
-              _quickActionCard(Icons.playlist_add_rounded, 'New service request', () => context.go('/service-request')),
+              _quickActionCard(Icons.add_alert_outlined, 'Report an incident', () => context.go('/incident?new=true')),
+              _quickActionCard(Icons.playlist_add_rounded, 'New service request', () => context.go('/service-request?new=true')),
             ],
           ),
         ],

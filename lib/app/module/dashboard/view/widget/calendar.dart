@@ -35,36 +35,44 @@ class _CalendarBody extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE5E9F0))),
-      padding: const EdgeInsets.all(16),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(onPressed: () => vm.previousMonth(token), icon: const Icon(Icons.chevron_left_rounded, size: 20), splashRadius: 18),
-              Text('${_months[vm.focusedMonth.month - 1]} ${vm.focusedMonth.year}',
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
-              IconButton(onPressed: () => vm.nextMonth(token), icon: const Icon(Icons.chevron_right_rounded, size: 20), splashRadius: 18),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (vm.isLoading)
-            const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator()))
-          else
-            Column(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: [Color(0xFF185FA5), Color(0xFF2E7BC6)], begin: Alignment.centerLeft, end: Alignment.centerRight),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: _weekdays
-                      .map((w) => Expanded(
-                            child: Center(child: Text(w, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF9AA5B1)))),
-                          ))
-                      .toList(),
-                ),
-                const SizedBox(height: 6),
-                ..._buildWeeks(context, vm, today, daysInMonth, startWeekday),
+                IconButton(onPressed: () => vm.previousMonth(token), icon: const Icon(Icons.chevron_left_rounded, size: 20, color: Colors.white), splashRadius: 18),
+                Text('${_months[vm.focusedMonth.month - 1]} ${vm.focusedMonth.year}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+                IconButton(onPressed: () => vm.nextMonth(token), icon: const Icon(Icons.chevron_right_rounded, size: 20, color: Colors.white), splashRadius: 18),
               ],
             ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: vm.isLoading
+                ? const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator()))
+                : Column(
+                    children: [
+                      Row(
+                        children: _weekdays
+                            .map((w) => Expanded(
+                                  child: Center(child: Text(w, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF9AA5B1)))),
+                                ))
+                            .toList(),
+                      ),
+                      const SizedBox(height: 6),
+                      ..._buildWeeks(context, vm, today, daysInMonth, startWeekday),
+                    ],
+                  ),
+          ),
         ],
       ),
     );
@@ -105,10 +113,18 @@ class _CalendarBody extends StatelessWidget {
                       height: 26,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: isToday ? Border.all(color: const Color(0xFF185FA5), width: 1.5) : null,
+                        color: isToday ? const Color(0xFF185FA5) : Colors.transparent,
+                        border: (!isToday && dayEvents.isNotEmpty) ? Border.all(color: const Color(0xFF185FA5), width: 1) : null,
                       ),
                       alignment: Alignment.center,
-                      child: Text('$dayCounter', style: TextStyle(fontSize: 12, fontWeight: isToday ? FontWeight.w700 : FontWeight.w500, color: const Color(0xFF1B1E28))),
+                      child: Text(
+                        '$dayCounter',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                          color: isToday ? Colors.white : const Color(0xFF1B1E28),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 3),
                     if (dayEvents.isNotEmpty)
@@ -135,6 +151,13 @@ class _CalendarBody extends StatelessWidget {
   Future<void> _promptAddReminder(BuildContext context, CalendarViewModel vm, DateTime date) async {
     final result = await ReminderDialogs.addReminderForm(context, date);
     if (result == null) return;
-    await vm.addReminder(token, result['title']!, result['note'], date);
+    final ok = await vm.addReminder(token, result['title']!, result['note'], date);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok ? 'Reminder added.' : 'Failed to add reminder.'),
+        backgroundColor: ok ? const Color(0xFF2E7D52) : const Color(0xFFD64545),
+      ),
+    );
   }
 }

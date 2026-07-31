@@ -80,10 +80,10 @@ class _DashboardAdminViewState extends State<DashboardAdminView> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(flex: 5, child: _incidentsDonutCard(stats, isMobile)),
+                      Expanded(flex: 6, child: _incidentsDonutCard(stats, isMobile)),
                       const SizedBox(width: 16),
                       Expanded(
-                        flex: 6,
+                        flex: 5,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -189,24 +189,25 @@ class _DashboardAdminViewState extends State<DashboardAdminView> {
           const Text('Incidents by status', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
           Text('This month — $total total tickets', style: const TextStyle(fontSize: 11, color: Color(0xFF9AA5B1))),
           const SizedBox(height: 16),
-          SizedBox(
-            height: 190,
+          Expanded(
             child: total == 0
                 ? const Center(child: Text('No incidents yet.', style: TextStyle(fontSize: 12, color: Color(0xFF9AA5B1))))
-                : PieChart(
-                    PieChartData(
-                      sectionsSpace: 2,
-                      centerSpaceRadius: 55,
-                      sections: entries
-                          .where((e) => e.value > 0)
-                          .map((e) => PieChartSectionData(
-                                value: e.value.toDouble(),
-                                color: colors[e.key] ?? _brand,
-                                title: '${e.value}',
-                                radius: 45,
-                                titleStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
-                              ))
-                          .toList(),
+                : Center(
+                    child: PieChart(
+                      PieChartData(
+                        sectionsSpace: 2,
+                        centerSpaceRadius: 60,
+                        sections: entries
+                            .where((e) => e.value > 0)
+                            .map((e) => PieChartSectionData(
+                                  value: e.value.toDouble(),
+                                  color: colors[e.key] ?? _brand,
+                                  title: '${e.value}',
+                                  radius: 55, // [FIX] dibesarkan dari 45
+                                  titleStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                                ))
+                            .toList(),
+                      ),
                     ),
                   ),
           ),

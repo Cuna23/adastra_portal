@@ -10,12 +10,14 @@ class ServiceRequestStaffView extends StatefulWidget {
   final String token;
   final String role;
   final int currentUserId;
+  final bool openCreate;
 
   const ServiceRequestStaffView({
     super.key,
     required this.token,
     required this.role,
     required this.currentUserId,
+    this.openCreate = false,
   });
 
   @override
@@ -34,6 +36,7 @@ class _ServiceRequestStaffViewState extends State<ServiceRequestStaffView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ServiceRequestViewModel>().fetchRequests(widget.token);
+      if (widget.openCreate) _openCreateDialog();
     });
   }
 

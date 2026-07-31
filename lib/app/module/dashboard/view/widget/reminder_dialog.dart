@@ -26,11 +26,20 @@ class ReminderDialogs {
               const SizedBox(height: 16),
               const Text('Title', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
-              TextField(controller: titleCtrl, decoration: _decoration('e.g. Submit report')),
+              TextField(
+                controller: titleCtrl,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1B1E28)),
+                decoration: _decoration('e.g. Submit report'),
+              ),
               const SizedBox(height: 14),
               const Text('Note (optional)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
-              TextField(controller: noteCtrl, maxLines: 2, decoration: _decoration('Additional details...')),
+              TextField(
+                controller: noteCtrl,
+                maxLines: 2,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1B1E28)),
+                decoration: _decoration('Additional details...'),
+              ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
