@@ -25,7 +25,7 @@ class AssetViewModel extends ChangeNotifier {
   int?    selectedCategoryId;
   String? _searchQuery;
 
-  static const String _base = 'http://localhost:8000/api'; // ← replace
+static const String _base = 'https://adastra-api.onrender.com/api';
 
   Future<void> fetchUsers(String token) async {
     final res = await http.get(

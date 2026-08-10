@@ -3,7 +3,7 @@ import 'package:adastra_portal/app/module/user/model/user_model.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
-  final String baseUrl = "http://127.0.0.1:8000/api";
+  final String baseUrl = "https://adastra-api.onrender.com/api";
 
   Future<List<UserModel>> getUsers(String token) async {
     final response = await http.get(

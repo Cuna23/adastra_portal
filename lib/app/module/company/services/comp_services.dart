@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../model/comp_model.dart';
 
 class CompanyService {
-  final String baseUrl = "http://127.0.0.1:8000/api";
+  final String baseUrl = "https://adastra-api.onrender.com/api";
 
   Map<String, String> _headers(String token) => {
         'Authorization': 'Bearer $token',

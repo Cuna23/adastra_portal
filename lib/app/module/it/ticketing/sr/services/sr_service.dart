@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../model/sr_model.dart';
 
 class ServiceRequestService {
-  final String baseUrl = "http://localhost:8000/api";
+  final String baseUrl = "https://adastra-api.onrender.com/api";
 
   Future<List<ServiceRequestModel>> getServiceRequests(
     String token, {

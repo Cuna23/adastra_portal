@@ -5,8 +5,7 @@ import 'package:http/http.dart' as http;
 
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8000/api';
-
+  static const String baseUrl = 'https://adastra-api.onrender.com/api';
   // Login
   Future<AuthResponse> login(String email, String password) async {
     final response = await http.post(

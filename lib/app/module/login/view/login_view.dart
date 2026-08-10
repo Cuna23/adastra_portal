@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleMicrosoftLogin() async {
     // Buka URL redirect Laravel dalam browser (guna url_launcher package)
-    final url = Uri.parse('http://localhost:8000/api/auth/microsoft/redirect');
+final url = Uri.parse('https://adastra-api.onrender.com/api/auth/microsoft/redirect');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, webOnlyWindowName: '_self');
     }

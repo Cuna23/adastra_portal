@@ -4,7 +4,7 @@ import 'package:http_parser/http_parser.dart';
 import '../model/incident_model.dart';
 
 class IncidentService {
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String baseUrl = 'https://adastra-api.onrender.com/api';
 
   Map<String, String> _headers(String token) => {
         'Accept': 'application/json',

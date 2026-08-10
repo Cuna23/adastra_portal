@@ -10,7 +10,7 @@ import '../model/department_model.dart';
 class UserViewModel extends ChangeNotifier {
   final UserService _service = UserService();
 
-  static const String _base = 'http://127.0.0.1:8000/api';
+  static const String _base = 'https://adastra-api.onrender.com/api';
 
   List<UserModel> users = [];
   List<DepartmentModel> departments = [];

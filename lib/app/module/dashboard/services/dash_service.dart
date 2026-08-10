@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../model/dash_model.dart';
 
 class DashboardService {
-  final String baseUrl = "http://127.0.0.1:8000/api";
+  final String baseUrl = "https://adastra-api.onrender.com/api";
 
   Future<Map<String, dynamic>> _fetchRaw(String token) async {
     final res = await http.get(

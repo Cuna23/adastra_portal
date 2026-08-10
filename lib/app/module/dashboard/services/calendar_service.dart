@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../model/calendar_model.dart';
 
 class CalendarService {
-  final String baseUrl = "http://127.0.0.1:8000/api";
+  final String baseUrl = "https://adastra-api.onrender.com/api";
 
   Map<String, String> _headers(String token) => {'Authorization': 'Bearer $token', 'Accept': 'application/json'};
 

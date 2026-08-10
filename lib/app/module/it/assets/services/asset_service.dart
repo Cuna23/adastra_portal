@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../model/asset_model.dart';
 
 class AssetService {
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
+  static const String baseUrl = 'https://adastra-api.onrender.com/api';
 
   Future<List<AssetModel>> getAssets(String token) async {
     final response = await http.get(

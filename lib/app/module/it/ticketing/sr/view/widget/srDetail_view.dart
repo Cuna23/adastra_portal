@@ -32,7 +32,7 @@ class _SRDetailPageState extends State<SRDetailPage> {
   static const _borderColor   = Color(0xFFE5E7EB);
   static const _bgLight       = Color(0xFFF9FAFB);
   static const _bgField       = Color(0xFFF3F4F6);
-  static const String _baseUrl = "http://localhost:8000";
+ static const String _baseUrl = "https://adastra-api.onrender.com";
 
   static const _typeLabels = {
     'asset_request': 'Asset request',

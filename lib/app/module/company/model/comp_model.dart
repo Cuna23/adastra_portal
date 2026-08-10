@@ -31,5 +31,5 @@ class CompanyModel {
 
   // [NEW] full URL to render image via Image.network
   String? get imageUrl =>
-      imagePath != null ? 'http://127.0.0.1:8000/storage/$imagePath' : null;
+      imagePath != null ? 'https://adastra-api.onrender.com/storage/$imagePath' : null;
 }
