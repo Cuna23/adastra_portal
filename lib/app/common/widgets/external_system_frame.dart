@@ -7,14 +7,14 @@ import 'package:flutter/material.dart';
 ///
 /// - If [embeddable] is true: renders the system via an iframe (works for
 ///   systems that don't block framing, e.g. Terra).
-/// - If [embeddable] is false: renders a branded launch card with a button
-///   that opens the system in a new tab (for systems that block iframe
-///   embedding via X-Frame-Options, e.g. AutoCount, Zoho).
+/// - If [embeddable] is false: auto-opens the system in a popup window as
+///   soon as this page loads, with a launch card shown as fallback (in case
+///   the popup was blocked by the browser).
 class ExternalSystemFrame extends StatefulWidget {
   final String url;
   final String systemKey; // e.g. 'autocount', 'zoho', 'terra'
   final String systemName; // display name, e.g. 'AutoCount'
-  final bool embeddable; // false = show launch card instead of iframe
+  final bool embeddable; // false = popup window instead of iframe
   final String? description; // shown on launch card only
   final IconData icon;
   final Color accentColor;
@@ -35,9 +35,6 @@ class ExternalSystemFrame extends StatefulWidget {
 }
 
 class _ExternalSystemFrameState extends State<ExternalSystemFrame> {
-  // Keep track of which viewTypes have already been registered so we
-  // don't call registerViewFactory twice for the same key (it throws
-  // if you re-register the same viewId).
   static final Set<String> _registeredViewTypes = {};
 
   String? _viewId;
@@ -60,14 +57,19 @@ class _ExternalSystemFrameState extends State<ExternalSystemFrame> {
         });
         _registeredViewTypes.add(_viewId!);
       }
+    } else {
+      // Non-embeddable — auto-trigger popup as soon as this page loads.
+      // The launch card below still renders as a fallback in case the
+      // browser blocked the automatic popup.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _openExternal());
     }
   }
 
-  Future<void> _openExternal() async {
+  void _openExternal() {
     html.window.open(
       widget.url,
-      'external_${widget.systemKey}', // nama unique per system — reuse window kalau diklik lagi
-      'width=1400,height=900,left=100,top=50,resizable=yes,scrollbars=yes,toolbar=yes,location=yes',
+      'external_${widget.systemKey}',
+      'width=1270,height=600,left=340,top=160,resizable=yes,scrollbars=yes,toolbar=yes,location=yes',
     );
   }
 
@@ -175,7 +177,8 @@ class _LaunchCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Will open in a separate window',
+                "Didn't open automatically? Click the button above.",
+                textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
               ),
             ],
