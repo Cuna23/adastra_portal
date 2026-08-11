@@ -1,7 +1,6 @@
 import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// Displays an external system (AutoCount, Zoho, Terra, etc.) inside the
 /// portal.
@@ -65,8 +64,11 @@ class _ExternalSystemFrameState extends State<ExternalSystemFrame> {
   }
 
   Future<void> _openExternal() async {
-    final uri = Uri.parse(widget.url);
-    await launchUrl(uri, webOnlyWindowName: '_blank');
+    html.window.open(
+      widget.url,
+      'external_${widget.systemKey}', // nama unique per system — reuse window kalau diklik lagi
+      'width=1400,height=900,left=100,top=50,resizable=yes,scrollbars=yes,toolbar=yes,location=yes',
+    );
   }
 
   @override
@@ -173,7 +175,7 @@ class _LaunchCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Will be opened in a new tab',
+                'Will open in a separate window',
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
               ),
             ],
