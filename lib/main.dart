@@ -1,10 +1,12 @@
 import 'package:adastra_portal/app/router.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'app/module/login/view model/login_vm.dart';
 
 void main() {
+  usePathUrlStrategy(); 
   runApp(const MyApp());
 }
 
