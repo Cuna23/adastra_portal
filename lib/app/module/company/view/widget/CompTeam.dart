@@ -1,96 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-// ── Team categories ──
-enum TeamCategory {
-  director('Director'),
-  trademark('Trademark team'),
-  patent('Patent team'),
-  valuation('Valuation'),
-  businessDev('Business development'),
-  commercialization('Commercialization team'),
-  finance('Finance');
-
-  final String label;
-  const TeamCategory(this.label);
-}
-
-// ── Local model (session only — belum ada backend) ──
+// ── Model (backend-driven, department-based) ──
 class TeamMember {
-  final String id; // local id (timestamp string)
+  final int id;
   final String name;
   final String position;
-  final TeamCategory team;
+  final int departmentId;
+  final String departmentName;
   final String background;
-  final XFile? photo; // local preview je, belum upload
-  final Color color;
-  final Color bg;
+  final String? photoPath;
+  final int sortOrder;
 
   TeamMember({
     required this.id,
     required this.name,
     required this.position,
-    required this.team,
+    required this.departmentId,
+    required this.departmentName,
     required this.background,
-    this.photo,
-    required this.color,
-    required this.bg,
+    this.photoPath,
+    this.sortOrder = 0,
   });
 
-  TeamMember copyWith({
-    String? name,
-    String? position,
-    TeamCategory? team,
-    String? background,
-    XFile? photo,
-  }) {
+  factory TeamMember.fromJson(Map<String, dynamic> json) {
     return TeamMember(
-      id: id,
-      name: name ?? this.name,
-      position: position ?? this.position,
-      team: team ?? this.team,
-      background: background ?? this.background,
-      photo: photo ?? this.photo,
-      color: color,
-      bg: bg,
+      id: json['id'],
+      name: json['name'],
+      position: json['position'],
+      departmentId: json['department_id'],
+      departmentName: json['department_name'] ?? 'Unknown',
+      background: json['background'] ?? '',
+      photoPath: json['photo_path'],
+      sortOrder: json['sort_order'] ?? 0,
     );
+  }
+
+  String? get photoUrl =>
+      photoPath != null ? 'https://adastra-api.onrender.com/storage/$photoPath' : null;
+
+  Color get color => _palette[name.hashCode.abs() % _palette.length].$1;
+  Color get bg => _palette[name.hashCode.abs() % _palette.length].$2;
+
+  static const _palette = [
+    (Color(0xFF185FA5), Color(0xFFE6F1FB)),
+    (Color(0xFF0F6E56), Color(0xFFE1F5EE)),
+    (Color(0xFF854F0B), Color(0xFFFAEEDA)),
+    (Color(0xFF4F46E5), Color(0xFFEEF2FF)),
+  ];
+}
+
+// ── Department (untuk dropdown, dari /departments endpoint) ──
+class DepartmentOption {
+  final int id;
+  final String name;
+
+  DepartmentOption({required this.id, required this.name});
+
+  factory DepartmentOption.fromJson(Map<String, dynamic> json) {
+    return DepartmentOption(id: json['id'], name: json['department_name']);
   }
 }
 
-// [HARDCODED] — TODO: ganti dengan fetch API bila backend `team_members` siap
-List<TeamMember> hardcodedTeamMembers() => [
-      TeamMember(
-        id: '1',
-        name: 'Ahmad Zaki',
-        position: 'Managing Director',
-        team: TeamCategory.director,
-        background: 'Leads overall strategy and operations for Adastra IP.',
-        color: const Color(0xFF185FA5),
-        bg: const Color(0xFFE6F1FB),
-      ),
-      TeamMember(
-        id: '2',
-        name: 'Sarah Lim',
-        position: 'Head of Trademark',
-        team: TeamCategory.trademark,
-        background: 'Oversees the trademark practice group and client relations.',
-        color: const Color(0xFF0F6E56),
-        bg: const Color(0xFFE1F5EE),
-      ),
-      TeamMember(
-        id: '3',
-        name: 'Rajesh Kumar',
-        position: 'Head of Patent',
-        team: TeamCategory.patent,
-        background: 'Heads the patent practice group.',
-        color: const Color(0xFF854F0B),
-        bg: const Color(0xFFFAEEDA),
-      ),
-    ];
-
-// ── Avatar (tap-only now — no more external kebab menu / "Show menu" tooltip) ──
-// [CHANGED] Removed onEdit/onDelete/deleteEnabled + the CompMenu Positioned overlay.
-// Edit/Delete now live inside the bio popup instead (see showTeamMemberBio below).
+// ── Avatar ──
 class TeamMemberAvatar extends StatelessWidget {
   final TeamMember member;
   final VoidCallback onTap;
@@ -113,8 +85,8 @@ class TeamMemberAvatar extends StatelessWidget {
             CircleAvatar(
               radius: 26,
               backgroundColor: member.bg,
-              backgroundImage: member.photo != null ? NetworkImage(member.photo!.path) : null,
-              child: member.photo == null ? Icon(Icons.person_rounded, size: 24, color: member.color) : null,
+              backgroundImage: member.photoUrl != null ? NetworkImage(member.photoUrl!) : null,
+              child: member.photoUrl == null ? Icon(Icons.person_rounded, size: 24, color: member.color) : null,
             ),
             const SizedBox(height: 6),
             Text(member.name, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
@@ -127,10 +99,6 @@ class TeamMemberAvatar extends StatelessWidget {
 }
 
 // ── Bio popup ──
-// [CHANGED] Now accepts onEdit/onDelete/deleteEnabled to render Edit/Delete
-// buttons INSIDE the dialog (was previously an external 3-dot menu on the avatar).
-// [CHANGED] Added a close "X" icon top-right (Stack + Positioned).
-// [CHANGED] Bottom "Close" button is now a filled blue button, same style as "Add User".
 void showTeamMemberBio(
   BuildContext context,
   TeamMember m, {
@@ -155,18 +123,18 @@ void showTeamMemberBio(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 12), // room for the close X above
+                  const SizedBox(height: 12),
                   CircleAvatar(
                     radius: 28,
                     backgroundColor: m.bg,
-                    backgroundImage: m.photo != null ? NetworkImage(m.photo!.path) : null,
-                    child: m.photo == null ? Icon(Icons.person_rounded, size: 26, color: m.color) : null,
+                    backgroundImage: m.photoUrl != null ? NetworkImage(m.photoUrl!) : null,
+                    child: m.photoUrl == null ? Icon(Icons.person_rounded, size: 26, color: m.color) : null,
                   ),
                   const SizedBox(height: 12),
                   Text(m.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
                   Text(m.position, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: m.color)),
                   const SizedBox(height: 4),
-                  Text(m.team.label, style: const TextStyle(fontSize: 11, color: Color(0xFF9AA5B1))),
+                  Text(m.departmentName, style: const TextStyle(fontSize: 11, color: Color(0xFF9AA5B1))),
                   const SizedBox(height: 10),
                   Text(
                     m.background.isNotEmpty ? m.background : 'No background info yet.',
@@ -247,15 +215,37 @@ void showTeamMemberBio(
   );
 }
 
+// ── Add/Edit form result ──
+class TeamMemberFormResult {
+  final String name;
+  final String position;
+  final int departmentId;
+  final String background;
+  final XFile? photo;
+
+  TeamMemberFormResult({
+    required this.name,
+    required this.position,
+    required this.departmentId,
+    required this.background,
+    this.photo,
+  });
+}
+
 // ── Add / Edit form dialog ──
-Future<TeamMember?> showTeamMemberForm(BuildContext context, {TeamMember? existing}) {
+// departments: list DepartmentOption dari API (kena dah fetch sebelum panggil dialog ni)
+Future<TeamMemberFormResult?> showTeamMemberForm(
+  BuildContext context, {
+  required List<DepartmentOption> departments,
+  TeamMember? existing,
+}) {
   final nameCtrl = TextEditingController(text: existing?.name ?? '');
   final positionCtrl = TextEditingController(text: existing?.position ?? '');
   final bgCtrl = TextEditingController(text: existing?.background ?? '');
-  TeamCategory selectedTeam = existing?.team ?? TeamCategory.director;
-  XFile? photo = existing?.photo;
+  int? selectedDeptId = existing?.departmentId ?? (departments.isNotEmpty ? departments.first.id : null);
+  XFile? photo;
 
-  return showDialog<TeamMember>(
+  return showDialog<TeamMemberFormResult>(
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setDialogState) => Dialog(
@@ -274,7 +264,7 @@ Future<TeamMember?> showTeamMemberForm(BuildContext context, {TeamMember? existi
                 const Text('Fill in the member\'s details', style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF))),
                 const SizedBox(height: 18),
 
-                const Text('Photo', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
+                const Text('Photo (optional)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
                 const SizedBox(height: 8),
                 InkWell(
                   onTap: () async {
@@ -286,15 +276,18 @@ Future<TeamMember?> showTeamMemberForm(BuildContext context, {TeamMember? existi
                   child: CircleAvatar(
                     radius: 32,
                     backgroundColor: const Color(0xFFF9FAFB),
-                    backgroundImage: photo != null ? NetworkImage(photo!.path) : null,
-                    child: photo == null ? const Icon(Icons.add_a_photo_outlined, color: Color(0xFF9CA3AF)) : null,
+                    backgroundImage: photo != null
+                        ? NetworkImage(photo!.path)
+                        : (existing?.photoUrl != null ? NetworkImage(existing!.photoUrl!) : null),
+                    child: (photo == null && existing?.photoUrl == null)
+                        ? const Icon(Icons.add_a_photo_outlined, color: Color(0xFF9CA3AF))
+                        : null,
                   ),
                 ),
                 const SizedBox(height: 16),
 
                 const Text('Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
                 const SizedBox(height: 6),
-                // [CHANGED] added explicit style: darker text color instead of default grey
                 TextField(
                   controller: nameCtrl,
                   style: const TextStyle(fontSize: 14, color: Color(0xFF1B1E28)),
@@ -311,20 +304,20 @@ Future<TeamMember?> showTeamMemberForm(BuildContext context, {TeamMember? existi
                 ),
                 const SizedBox(height: 14),
 
-                const Text('Team', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
+                const Text('Department', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),
                 const SizedBox(height: 6),
-                DropdownButtonFormField<TeamCategory>(
-                  value: selectedTeam,
+                DropdownButtonFormField<int>(
+                  value: selectedDeptId,
                   dropdownColor: Colors.white,
                   decoration: _decoration(null),
                   style: const TextStyle(fontSize: 13, color: Color(0xFF1B1E28)),
-                  items: TeamCategory.values
-                      .map((t) => DropdownMenuItem(
-                            value: t,
-                            child: Text(t.label, style: const TextStyle(fontSize: 13, color: Color(0xFF1B1E28))),
+                  items: departments
+                      .map((d) => DropdownMenuItem(
+                            value: d.id,
+                            child: Text(d.name, style: const TextStyle(fontSize: 13, color: Color(0xFF1B1E28))),
                           ))
                       .toList(),
-                  onChanged: (val) => setDialogState(() => selectedTeam = val ?? selectedTeam),
+                  onChanged: (val) => setDialogState(() => selectedDeptId = val),
                 ),
                 const SizedBox(height: 14),
 
@@ -345,25 +338,17 @@ Future<TeamMember?> showTeamMemberForm(BuildContext context, {TeamMember? existi
                     const SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () {
-                        if (nameCtrl.text.trim().isEmpty || positionCtrl.text.trim().isEmpty) return;
-                        final colors = [
-                          (const Color(0xFF185FA5), const Color(0xFFE6F1FB)),
-                          (const Color(0xFF0F6E56), const Color(0xFFE1F5EE)),
-                          (const Color(0xFF854F0B), const Color(0xFFFAEEDA)),
-                          (const Color(0xFF4F46E5), const Color(0xFFEEF2FF)),
-                        ];
-                        final palette = colors[nameCtrl.text.hashCode.abs() % colors.length];
+                        if (nameCtrl.text.trim().isEmpty ||
+                            positionCtrl.text.trim().isEmpty ||
+                            selectedDeptId == null) return;
                         Navigator.pop(
                           ctx,
-                          TeamMember(
-                            id: existing?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                          TeamMemberFormResult(
                             name: nameCtrl.text.trim(),
                             position: positionCtrl.text.trim(),
-                            team: selectedTeam,
+                            departmentId: selectedDeptId!,
                             background: bgCtrl.text.trim(),
                             photo: photo,
-                            color: existing?.color ?? palette.$1,
-                            bg: existing?.bg ?? palette.$2,
                           ),
                         );
                       },

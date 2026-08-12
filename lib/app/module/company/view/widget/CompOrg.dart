@@ -7,7 +7,6 @@ import 'CompImage.dart';
 import 'CompMenu.dart';
 import 'CompTeam.dart';
 
-// [CHANGED] StatefulWidget — perlu simpan local team members state
 class OrgChartContent extends StatefulWidget {
   final String role;
   final String token;
@@ -18,9 +17,6 @@ class OrgChartContent extends StatefulWidget {
 }
 
 class _OrgChartContentState extends State<OrgChartContent> {
-  // [HARDCODED] — TODO: ganti dengan fetch dari CompanyViewModel bila backend siap
-  List<TeamMember> _members = hardcodedTeamMembers();
-
   bool get _isAdminOrSuper => widget.role == 'admin' || widget.role == 'super_admin';
   bool get _isSuperAdmin => widget.role == 'super_admin';
 
@@ -74,10 +70,9 @@ class _OrgChartContentState extends State<OrgChartContent> {
             const Expanded(
               child: Text('Teams and leadership', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1B1E28))),
             ),
-            // [CHANGED] TextButton -> ElevatedButton, same filled-blue style as "Add User"
             if (_isAdminOrSuper)
               ElevatedButton.icon(
-                onPressed: _addMember,
+                onPressed: vm.departments.isEmpty ? null : () => _addMember(vm),
                 icon: const Icon(Icons.add_rounded, size: 16),
                 label: const Text('Add member', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 style: ElevatedButton.styleFrom(
@@ -94,39 +89,32 @@ class _OrgChartContentState extends State<OrgChartContent> {
         const Text('Tap a member to view their profile.', style: TextStyle(fontSize: 12, color: Color(0xFF9AA5B1))),
         const SizedBox(height: 14),
 
-        if (_members.isEmpty)
+        if (vm.teamMembers.isEmpty)
           const Text('No team members added yet.', style: TextStyle(fontSize: 12, color: Color(0xFF9AA5B1)))
         else
           Column(
-            children: TeamCategory.values.map((team) {
-              final teamMembers = _members.where((m) => m.team == team).toList();
-              if (teamMembers.isEmpty) return const SizedBox.shrink();
+            children: _groupedByDepartment(vm.teamMembers).entries.map((entry) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      team.label,
+                      entry.key,
                       style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF9AA5B1), letterSpacing: 0.3),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 16,
                       runSpacing: 16,
-                      children: teamMembers
-                          // [CHANGED] onEdit/onDelete no longer passed to the avatar —
-                          // they're passed into showTeamMemberBio so the buttons
-                          // render INSIDE the detail popup instead of the avatar's
-                          // external kebab menu (that was causing the stray
-                          // "Show menu" tooltip overlapping the name text).
+                      children: entry.value
                           .map((m) => TeamMemberAvatar(
                                 member: m,
                                 onTap: () => showTeamMemberBio(
                                   context,
                                   m,
-                                  onEdit: _isAdminOrSuper ? () => _editMember(m) : null,
-                                  onDelete: _isAdminOrSuper ? () => _deleteMember(m) : null,
+                                  onEdit: _isAdminOrSuper ? () => _editMember(vm, m) : null,
+                                  onDelete: _isAdminOrSuper ? () => _deleteMember(vm, m) : null,
                                   deleteEnabled: _isSuperAdmin,
                                 ),
                               ))
@@ -141,23 +129,38 @@ class _OrgChartContentState extends State<OrgChartContent> {
     );
   }
 
-  // ── Team member actions (local state only) ──
-  Future<void> _addMember() async {
-    final result = await showTeamMemberForm(context);
-    if (result == null) return;
-    setState(() => _members = [..._members, result]);
+  // Group members by department name (preserve order — first appearance)
+  Map<String, List<TeamMember>> _groupedByDepartment(List<TeamMember> members) {
+    final Map<String, List<TeamMember>> grouped = {};
+    for (final m in members) {
+      grouped.putIfAbsent(m.departmentName, () => []).add(m);
+    }
+    return grouped;
   }
 
-  Future<void> _editMember(TeamMember m) async {
-    final result = await showTeamMemberForm(context, existing: m);
+  // ── Team member actions (backend-driven) ──
+  Future<void> _addMember(CompanyViewModel vm) async {
+    final result = await showTeamMemberForm(context, departments: vm.departments);
     if (result == null) return;
-    setState(() => _members = _members.map((x) => x.id == m.id ? result : x).toList());
+    final ok = await vm.addTeamMember(result, widget.token);
+    if (!mounted) return;
+    _showSnack(ok ? 'Team member added.' : 'Failed to add member. Please try again.', success: ok);
   }
 
-  Future<void> _deleteMember(TeamMember m) async {
+  Future<void> _editMember(CompanyViewModel vm, TeamMember m) async {
+    final result = await showTeamMemberForm(context, departments: vm.departments, existing: m);
+    if (result == null) return;
+    final ok = await vm.editTeamMember(m.id, result, widget.token);
+    if (!mounted) return;
+    _showSnack(ok ? 'Team member updated.' : 'Update failed. Please try again.', success: ok);
+  }
+
+  Future<void> _deleteMember(CompanyViewModel vm, TeamMember m) async {
     final confirmed = await StyledDialogs.confirmDelete(context, itemLabel: m.name, message: 'This will remove ${m.name} from the team list.');
     if (confirmed != true || !mounted) return;
-    setState(() => _members = _members.where((x) => x.id != m.id).toList());
+    final ok = await vm.removeTeamMember(m.id, widget.token);
+    if (!mounted) return;
+    _showSnack(ok ? 'Deleted successfully.' : 'Delete failed. Please try again.', success: ok);
   }
 
   // ── Org chart image actions ──
@@ -194,8 +197,6 @@ class _OrgChartContentState extends State<OrgChartContent> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // [CHANGED] title text was using the default ListTile style (faded grey);
-            // now explicit dark + semi-bold, matching the rest of the design system.
             ListTile(
               leading: const Icon(Icons.edit_outlined, color: Color(0xFF1B1E28)),
               title: const Text('Edit title', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28))),

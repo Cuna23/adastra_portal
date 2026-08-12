@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../model/comp_model.dart';
 import '../services/comp_services.dart';
+import '../view/widget/CompTeam.dart';
 
 class CompanyViewModel extends ChangeNotifier {
   final CompanyService _service = CompanyService();
@@ -10,6 +11,8 @@ class CompanyViewModel extends ChangeNotifier {
   CompanyModel? orgChart;
   CompanyModel? visionMission; 
   List<CompanyModel> floorMaps = [];
+  List<TeamMember> teamMembers = [];
+  List<DepartmentOption> departments = [];
   CompanyModel? about;
   String visionText = '';
   String missionText = '';
@@ -24,6 +27,8 @@ class CompanyViewModel extends ChangeNotifier {
         fetchFloorMaps(token, notify: false),
         fetchAbout(token, notify: false),
         fetchVisionMission(token, notify: false),
+        fetchTeamMembers(token, notify: false),
+        fetchDepartments(token, notify: false), 
       ]);
     } finally {
       isLoading = false;
@@ -140,6 +145,57 @@ class CompanyViewModel extends ChangeNotifier {
       missionText = '';
       notifyListeners();
     }
+    return ok;
+  }
+
+    Future<void> fetchDepartments(String token, {bool notify = true}) async {
+    try {
+      departments = await _service.getDepartments(token);
+    } catch (e) {
+      debugPrint('fetchDepartments error: $e');
+    }
+    if (notify) notifyListeners();
+  }
+
+  Future<void> fetchTeamMembers(String token, {bool notify = true}) async {
+    try {
+      teamMembers = await _service.getTeamMembers(token);
+    } catch (e) {
+      debugPrint('fetchTeamMembers error: $e');
+    }
+    if (notify) notifyListeners();
+  }
+
+  Future<bool> addTeamMember(TeamMemberFormResult form, String token) async {
+    final ok = await _service.createTeamMember(
+      name: form.name,
+      position: form.position,
+      departmentId: form.departmentId,
+      background: form.background,
+      photo: form.photo,
+      token: token,
+    );
+    if (ok) await fetchTeamMembers(token);
+    return ok;
+  }
+
+  Future<bool> editTeamMember(int id, TeamMemberFormResult form, String token) async {
+    final ok = await _service.updateTeamMember(
+      id: id,
+      name: form.name,
+      position: form.position,
+      departmentId: form.departmentId,
+      background: form.background,
+      photo: form.photo,
+      token: token,
+    );
+    if (ok) await fetchTeamMembers(token);
+    return ok;
+  }
+
+  Future<bool> removeTeamMember(int id, String token) async {
+    final ok = await _service.deleteTeamMember(id, token);
+    if (ok) await fetchTeamMembers(token);
     return ok;
   }
 }

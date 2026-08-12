@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../model/comp_model.dart';
+import '../view/widget/CompTeam.dart';
 
 class CompanyService {
   final String baseUrl = "https://adastra-api.onrender.com/api";
@@ -84,6 +85,71 @@ class CompanyService {
 
   Future<bool> deleteCompanyItem(int id, String token) async {
     final res = await http.delete(Uri.parse('$baseUrl/company/$id'), headers: _headers(token));
+    return res.statusCode == 200;
+  }
+
+  // ── Departments (untuk dropdown) ──
+  Future<List<DepartmentOption>> getDepartments(String token) async {
+    final res = await http.get(Uri.parse('$baseUrl/departments'), headers: _headers(token));
+    final data = jsonDecode(res.body) as List;
+    return data.map((e) => DepartmentOption.fromJson(e)).toList();
+  }
+
+  // ── Team Members ──
+  Future<List<TeamMember>> getTeamMembers(String token) async {
+    final res = await http.get(Uri.parse('$baseUrl/team-members'), headers: _headers(token));
+    final data = jsonDecode(res.body) as List;
+    return data.map((e) => TeamMember.fromJson(e)).toList();
+  }
+
+  Future<bool> createTeamMember({
+    required String name,
+    required String position,
+    required int departmentId,
+    required String background,
+    XFile? photo,
+    required String token,
+  }) async {
+    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/team-members'));
+    request.headers.addAll(_headers(token));
+    request.fields['name'] = name;
+    request.fields['position'] = position;
+    request.fields['department_id'] = departmentId.toString();
+    request.fields['background'] = background;
+    if (photo != null) {
+      final bytes = await photo.readAsBytes();
+      request.files.add(http.MultipartFile.fromBytes('photo', bytes, filename: photo.name));
+    }
+    final streamed = await request.send();
+    return streamed.statusCode == 201;
+  }
+
+  Future<bool> updateTeamMember({
+    required int id,
+    required String name,
+    required String position,
+    required int departmentId,
+    required String background,
+    XFile? photo,
+    required String token,
+  }) async {
+    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl/team-members/$id'));
+    request.headers.addAll(_headers(token));
+    request.fields['_method'] = 'PUT';
+    request.fields['name'] = name;
+    request.fields['position'] = position;
+    request.fields['department_id'] = departmentId.toString();
+    request.fields['background'] = background;
+    if (photo != null) {
+      final bytes = await photo.readAsBytes();
+      request.files.add(http.MultipartFile.fromBytes('photo', bytes, filename: photo.name));
+    }
+    final streamed = await request.send();
+    return streamed.statusCode == 200;
+  }
+
+  Future<bool> deleteTeamMember(int id, String token) async {
+    final res = await http.delete(Uri.parse('$baseUrl/team-members/$id'), headers: _headers(token));
     return res.statusCode == 200;
   }
 }
