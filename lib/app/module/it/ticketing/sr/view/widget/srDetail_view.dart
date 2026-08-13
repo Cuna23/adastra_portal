@@ -32,7 +32,6 @@ class _SRDetailPageState extends State<SRDetailPage> {
   static const _borderColor   = Color(0xFFE5E7EB);
   static const _bgLight       = Color(0xFFF9FAFB);
   static const _bgField       = Color(0xFFF3F4F6);
- static const String _baseUrl = "https://adastra-api.onrender.com";
 
   static const _typeLabels = {
     'asset_request': 'Asset request',
@@ -64,8 +63,7 @@ class _SRDetailPageState extends State<SRDetailPage> {
 
   Future<void> _openAttachment(String? attachmentPath) async {
     if (attachmentPath == null) return;
-    final url = '$_baseUrl/storage/$attachmentPath';
-    final uri = Uri.parse(url);
+    final uri = Uri.parse(attachmentPath);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
