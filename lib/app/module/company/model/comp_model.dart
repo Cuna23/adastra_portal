@@ -29,7 +29,5 @@ class CompanyModel {
     );
   }
 
-  // [NEW] full URL to render image via Image.network
-  String? get imageUrl =>
-      imagePath != null ? 'https://adastra-api.onrender.com/storage/$imagePath' : null;
+  String? get imageUrl => imagePath;
 }
