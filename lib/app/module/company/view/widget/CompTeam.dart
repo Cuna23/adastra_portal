@@ -36,8 +36,7 @@ class TeamMember {
     );
   }
 
-  String? get photoUrl =>
-      photoPath != null ? 'https://adastra-api.onrender.com/storage/$photoPath' : null;
+  String? get photoUrl => photoPath;
 
   Color get color => _palette[name.hashCode.abs() % _palette.length].$1;
   Color get bg => _palette[name.hashCode.abs() % _palette.length].$2;
