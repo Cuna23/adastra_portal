@@ -48,55 +48,109 @@ class _OrgChartContentState extends State<OrgChartContent> {
         ),
         const SizedBox(height: 4),
         const Text('Tap a member to view their profile.', style: TextStyle(fontSize: 12, color: Color(0xFF9AA5B1))),
-        const SizedBox(height: 14),
+        const SizedBox(height: 20),
 
         if (vm.teamMembers.isEmpty)
           const Text('No team members added yet.', style: TextStyle(fontSize: 12, color: Color(0xFF9AA5B1)))
         else
-          Column(
-            children: _groupedByDepartment(vm.teamMembers).entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.key,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF9AA5B1), letterSpacing: 0.3),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      children: entry.value
-                          .map((m) => TeamMemberAvatar(
-                                member: m,
-                                onTap: () => showTeamMemberBio(
-                                  context,
-                                  m,
-                                  onEdit: _isAdminOrSuper ? () => _editMember(vm, m) : null,
-                                  onDelete: _isAdminOrSuper ? () => _deleteMember(vm, m) : null,
-                                  deleteEnabled: _isSuperAdmin,
-                                ),
-                              ))
-                          .toList(),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+          Center(child: _buildOrgTree(vm)),
+      ],
+    );
+  }
+
+  // ── Tree: root (Director/s) → connector → department cards ──
+  Widget _buildOrgTree(CompanyViewModel vm) {
+    final roots = _rootMembers(vm.teamMembers);
+    final grouped = _groupedByDepartment(vm.teamMembers);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Root row (Director/s) — full-size avatar with photo
+        if (roots.isNotEmpty) ...[
+          Wrap(
+            spacing: 16,
+            alignment: WrapAlignment.center,
+            children: roots.map((m) => TeamMemberAvatar(member: m, onTap: () => _openBio(vm, m))).toList(),
+          ),
+          if (grouped.isNotEmpty) ...[
+            Container(width: 1, height: 20, color: const Color(0xFFE5E7EB)),
+            Container(
+              constraints: const BoxConstraints(maxWidth: 900),
+              height: 1,
+              color: const Color(0xFFE5E7EB),
+            ),
+          ],
+        ],
+
+        if (grouped.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 0),
+            child: Wrap(
+              spacing: 20,
+              runSpacing: 20,
+              alignment: WrapAlignment.center,
+              children: grouped.entries.map((entry) => _buildDeptCard(vm, entry.key, entry.value)).toList(),
+            ),
           ),
       ],
     );
   }
 
-  // Group members by department name (preserve order — first appearance)
+  Widget _buildDeptCard(CompanyViewModel vm, String deptName, List<TeamMember> members) {
+    return Column(
+      children: [
+        Container(width: 1, height: 16, color: const Color(0xFFE5E7EB)),
+        Container(
+          width: 160,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                deptName,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF9AA5B1), letterSpacing: 0.3),
+              ),
+              const SizedBox(height: 10),
+              Column(
+                children: members.map((m) => _CompactMemberRow(member: m, onTap: () => _openBio(vm, m))).toList(),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _openBio(CompanyViewModel vm, TeamMember m) {
+    showTeamMemberBio(
+      context,
+      m,
+      onEdit: _isAdminOrSuper ? () => _editMember(vm, m) : null,
+      onDelete: _isAdminOrSuper ? () => _deleteMember(vm, m) : null,
+      deleteEnabled: _isSuperAdmin,
+    );
+  }
+
+  // Director check by position title (case-insensitive substring match)
+  bool _isDirector(TeamMember m) => m.position.toLowerCase().contains('director');
+
+  List<TeamMember> _rootMembers(List<TeamMember> members) => members.where(_isDirector).toList();
+
+  // Group non-director members by department, sorted alphabetically
   Map<String, List<TeamMember>> _groupedByDepartment(List<TeamMember> members) {
     final Map<String, List<TeamMember>> grouped = {};
     for (final m in members) {
+      if (_isDirector(m)) continue;
       grouped.putIfAbsent(m.departmentName, () => []).add(m);
     }
-    return grouped;
+    final sortedKeys = grouped.keys.toList()..sort();
+    return {for (final k in sortedKeys) k: grouped[k]!};
   }
 
   // ── Team member actions (backend-driven) ──
@@ -127,6 +181,55 @@ class _OrgChartContentState extends State<OrgChartContent> {
   void _showSnack(String message, {required bool success}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: success ? const Color(0xFF2E7D52) : const Color(0xFFD64545), behavior: SnackBarBehavior.floating),
+    );
+  }
+}
+
+// ── Compact member row for department cards (photo + name, tighter than TeamMemberAvatar) ──
+class _CompactMemberRow extends StatelessWidget {
+  final TeamMember member;
+  final VoidCallback onTap;
+
+  const _CompactMemberRow({required this.member, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 13,
+              backgroundColor: member.bg,
+              backgroundImage: member.photoUrl != null ? NetworkImage(member.photoUrl!) : null,
+              child: member.photoUrl == null ? Icon(Icons.person_rounded, size: 13, color: member.color) : null,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    member.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1B1E28)),
+                  ),
+                  Text(
+                    member.position,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 10, color: Color(0xFF9AA5B1)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
