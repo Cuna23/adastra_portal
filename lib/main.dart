@@ -52,9 +52,19 @@ class _MyAppState extends State<MyApp> {
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color(0xFF4F6EF7),
-                brightness: Brightness.dark,
+                brightness: Brightness.light,
               ),
               useMaterial3: true,
+              scaffoldBackgroundColor: const Color(0xFFF4F7FC), // [NEW] konsisten dengan background sedia ada
+              snackBarTheme: const SnackBarThemeData( // [NEW] fix utama — teks snackbar putih & jelas
+                contentTextStyle: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                behavior: SnackBarBehavior.floating,
+                actionTextColor: Colors.white,
+              ),
             ),
             routerConfig: _router,
           );
