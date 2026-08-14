@@ -112,7 +112,8 @@ void showTeamMemberBio(
     builder: (ctx) => Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 380),
+        // Cap dialog height to 85% of screen so it never grows off-screen.
+        constraints: BoxConstraints(maxWidth: 380, maxHeight: MediaQuery.of(ctx).size.height * 0.85),
         child: Container(
           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -135,9 +136,15 @@ void showTeamMemberBio(
                   const SizedBox(height: 4),
                   Text(m.departmentName, style: const TextStyle(fontSize: 11, color: Color(0xFF9AA5B1))),
                   const SizedBox(height: 10),
-                  Text(
-                    m.background.isNotEmpty ? m.background : 'No background info yet.',
-                    style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF4B5563)),
+                  // Flexible + SingleChildScrollView: kalau background panjang, ni je yang
+                  // scroll — header/name/position dan buttons kat bawah tetap visible.
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Text(
+                        m.background.isNotEmpty ? m.background : 'No background info yet.',
+                        style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF4B5563)),
+                      ),
+                    ),
                   ),
                   if (showActionsRow) ...[
                     const SizedBox(height: 18),
