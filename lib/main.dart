@@ -52,7 +52,7 @@ class _MyAppState extends State<MyApp> {
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: const Color(0xFF4F6EF7),
-                brightness: Brightness.light,
+                brightness: Brightness.dark,
               ),
               useMaterial3: true,
               scaffoldBackgroundColor: const Color(0xFFF4F7FC), // [NEW] konsisten dengan background sedia ada
