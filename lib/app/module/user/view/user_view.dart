@@ -80,7 +80,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
   void _confirmDelete(UserModel user, UserViewModel vm) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: Colors.white,
         title: const Text(
           'Delete User',
@@ -92,7 +92,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             style: TextButton.styleFrom(foregroundColor: _brandBlue),
             child: const Text('Cancel',
                 style: TextStyle(fontWeight: FontWeight.w600)),
@@ -107,10 +107,32 @@ class _UserManagementPageState extends State<UserManagementPage> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() => _selectedIds.remove(user.id));
-              vm.removeUser(user.id, widget.token);
+            onPressed: () async {
+              // Pop dialog guna dialogContext — bukan page context, elak
+              // ter-pop shell Navigator (go_router) yang buat page jadi putih
+              Navigator.pop(dialogContext);
+
+              try {
+                await vm.removeUser(user.id, widget.token);
+                if (!mounted) return;
+                setState(() => _selectedIds.remove(user.id));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${user.name} deleted successfully.'),
+                    backgroundColor: const Color(0xFF2E7D52),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Failed to delete user. Please try again.'),
+                    backgroundColor: Color(0xFFD64545),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             },
             child: const Text('Delete',
                 style: TextStyle(fontWeight: FontWeight.w600)),
