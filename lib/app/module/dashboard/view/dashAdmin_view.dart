@@ -176,7 +176,7 @@ class _DashboardAdminViewState extends State<DashboardAdminView> {
   // ── Donut chart ──
   Widget _incidentsDonutCard(AdminDashboardStats stats, bool isMobile) {
     final entries = stats.incidentsByStatus.entries.toList();
-    final colors = {'Open': const Color(0xFFEB6834), 'In progress': const Color(0xFFEDA100), 'Resolved': const Color(0xFF008300)};
+    final colors = {'Open': const Color(0xFFEB6834), 'In pending': const Color(0xFFEDA100), 'Resolved': const Color(0xFF008300)};
     final total = entries.fold<int>(0, (sum, e) => sum + e.value);
 
     return Container(
